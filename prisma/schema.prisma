@@ -1,0 +1,182 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// ICONIK - SaaS para Gestión de Spas de Uñas
+// Multi-tenant architecture with spaId filtering
+// =====================================================
+
+model Spa {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  address     String?
+  phone       String?
+  email       String?
+  logoUrl     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  services    Service[]
+  manicurists Manicurist[]
+  clients     Client[]
+  appointments Appointment[]
+
+  @@map("spas")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // Hashed password for Auth.js
+  role      UserRole @default(CLIENT)
+  spaId     String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa       Spa      @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  birthday  DateTime?
+  notes     String?
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa          Spa           @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  services     Service[]
+  appointments Appointment[]
+
+  @@map("clients")
+}
+
+model Manicurist {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  specialty String?  // "manicure", "pedicure", "nail art", etc.
+  commission Float   @default(0.5) // Commission percentage (0.0 to 1.0)
+  isActive  Boolean  @default(true)
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa          Spa           @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  services     Service[]
+  appointments Appointment[]
+
+  @@map("manicurists")
+}
+
+model Service {
+  id           String      @id @default(cuid())
+  type         ServiceType // Type of service
+  clientId     String
+  manicuristId String?
+  price        Float
+  duration     Int         // Duration in minutes
+  notes        String?
+  imageUrl     String?     // Photo of the work done
+  rating       Int?        @db.SmallInt // Client rating 1-5
+  paymentMethod PaymentMethod @default(CASH)
+  spaId        String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  spa          Spa         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  client       Client      @relation(fields: [clientId], references: [id])
+  manicurist   Manicurist? @relation(fields: [manicuristId], references: [id])
+
+  @@map("services")
+}
+
+model Appointment {
+  id           String            @id @default(cuid())
+  clientId     String
+  manicuristId String?
+  serviceType  ServiceType
+  scheduledAt  DateTime
+  duration     Int               // Duration in minutes
+  price        Float
+  status       AppointmentStatus @default(SCHEDULED)
+  notes        String?
+  spaId        String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Relations
+  spa          Spa         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  client       Client      @relation(fields: [clientId], references: [id])
+  manicurist   Manicurist? @relation(fields: [manicuristId], references: [id])
+
+  @@map("appointments")
+}
+
+// =====================================================
+// ENUMS
+// =====================================================
+
+enum UserRole {
+  ADMIN        // Spa owner/administrator
+  MANICURIST   // Nail technician
+  CLIENT       // Regular customer
+}
+
+enum ServiceType {
+  MANICURE
+  PEDICURE
+  NAIL_ART
+  GEL_POLISH
+  ACRYLIC_NAILS
+  NAIL_REPAIR
+  HAND_SPA
+  FOOT_SPA
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  NEQUI
+  DAVIPLATA
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
