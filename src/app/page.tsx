@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 to-purple-100 dark:from-gray-900 dark:to-gray-800">
@@ -9,7 +11,7 @@ export default function Home() {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             SaaS para Gestión de Spas de Uñas
           </p>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-2xl mx-auto mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
               🚧 En Desarrollo
             </h2>
@@ -30,25 +32,63 @@ export default function Home() {
                   <span className="text-green-500">✅</span>
                   <span className="text-sm text-gray-600 dark:text-gray-300">TypeScript</span>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-green-500">✅</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Neon PostgreSQL</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-green-500">✅</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Prisma ORM</span>
+                </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <span className="text-yellow-500">⏳</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Auth.js + Prisma</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-yellow-500">⏳</span>
+                  <span className="text-green-500">✅</span>
                   <span className="text-sm text-gray-600 dark:text-gray-300">Multi-tenancy</span>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <span className="text-green-500">✅</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Dashboard UI</span>
+                </div>
+                <div className="flex items-center space-x-2">
                   <span className="text-yellow-500">⏳</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Gestión de Servicios</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Auth.js</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-yellow-500">⏳</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">API Routes</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-yellow-500">⏳</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">UploadThing</span>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* CTA Button */}
+          <div className="flex justify-center space-x-4">
+            <Link
+              href="/dashboard"
+              className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg"
+            >
+              🚀 Ver Dashboard
+            </Link>
+            <a
+              href="http://localhost:5555"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg"
+            >
+              🗄️ Prisma Studio
+            </a>
+          </div>
+
+          <div className="mt-8 text-sm text-gray-500 dark:text-gray-400">
+            <p>Base de datos poblada con datos de prueba • Listo para desarrollo</p>
+          </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
