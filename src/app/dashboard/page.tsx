@@ -122,8 +122,8 @@ export default async function DashboardPage() {
           title="Ingresos"
           value={
             <div>
-              <span className="hidden sm:inline">{formatCurrency(stats.totalRevenue)}</span>
-              <span className="sm:hidden">${(stats.totalRevenue / 1000).toFixed(0)}K</span>
+                <span className="hidden sm:inline">{formatCurrency(stats.totalRevenue)}</span>
+                <span className="sm:hidden">${(stats.totalRevenue / 1000).toFixed(0)}K</span>
             </div>
           }
           icon="💰"

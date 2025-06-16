@@ -71,17 +71,17 @@ export default function Home() {
           <div className="flex justify-center space-x-4">
             <Button asChild variant="primary" size="lg">
               <Link href="/dashboard">
-                🚀 Ver Dashboard
-              </Link>
+              🚀 Ver Dashboard
+            </Link>
             </Button>
             <Button asChild variant="secondary" size="lg">
-              <a
-                href="http://localhost:5555"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                🗄️ Prisma Studio
-              </a>
+            <a
+              href="http://localhost:5555"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              🗄️ Prisma Studio
+            </a>
             </Button>
           </div>
 
