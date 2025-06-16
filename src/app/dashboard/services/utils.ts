@@ -1,20 +1,5 @@
 import { ServiceType, PaymentMethod, Service, ServiceFilters, ServiceStats } from './types'
 
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0
-  }).format(amount)
-}
-
-export const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat('es-ES', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(date)
-}
-
 export const getServiceTypeIcon = (type: ServiceType): string => {
   switch (type) {
     case 'MANICURE':

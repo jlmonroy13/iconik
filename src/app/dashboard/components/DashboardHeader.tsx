@@ -1,3 +1,5 @@
+import { Button, Avatar, IconButton } from '@/components/ui'
+
 interface DashboardHeaderProps {
   onMenuToggle: () => void
   title: string
@@ -19,14 +21,18 @@ export function DashboardHeader({
         <div className="flex items-center justify-between h-10">
           <div className="flex items-center space-x-4">
             {/* Mobile menu button */}
-            <button
-              className="lg:hidden p-1"
+            <IconButton
+              variant="ghost"
+              size="md"
+              icon={
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              }
               onClick={onMenuToggle}
-            >
-              <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+              label="Abrir menú"
+              className="lg:hidden"
+            />
 
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
@@ -39,14 +45,16 @@ export function DashboardHeader({
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <button className="bg-pink-600 hover:bg-pink-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors">
+            <Button variant="primary" size="sm" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">{actionLabel}</span>
               <span className="sm:hidden">{actionMobileLabel}</span>
-            </button>
+            </Button>
 
-            <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">M</span>
-            </div>
+            <Avatar
+              fallback="M"
+              alt="Usuario"
+              size="md"
+            />
           </div>
         </div>
       </div>

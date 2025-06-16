@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Button } from '@/components/ui'
 
 export default function Home() {
   return (
@@ -68,20 +69,20 @@ export default function Home() {
 
           {/* CTA Button */}
           <div className="flex justify-center space-x-4">
-            <Link
-              href="/dashboard"
-              className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg"
-            >
-              🚀 Ver Dashboard
-            </Link>
-            <a
-              href="http://localhost:5555"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg"
-            >
-              🗄️ Prisma Studio
-            </a>
+            <Button asChild variant="primary" size="lg">
+              <Link href="/dashboard">
+                🚀 Ver Dashboard
+              </Link>
+            </Button>
+            <Button asChild variant="secondary" size="lg">
+              <a
+                href="http://localhost:5555"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                🗄️ Prisma Studio
+              </a>
+            </Button>
           </div>
 
           <div className="mt-8 text-sm text-gray-500 dark:text-gray-400">

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { StatCard, Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
 
 async function getDashboardStats() {
   // Get the first spa for now (later we'll get from session)
@@ -112,82 +113,41 @@ export default async function DashboardPage() {
 
       {/* Stats Grid - Responsive */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
-          <div className="flex items-center justify-between">
+        <StatCard
+          title="Servicios"
+          value={stats.totalServices}
+          icon="💅"
+        />
+        <StatCard
+          title="Ingresos"
+          value={
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
-                Servicios
-              </p>
-              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.totalServices}
-              </p>
+              <span className="hidden sm:inline">{formatCurrency(stats.totalRevenue)}</span>
+              <span className="sm:hidden">${(stats.totalRevenue / 1000).toFixed(0)}K</span>
             </div>
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center">
-              <span className="text-lg sm:text-2xl">💅</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
-                Ingresos
-              </p>
-              <p className="text-sm sm:text-2xl font-bold text-gray-900 dark:text-white">
-                <span className="hidden sm:inline">{formatCurrency(stats.totalRevenue)}</span>
-                <span className="sm:hidden">${(stats.totalRevenue / 1000).toFixed(0)}K</span>
-              </p>
-            </div>
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-              <span className="text-lg sm:text-2xl">💰</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
-                Clientes
-              </p>
-              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.totalClients}
-              </p>
-            </div>
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-              <span className="text-lg sm:text-2xl">👥</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
-                Citas
-              </p>
-              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.totalAppointments}
-              </p>
-            </div>
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-              <span className="text-lg sm:text-2xl">📅</span>
-            </div>
-          </div>
-        </div>
+          }
+          icon="💰"
+        />
+        <StatCard
+          title="Clientes"
+          value={stats.totalClients}
+          icon="👥"
+        />
+        <StatCard
+          title="Citas"
+          value={stats.totalAppointments}
+          icon="📅"
+        />
       </div>
 
       {/* Two Column Layout - Stacks on mobile */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Services */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-              Servicios Recientes
-            </h3>
-          </div>
-          <div className="p-4 sm:p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Servicios Recientes</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-3 sm:space-y-4">
               {stats.recentServices.map((service) => (
                 <div key={service.id} className="flex items-center space-x-3 sm:space-x-4">
@@ -210,17 +170,15 @@ export default async function DashboardPage() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Upcoming Appointments */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-              Próximas Citas
-            </h3>
-          </div>
-          <div className="p-4 sm:p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Próximas Citas</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-3 sm:space-y-4">
               {stats.upcomingAppointments.length > 0 ? (
                 stats.upcomingAppointments.map((appointment) => (
@@ -249,8 +207,8 @@ export default async function DashboardPage() {
                 </p>
               )}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

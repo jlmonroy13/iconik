@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { NavLink } from './NavLink'
 import { NAVIGATION_ITEMS } from '@/lib/routes'
+import { IconButton, Button } from '@/components/ui'
 
 interface SidebarProps {
   isOpen: boolean
@@ -40,12 +41,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           </div>
           {/* Close button for mobile */}
-          <button
-            className="lg:hidden p-1"
+          <IconButton
+            variant="ghost"
+            size="sm"
+            icon="✕"
             onClick={onClose}
-          >
-            <span className="text-gray-500 hover:text-gray-700 text-xl">✕</span>
-          </button>
+            label="Cerrar menú"
+            className="lg:hidden"
+          />
         </div>
       </div>
 
@@ -74,9 +77,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <p className="text-xs text-pink-600 dark:text-pink-300 mt-1">
             500MB de almacenamiento usado
           </p>
-          <button className="mt-2 text-xs text-pink-700 dark:text-pink-200 hover:underline">
+          <Button variant="link" size="sm" className="mt-2 p-0 h-auto text-xs">
             Actualizar plan
-          </button>
+          </Button>
         </div>
       </div>
     </div>

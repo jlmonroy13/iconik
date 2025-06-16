@@ -1,3 +1,4 @@
+import { Button, Badge } from '@/components/ui'
 import { ServiceFilters } from '../types'
 import { getFilterInputStyle } from '../utils'
 
@@ -34,15 +35,17 @@ export function ServiceFiltersPanel({
           </h2>
           {hasActiveFilters && (
             <div className="flex items-center space-x-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-200">
+              <Badge variant="primary">
                 {activeFiltersCount} filtro{activeFiltersCount !== 1 ? 's' : ''} activo{activeFiltersCount !== 1 ? 's' : ''}
-              </span>
-              <button
+              </Badge>
+              <Button
                 onClick={clearFilters}
-                className="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-800 dark:hover:text-pink-200 font-medium"
+                variant="link"
+                size="sm"
+                className="text-xs p-0 h-auto"
               >
                 Limpiar
-              </button>
+              </Button>
             </div>
           )}
         </div>

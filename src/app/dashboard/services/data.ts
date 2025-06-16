@@ -32,7 +32,7 @@ export const STATIC_SERVICES: Service[] = [
     paymentMethod: 'CARD',
     rating: 5,
     notes: 'Diseño floral con colores pasteles',
-    createdAt: new Date('2024-05-19T19:00:00')
+    createdAt: new Date('2024-02-19T19:00:00')
   },
   {
     id: '4',
