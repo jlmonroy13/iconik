@@ -9,7 +9,8 @@ export const ROUTES = {
   APPOINTMENTS: '/dashboard/appointments',
   CLIENTS: '/dashboard/clients',
   MANICURISTS: '/dashboard/manicurists',
-  REPORTS: '/dashboard/reports'
+  REPORTS: '/dashboard/reports',
+  SETTINGS: '/dashboard/settings'
 } as const
 
 // Navigation configuration with route constants
@@ -95,11 +96,19 @@ export const HEADER_CONFIG = {
       label: 'Generar Reporte',
       mobileLabel: 'Reporte'
     }
+  },
+  [ROUTES.SETTINGS]: {
+    title: 'Configuración',
+    subtitle: 'Administra la información de tu spa',
+    action: {
+      label: 'Guardar Cambios',
+      mobileLabel: 'Guardar'
+    }
   }
 } as const
 
 // Type helpers for better TypeScript support
 export type RouteKeys = keyof typeof ROUTES
 export type RouteValues = typeof ROUTES[RouteKeys]
-export type DashboardRoutes = typeof ROUTES.DASHBOARD | typeof ROUTES.SERVICES | typeof ROUTES.APPOINTMENTS | typeof ROUTES.CLIENTS | typeof ROUTES.MANICURISTS | typeof ROUTES.REPORTS
+export type DashboardRoutes = typeof ROUTES.DASHBOARD | typeof ROUTES.SERVICES | typeof ROUTES.APPOINTMENTS | typeof ROUTES.CLIENTS | typeof ROUTES.MANICURISTS | typeof ROUTES.REPORTS | typeof ROUTES.SETTINGS
 export type HeaderConfig = typeof HEADER_CONFIG[DashboardRoutes]
