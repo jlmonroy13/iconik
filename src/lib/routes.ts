@@ -65,7 +65,7 @@ export const HEADER_CONFIG = {
     }
   },
   [ROUTES.APPOINTMENTS]: {
-    title: 'Gestión de Citas',
+    title: 'Citas',
     subtitle: 'Programa y administra las citas',
     action: {
       label: 'Nueva Cita',
@@ -73,7 +73,7 @@ export const HEADER_CONFIG = {
     }
   },
   [ROUTES.CLIENTS]: {
-    title: 'Gestión de Clientes',
+    title: 'Clientes',
     subtitle: 'Administra tu base de clientes',
     action: {
       label: 'Nuevo Cliente',
@@ -81,7 +81,7 @@ export const HEADER_CONFIG = {
     }
   },
   [ROUTES.MANICURISTS]: {
-    title: 'Gestión de Manicuristas',
+    title: 'Manicuristas',
     subtitle: 'Administra tu equipo de trabajo',
     action: {
       label: 'Nueva Manicurista',
