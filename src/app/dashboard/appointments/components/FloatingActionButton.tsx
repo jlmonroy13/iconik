@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useAppointments } from './AppointmentsClient'
 
 export function FloatingActionButton() {
   const [isOpen, setIsOpen] = useState(false)
+  const { handleCreate } = useAppointments()
 
   return (
     <>
@@ -24,7 +26,7 @@ export function FloatingActionButton() {
             <button
               onClick={() => {
                 setIsOpen(false)
-                // TODO: Open new appointment modal
+                handleCreate()
               }}
               className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full"
             >

@@ -5,9 +5,10 @@ import { format } from 'date-fns'
 import { Card, CardContent, Button } from '@/components/ui'
 import type { Appointment } from '../types'
 import {
-  Calendar, Sparkles, Hand, Footprints, Brush, Gem, Wrench, SprayCan, Bath, Wand2, X, Eye, Pencil
+  Calendar, Sparkles, Hand, Footprints, Brush, Gem, Wrench, SprayCan, Bath, Wand2, X, Eye, Pencil, Trash2
 } from 'lucide-react'
-import React from 'react';
+import React from 'react'
+import { useAppointments } from './AppointmentsClient'
 
 interface AppointmentListProps {
   appointments: Appointment[]
@@ -15,6 +16,7 @@ interface AppointmentListProps {
 
 export function AppointmentList({ appointments }: AppointmentListProps) {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const { handleEdit, handleDelete } = useAppointments()
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CO', {
@@ -106,8 +108,19 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
                 >
                   <Eye className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="icon-sm">
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => handleEdit(appointment)}
+                >
                   <Pencil className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => handleDelete(appointment)}
+                >
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -219,7 +232,14 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
               >
                 Cerrar
               </Button>
-              <Button variant="secondary" size="sm">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  handleEdit(selectedAppointment)
+                  setSelectedAppointment(null)
+                }}
+              >
                 Editar
               </Button>
             </div>

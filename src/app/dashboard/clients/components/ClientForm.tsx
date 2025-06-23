@@ -12,18 +12,31 @@ interface ClientFormProps {
   isSubmitting?: boolean
 }
 
+function getClientFormDefaultValues(client?: Client): ClientFormData {
+  return {
+    name: client?.name || '',
+    email: client?.email || '',
+    phone: client?.phone || '',
+    identificationType: client?.identificationType || 'CC',
+    identification: client?.identification || '',
+    status: client?.status || 'ACTIVE',
+  }
+}
+
 export function ClientForm({ client, onSubmit, isSubmitting }: ClientFormProps) {
   const { showSuccess, showError } = useNotifications()
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
-    defaultValues: client || {
-      status: 'ACTIVE',
-    }
+    defaultValues: getClientFormDefaultValues(client)
   })
+
+  const identificationType = watch('identificationType')
+  const status = watch('status')
 
   const onSubmitForm = async (data: ClientFormData) => {
     try {
@@ -63,9 +76,9 @@ export function ClientForm({ client, onSubmit, isSubmitting }: ClientFormProps) 
       <Select
         label="Tipo de Identificación"
         {...register("identificationType")}
+        value={identificationType}
         error={errors.identificationType?.message}
       >
-        <option value="">Selecciona...</option>
         <option value="CC">Cédula de Ciudadanía</option>
         <option value="CE">Cédula de Extranjería</option>
         <option value="PAS">Pasaporte</option>
@@ -80,6 +93,7 @@ export function ClientForm({ client, onSubmit, isSubmitting }: ClientFormProps) 
       <Select
         label="Estado"
         {...register("status")}
+        value={status}
         error={errors.status?.message}
       >
         <option value="ACTIVE">Activo</option>

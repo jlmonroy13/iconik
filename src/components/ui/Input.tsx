@@ -48,7 +48,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             active && 'border-pink-300 dark:border-pink-600 bg-pink-50 dark:bg-pink-900/10 ring-1 ring-pink-200 dark:ring-pink-800',
             isDate && isEmpty && 'text-gray-400 dark:text-gray-500',
             isDate && active && !isEmpty && 'text-white dark:text-white',
-            isDate && '[&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:dark:invert',
+            isDate && 'datetime-picker-hack',
             className
           )}
           ref={ref}
@@ -57,6 +57,15 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           disabled={disabled}
           {...props}
         />
+        {/* Custom white calendar icon overlay for date and datetime-local */}
+        {(type === 'date' || type === 'datetime-local') && (
+          <span className="pointer-events-none flex items-center absolute right-3 top-1/2">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.5">
+              <rect x="3" y="5" width="18" height="16" rx="2" stroke="white" strokeWidth="1.5" />
+              <path d="M16 3v4M8 3v4M3 9h18" stroke="white" strokeWidth="1.5" />
+            </svg>
+          </span>
+        )}
         {error && (
           <p className="mt-1 text-sm font-medium text-red-500 dark:text-red-400">
             {error}

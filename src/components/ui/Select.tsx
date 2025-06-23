@@ -10,9 +10,22 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, children, active = false, value, label, labelAdornment, id, error, ...props }, ref) => {
-    const isPlaceholder = value === '' || value === undefined
     const reactId = React.useId()
     const selectId = id || `select-${reactId}`
+
+    // Detect if the value matches any option (excluding the placeholder)
+    let hasValidValue = false
+    React.Children.forEach(children, child => {
+      if (
+        React.isValidElement(child) &&
+        (child.props as { value?: string }).value !== '' &&
+        String((child.props as { value?: string }).value) === String(value)
+      ) {
+        hasValidValue = true
+      }
+    })
+    const isPlaceholder = !hasValidValue
+
     return (
       <div className="w-full">
         {label && (
