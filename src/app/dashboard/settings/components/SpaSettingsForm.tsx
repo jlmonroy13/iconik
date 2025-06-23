@@ -1,10 +1,22 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useTransition } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Spa } from '@/generated/prisma'
 import { updateSpaSettings } from '../actions'
-import { Button, Input, Label } from '@/components/ui'
+import { Button, Input } from '@/components/ui'
 import { toast } from 'react-hot-toast'
+
+const spaSettingsSchema = z.object({
+  name: z.string().min(1, 'El nombre del spa es requerido'),
+  address: z.string().min(1, 'La dirección es requerida'),
+  phone: z.string().min(1, 'El teléfono es requerido'),
+  email: z.string().min(1, 'El email es requerido').email('Email inválido')
+})
+
+type SpaSettingsFormValues = z.infer<typeof spaSettingsSchema>
 
 interface SpaSettingsFormProps {
   spa: Spa
@@ -12,22 +24,20 @@ interface SpaSettingsFormProps {
 
 export function SpaSettingsForm({ spa }: SpaSettingsFormProps) {
   const [isPending, startTransition] = useTransition()
-  const [formData, setFormData] = useState({
-    name: spa.name || '',
-    address: spa.address || '',
-    phone: spa.phone || '',
-    email: spa.email || ''
+
+  const form = useForm<SpaSettingsFormValues>({
+    resolver: zodResolver(spaSettingsSchema),
+    defaultValues: {
+      name: spa.name || '',
+      address: spa.address || '',
+      phone: spa.phone || '',
+      email: spa.email || ''
+    }
   })
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const onSubmit = async (data: SpaSettingsFormValues) => {
     startTransition(async () => {
-      const result = await updateSpaSettings(spa.id, formData)
+      const result = await updateSpaSettings(spa.id, data)
       if (result.success) {
         toast.success('¡Configuración guardada con éxito!')
       } else {
@@ -37,50 +47,41 @@ export function SpaSettingsForm({ spa }: SpaSettingsFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nombre del Spa</Label>
           <Input
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            required
+            label="Nombre del Spa"
+            {...form.register('name')}
+            error={form.formState.errors.name?.message}
             disabled={isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email de Contacto</Label>
           <Input
-            id="email"
-            name="email"
+            label="Email de Contacto"
             type="email"
-            value={formData.email}
-            onChange={handleInputChange}
+            {...form.register('email')}
+            error={form.formState.errors.email?.message}
             disabled={isPending}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="address">Dirección</Label>
         <Input
-          id="address"
-          name="address"
-          value={formData.address}
-          onChange={handleInputChange}
+          label="Dirección"
+          {...form.register('address')}
+          error={form.formState.errors.address?.message}
           disabled={isPending}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone">Teléfono</Label>
         <Input
-          id="phone"
-          name="phone"
-          value={formData.phone}
-          onChange={handleInputChange}
+          label="Teléfono"
+          {...form.register('phone')}
+          error={form.formState.errors.phone?.message}
           disabled={isPending}
         />
       </div>

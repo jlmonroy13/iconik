@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Input, Select } from '@/components/ui'
 
 export function AppointmentFilters() {
   const [isOpen, setIsOpen] = useState(false)
@@ -67,72 +68,52 @@ export function AppointmentFilters() {
             </div>
 
             {/* Status Filter */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Estado
-              </label>
-              <select
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Todos los estados</option>
-                <option value="SCHEDULED">Programada</option>
-                <option value="CONFIRMED">Confirmada</option>
-                <option value="IN_PROGRESS">En Progreso</option>
-                <option value="COMPLETED">Completada</option>
-                <option value="CANCELLED">Cancelada</option>
-                <option value="NO_SHOW">No Asistió</option>
-              </select>
-            </div>
+            <Select
+              label="Estado"
+              value={filters.status}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
+            >
+              <option value="">Todos los estados</option>
+              <option value="SCHEDULED">Programada</option>
+              <option value="CONFIRMED">Confirmada</option>
+              <option value="IN_PROGRESS">En Progreso</option>
+              <option value="COMPLETED">Completada</option>
+              <option value="CANCELLED">Cancelada</option>
+              <option value="NO_SHOW">No Asistió</option>
+            </Select>
 
             {/* Service Type Filter */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Tipo de Servicio
-              </label>
-              <select
-                value={filters.serviceType}
-                onChange={(e) => handleFilterChange('serviceType', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Todos los servicios</option>
-                <option value="MANICURE">Manicure</option>
-                <option value="PEDICURE">Pedicure</option>
-                <option value="NAIL_ART">Nail Art</option>
-                <option value="GEL_POLISH">Gel Polish</option>
-                <option value="ACRYLIC_NAILS">Uñas Acrílicas</option>
-                <option value="NAIL_REPAIR">Reparación</option>
-                <option value="HAND_SPA">Spa de Manos</option>
-                <option value="FOOT_SPA">Spa de Pies</option>
-                <option value="OTHER">Otro</option>
-              </select>
-            </div>
+            <Select
+              label="Tipo de Servicio"
+              value={filters.serviceType}
+              onChange={(e) => handleFilterChange('serviceType', e.target.value)}
+            >
+              <option value="">Todos los servicios</option>
+              <option value="MANICURE">Manicure</option>
+              <option value="PEDICURE">Pedicure</option>
+              <option value="NAIL_ART">Nail Art</option>
+              <option value="GEL_POLISH">Gel Polish</option>
+              <option value="ACRYLIC_NAILS">Uñas Acrílicas</option>
+              <option value="NAIL_REPAIR">Reparación</option>
+              <option value="HAND_SPA">Spa de Manos</option>
+              <option value="FOOT_SPA">Spa de Pies</option>
+              <option value="OTHER">Otro</option>
+            </Select>
 
             {/* Date Range Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Desde
-                </label>
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Hasta
-                </label>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+              <Input
+                label="Desde"
+                type="date"
+                value={filters.dateFrom}
+                onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+              />
+              <Input
+                label="Hasta"
+                type="date"
+                value={filters.dateTo}
+                onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+              />
             </div>
 
             {/* Quick Date Filters */}
