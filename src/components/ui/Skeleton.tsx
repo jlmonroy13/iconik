@@ -81,13 +81,13 @@ export function StatsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div className="space-y-2 flex-1">
-              <Skeleton variant="text" width="60%" />
-              <Skeleton variant="text" width="40%" height="24px" />
+              <Skeleton variant="text" width="60%" height="16px" />
+              <Skeleton variant="text" width="40%" height="20px" />
             </div>
-            <Skeleton variant="circular" width="48px" height="48px" />
+            <Skeleton variant="circular" width="40px" height="40px" />
           </div>
         </div>
       ))}

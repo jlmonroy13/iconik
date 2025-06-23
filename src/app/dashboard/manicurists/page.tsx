@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { PageTransition, FadeIn, Button } from '@/components/ui'
+import { useState, useCallback, useEffect } from 'react'
+import { PageTransition, FadeIn, Button, Skeleton, StatsSkeleton } from '@/components/ui'
 import { Plus } from 'lucide-react'
 import { ManicuristFilters } from './components/ManicuristFilters'
 import { ManicuristCard } from './components/ManicuristCard'
@@ -17,6 +17,13 @@ export default function ManicuristsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedManicurist, setSelectedManicurist] = useState<typeof manicurists[0] | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const openCreateModal = useCallback(() => {
     setSelectedManicurist(undefined)
@@ -60,6 +67,29 @@ export default function ManicuristsPage() {
   const handleEdit = (manicurist: typeof manicurists[0]) => {
     setSelectedManicurist(manicurist)
     setIsModalOpen(true)
+  }
+
+  if (isLoading) {
+    return (
+      <PageTransition>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div className="space-y-2">
+              <Skeleton variant="text" width="250px" height="32px" />
+              <Skeleton variant="text" width="350px" />
+            </div>
+            <Skeleton width="180px" height="40px" />
+          </div>
+          <StatsSkeleton />
+          <Skeleton height="68px" /> {/* Filters skeleton */}
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} height="135px" />
+            ))}
+          </div>
+        </div>
+      </PageTransition>
+    )
   }
 
   return (

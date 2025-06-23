@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { ClientStats } from './components/ClientStats'
 import { ClientFilters } from './components/ClientFilters'
 import { ClientList } from './components/ClientList'
-import { StatsSkeleton, EmptyClients, EmptyState, PageTransition, FadeIn } from '@/components/ui'
+import { StatsSkeleton, EmptyClients, EmptyState, PageTransition, FadeIn, Skeleton } from '@/components/ui'
 import { mockClients } from './types'
 import type { ClientFilters as ClientFiltersType } from './types'
 import { SearchX } from 'lucide-react'
@@ -38,17 +38,16 @@ export default function ClientsPage() {
     return (
       <PageTransition>
         <div className="space-y-6">
+          <div className="space-y-2">
+            <Skeleton variant="text" width="40%" height="32px" />
+            <Skeleton variant="text" width="50%" />
+          </div>
           <StatsSkeleton />
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse" />
-              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse" />
-            </div>
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              ))}
-            </div>
+          <div className="space-y-4">
+            <Skeleton height="68px" /> {/* Filters skeleton */}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} height="60px" />
+            ))}
           </div>
         </div>
       </PageTransition>

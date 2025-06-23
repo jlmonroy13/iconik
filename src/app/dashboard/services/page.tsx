@@ -10,7 +10,7 @@ import {
   ServiceItem,
   EmptyState
 } from './components'
-import { PageTransition, FadeIn, EmptyServices, StatsSkeleton } from '@/components/ui'
+import { PageTransition, FadeIn, EmptyServices, StatsSkeleton, Skeleton } from '@/components/ui'
 
 export default function ServicesPage() {
   const [services] = useState(STATIC_SERVICES)
@@ -55,13 +55,15 @@ export default function ServicesPage() {
     return (
       <PageTransition>
         <div className="space-y-6">
+          <div className="space-y-2">
+            <Skeleton variant="text" width="40%" height="32px" />
+            <Skeleton variant="text" width="50%" />
+          </div>
           <StatsSkeleton />
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              ))}
-            </div>
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} height="76px" />
+            ))}
           </div>
         </div>
       </PageTransition>
