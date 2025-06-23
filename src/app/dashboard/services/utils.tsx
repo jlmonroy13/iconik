@@ -1,4 +1,4 @@
-import { ServiceType, PaymentMethod, Service, ServiceFilters, ServiceStats } from './types'
+import { ServiceType, PaymentMethod, Service, ServiceFilters, ServiceStats, ServiceRecord } from './types'
 import { Hand, Footprints, Brush, Sparkles, Gem } from 'lucide-react'
 import React from 'react'
 
@@ -63,56 +63,40 @@ export const getFilterInputStyle = (hasValue: boolean): string => {
 }
 
 export const filterServices = (services: Service[], filters: ServiceFilters): Service[] => {
+  // Solo filtrar por categoría y estado para el catálogo
   return services.filter(service => {
-    // Filter by service type
-    if (filters.serviceType && service.type !== filters.serviceType) {
+    if (filters.serviceType && service.category !== filters.serviceType) {
       return false
     }
-
-    // Filter by manicurist
-    if (filters.manicurist && service.manicurist?.name !== filters.manicurist) {
+    if (filters.status && service.status !== filters.status) {
       return false
     }
-
-    // Filter by date range
-    const serviceDate = new Date(service.createdAt)
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom)
-      if (serviceDate < fromDate) return false
-    }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo)
-      toDate.setHours(23, 59, 59) // End of day
-      if (serviceDate > toDate) return false
-    }
-
     return true
   })
 }
 
-export const calculateStats = (services: Service[]): ServiceStats => {
-  const totalRevenue = services.reduce((sum, s) => sum + s.price, 0)
-  const averageRating = services.length > 0
-    ? services.reduce((sum, s) => sum + (s.rating || 0), 0) / services.length
-    : 0
-
-  const thisMonthServices = services.filter(s => {
-    const serviceDate = new Date(s.createdAt)
-    const now = new Date()
-    return serviceDate.getMonth() === now.getMonth() &&
-           serviceDate.getFullYear() === now.getFullYear()
-  }).length
-
-  return {
-    totalServices: services.length,
-    totalRevenue,
-    averageRating,
-    thisMonthServices
-  }
+export const calculateStats = (services: Service[]) => {
+  const total = services.length
+  const active = services.filter(s => s.status === 'ACTIVE').length
+  const inactive = services.filter(s => s.status === 'INACTIVE').length
+  return { total, active, inactive }
 }
 
 export const getUniqueManicurists = (services: Service[]): string[] => {
   return Array.from(
     new Set(services.map(s => s.manicurist?.name).filter(Boolean))
   ) as string[]
+}
+
+export function getMostRequestedServiceName(history: ServiceRecord[], catalog: Service[]): string {
+  if (!history || history.length === 0) return '-';
+  const freq: Record<string, number> = {};
+  for (const record of history) {
+    freq[record.type] = (freq[record.type] || 0) + 1;
+  }
+  const mostType = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (!mostType) return '-';
+  // Buscar nombre amigable en el catálogo
+  const match = catalog.find(s => s.name.toUpperCase().includes(mostType.replace('_', '')) || s.name.toUpperCase().includes(mostType.replace('_', ' ')));
+  return match ? match.name : mostType;
 }

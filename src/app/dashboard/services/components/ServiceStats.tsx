@@ -1,42 +1,39 @@
-import { ServiceStats } from '../types'
-import { formatCurrency } from '@/lib/utils'
 import { StatCard } from '@/components/ui'
-import { BarChart, DollarSign, Star, Calendar } from 'lucide-react'
+import { BarChart, Users, CheckCircle, XCircle } from 'lucide-react'
 
-interface ServiceStatsProps {
-  stats: ServiceStats
+interface ServiceStatsCardsProps {
+  total: number
+  active: number
+  inactive: number
+  mostRequestedServiceName: string
 }
 
-export function ServiceStatsCards({ stats }: ServiceStatsProps) {
+export function ServiceStatsCards({ total, active, inactive, mostRequestedServiceName }: ServiceStatsCardsProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <StatCard
         title="Total Servicios"
-        value={stats.totalServices.toString()}
+        value={total.toString()}
         icon={<BarChart className="text-blue-600 dark:text-blue-400" />}
         iconBgColor="bg-blue-100 dark:bg-blue-900/20"
       />
-
       <StatCard
-        title="Ingresos"
-        value={formatCurrency(stats.totalRevenue)}
-        mobileValue={`$${(stats.totalRevenue / 1000).toFixed(0)}K`}
-        icon={<DollarSign className="text-green-600 dark:text-green-400" />}
+        title="Servicios Activos"
+        value={active.toString()}
+        icon={<CheckCircle className="text-green-600 dark:text-green-400" />}
         iconBgColor="bg-green-100 dark:bg-green-900/20"
       />
-
       <StatCard
-        title="Rating Promedio"
-        value={stats.averageRating.toFixed(1)}
-        icon={<Star className="text-yellow-500 dark:text-yellow-400" />}
-        iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
+        title="Servicios Inactivos"
+        value={inactive.toString()}
+        icon={<XCircle className="text-gray-500 dark:text-gray-400" />}
+        iconBgColor="bg-gray-100 dark:bg-gray-900/20"
       />
-
       <StatCard
-        title="Este Mes"
-        value={stats.thisMonthServices.toString()}
-        icon={<Calendar className="text-purple-600 dark:text-purple-400" />}
-        iconBgColor="bg-purple-100 dark:bg-purple-900/20"
+        title="Servicio más pedido"
+        value={mostRequestedServiceName}
+        icon={<Users className="text-pink-600 dark:text-pink-400" />}
+        iconBgColor="bg-pink-100 dark:bg-pink-900/20"
       />
     </div>
   )

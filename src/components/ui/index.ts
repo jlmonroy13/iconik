@@ -35,3 +35,4 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
 } from './dropdown-menu'
+export { Textarea } from './Textarea'

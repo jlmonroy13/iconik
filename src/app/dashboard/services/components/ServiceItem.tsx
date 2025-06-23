@@ -1,71 +1,47 @@
 import { Service } from '../types'
-import { Badge, Avatar, RatingBadge } from '@/components/ui'
-import { formatDateTime, formatCurrency } from '@/lib/utils'
-import {
-  getServiceTypeIcon,
-  getServiceTypeName,
-  getPaymentMethodName
-} from '../utils'
+import { Badge, Button } from '@/components/ui'
+import { Pencil, Trash2 } from 'lucide-react'
 
 interface ServiceItemProps {
   service: Service
+  onEdit?: () => void
+  onDelete?: () => void
 }
 
-export function ServiceItem({ service }: ServiceItemProps) {
-  const ServiceIcon = getServiceTypeIcon(service.type)
+export function ServiceItem({ service, onEdit, onDelete }: ServiceItemProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3">
-      <div className="flex items-start justify-between space-x-4">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              {ServiceIcon}
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                {getServiceTypeName(service.type)}
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {formatDateTime(service.createdAt)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-2 flex items-center space-x-2">
-            <Avatar
-              fallback={service.manicurist?.name?.charAt(0) || 'N'}
-              size="sm"
-              variant="manicurist"
-            />
-            <div>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {service.manicurist?.name || 'Sin asignar'}
-              </span>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                atendió a <span className="font-medium text-gray-700 dark:text-gray-300">{service.client.name}</span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Service Meta */}
-        <div className="flex flex-col items-end space-y-1">
-          <span className="text-base font-bold text-gray-900 dark:text-white">
-            {formatCurrency(service.price)}
-          </span>
-
-          <Badge variant="secondary">
-            {getPaymentMethodName(service.paymentMethod)}
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 flex items-start justify-between">
+      <div>
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+          {service.name}
+        </h3>
+        {service.description && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+            {service.description}
+          </p>
+        )}
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Badge variant="secondary">{service.category}</Badge>
+          <Badge variant={service.status === 'ACTIVE' ? 'success' : 'secondary'}>
+            {service.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
           </Badge>
-
-          {service.rating && (
-            <RatingBadge rating={service.rating} />
+          <Badge variant="primary">{service.duration} min</Badge>
+        </div>
+      </div>
+      <div className="flex flex-col items-end gap-2 min-w-[120px]">
+        <span className="text-lg font-bold text-pink-600 dark:text-pink-400">
+          ${service.price.toLocaleString('es-CO')}
+        </span>
+        <div className="flex gap-2 mt-2">
+          {onEdit && (
+            <Button size="sm" variant="ghost" onClick={onEdit}>
+              <Pencil className="w-4 h-4 mr-1" /> Editar
+            </Button>
           )}
-
-          {service.notes && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[150px] text-right italic">
-              &ldquo;{service.notes}&rdquo;
-            </p>
+          {onDelete && (
+            <Button size="sm" variant="ghost" onClick={onDelete}>
+              <Trash2 className="w-4 h-4 mr-1" /> Eliminar
+            </Button>
           )}
         </div>
       </div>
