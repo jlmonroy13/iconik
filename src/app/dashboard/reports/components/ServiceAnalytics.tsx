@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import type { Service } from '../types'
+import { Hand, Footprints, Brush, Sparkles, Gem, Wrench, SprayCan, Bath, Wand2 } from 'lucide-react'
 
 interface ServiceAnalyticsProps {
   services: Service[]
@@ -39,18 +40,19 @@ export function ServiceAnalytics({ services }: ServiceAnalyticsProps) {
   }
 
   const getServiceTypeIcon = (serviceType: string) => {
+    const iconProps = { className: "w-5 h-5 text-gray-500" };
     const icons = {
-      MANICURE: '💅',
-      PEDICURE: '🦶',
-      NAIL_ART: '🎨',
-      GEL_POLISH: '✨',
-      ACRYLIC_NAILS: '💎',
-      NAIL_REPAIR: '🔧',
-      HAND_SPA: '🧴',
-      FOOT_SPA: '🛁',
-      OTHER: '💫'
+      MANICURE: <Hand {...iconProps} />,
+      PEDICURE: <Footprints {...iconProps} />,
+      NAIL_ART: <Brush {...iconProps} />,
+      GEL_POLISH: <Sparkles {...iconProps} />,
+      ACRYLIC_NAILS: <Gem {...iconProps} />,
+      NAIL_REPAIR: <Wrench {...iconProps} />,
+      HAND_SPA: <SprayCan {...iconProps} />,
+      FOOT_SPA: <Bath {...iconProps} />,
+      OTHER: <Wand2 {...iconProps} />
     }
-    return icons[serviceType as keyof typeof icons] || '💫'
+    return icons[serviceType as keyof typeof icons] || <Wand2 {...iconProps} />
   }
 
   const getServiceTypeName = (serviceType: string) => {
@@ -86,7 +88,7 @@ export function ServiceAnalytics({ services }: ServiceAnalyticsProps) {
               {serviceTypeStats.map((stat) => (
                 <div key={stat.type} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="text-xl">
+                    <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
                       {getServiceTypeIcon(stat.type)}
                     </div>
                     <div>
@@ -176,7 +178,7 @@ export function ServiceAnalytics({ services }: ServiceAnalyticsProps) {
                   <tr key={stat.type} className="border-b border-gray-100 dark:border-gray-800">
                     <td className="py-3 px-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{getServiceTypeIcon(stat.type)}</span>
+                        {getServiceTypeIcon(stat.type)}
                         <span className="text-gray-900 dark:text-white">
                           {getServiceTypeName(stat.type)}
                         </span>

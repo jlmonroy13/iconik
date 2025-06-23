@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input } from '@/components/ui'
+import { Calendar as CalendarIcon } from 'lucide-react'
 
 export function DateRangePicker() {
   const [isOpen, setIsOpen] = useState(false)
@@ -38,7 +39,7 @@ export function DateRangePicker() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2"
       >
-        <span>📅</span>
+        <CalendarIcon className="w-4 h-4" />
         <span className="hidden sm:inline">
           {hasActiveRange ? `${dateRange.from} - ${dateRange.to}` : 'Rango de fechas'}
         </span>

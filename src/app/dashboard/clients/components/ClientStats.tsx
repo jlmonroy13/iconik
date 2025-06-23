@@ -1,5 +1,6 @@
 import { StatCard } from '@/components/ui/StatCard'
 import { Client } from '../types'
+import { Users, UserCheck, Trophy } from 'lucide-react'
 
 interface ClientStatsProps {
   clients: Client[]
@@ -16,17 +17,20 @@ export function ClientStats({ clients }: ClientStatsProps) {
       <StatCard
         title="Total Clientes"
         value={total}
-        icon="👥"
+        icon={<Users className="text-blue-600 dark:text-blue-400" />}
+        iconBgColor="bg-blue-100 dark:bg-blue-900/20"
       />
       <StatCard
         title="Clientes Activos"
         value={active}
-        icon="✅"
+        icon={<UserCheck className="text-green-600 dark:text-green-400" />}
+        iconBgColor="bg-green-100 dark:bg-green-900/20"
       />
       <StatCard
         title="Más Frecuentes"
         value={frequent.length > 0 ? frequent.map(c => c.name).join(', ') : '-'}
-        icon="🏆"
+        icon={<Trophy className="text-yellow-500 dark:text-yellow-400" />}
+        iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
       />
     </div>
   )

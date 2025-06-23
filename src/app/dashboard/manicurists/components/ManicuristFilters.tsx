@@ -32,9 +32,9 @@ export function ManicuristFilters({ filters, onFiltersChange }: ManicuristFilter
     <div>
       <div
         className="flex items-center space-x-2 mb-4"
-        style={{ minHeight: hasActiveFilters ? 36 : 8 }}
+        style={{ minHeight: 28 }}
       >
-        {hasActiveFilters ? (
+        {hasActiveFilters && (
           <>
             <Badge variant="primary">
               {activeFiltersCount} filtro{activeFiltersCount !== 1 ? 's' : ''} activo{activeFiltersCount !== 1 ? 's' : ''}
@@ -48,8 +48,6 @@ export function ManicuristFilters({ filters, onFiltersChange }: ManicuristFilter
               Limpiar
             </Button>
           </>
-        ) : (
-          <div style={{ height: 0 }} />
         )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">

@@ -1,3 +1,12 @@
+import {
+  LayoutDashboard,
+  Sparkles,
+  Calendar,
+  Users,
+  Paintbrush,
+  LineChart
+} from 'lucide-react'
+
 // Dashboard Routes - Single source of truth
 export const ROUTES = {
   // Public routes
@@ -17,32 +26,32 @@ export const ROUTES = {
 export const NAVIGATION_ITEMS = [
   {
     href: ROUTES.DASHBOARD,
-    icon: '📊',
+    icon: LayoutDashboard,
     label: 'Dashboard'
   },
   {
     href: ROUTES.SERVICES,
-    icon: '💅',
+    icon: Sparkles,
     label: 'Servicios'
   },
   {
     href: ROUTES.APPOINTMENTS,
-    icon: '📅',
+    icon: Calendar,
     label: 'Citas'
   },
   {
     href: ROUTES.CLIENTS,
-    icon: '👥',
+    icon: Users,
     label: 'Clientes'
   },
   {
     href: ROUTES.MANICURISTS,
-    icon: '✨',
+    icon: Paintbrush,
     label: 'Manicuristas'
   },
   {
     href: ROUTES.REPORTS,
-    icon: '📈',
+    icon: LineChart,
     label: 'Reportes'
   }
 ] as const

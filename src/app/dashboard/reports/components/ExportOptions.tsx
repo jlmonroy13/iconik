@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui'
+import { Download, FileText, FileSpreadsheet, ClipboardList } from 'lucide-react'
 
 export function ExportOptions() {
   const [isOpen, setIsOpen] = useState(false)
@@ -25,7 +26,7 @@ export function ExportOptions() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2"
       >
-        <span>📊</span>
+        <Download className="w-4 h-4" />
         <span className="hidden sm:inline">Exportar</span>
         <span className="sm:hidden">Export</span>
       </Button>
@@ -37,21 +38,21 @@ export function ExportOptions() {
               onClick={() => exportData('pdf')}
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full"
             >
-              <span className="text-lg">📄</span>
+              <FileText className="w-4 h-4" />
               <span>Exportar PDF</span>
             </button>
             <button
               onClick={() => exportData('excel')}
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full"
             >
-              <span className="text-lg">📊</span>
+              <FileSpreadsheet className="w-4 h-4" />
               <span>Exportar Excel</span>
             </button>
             <button
               onClick={() => exportData('csv')}
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full"
             >
-              <span className="text-lg">📋</span>
+              <ClipboardList className="w-4 h-4" />
               <span>Exportar CSV</span>
             </button>
           </div>

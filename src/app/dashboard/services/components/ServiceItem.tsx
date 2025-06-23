@@ -12,14 +12,15 @@ interface ServiceItemProps {
 }
 
 export function ServiceItem({ service }: ServiceItemProps) {
+  const ServiceIcon = getServiceTypeIcon(service.type)
   return (
     <div className="p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-3 sm:space-y-0">
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-3">
+          <div className="flex items-center space-x-3 mb-3">
             <div className="w-8 h-8 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-base">{getServiceTypeIcon(service.type)}</span>
-        </div>
+              {ServiceIcon}
+            </div>
             <div>
               <h3 className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
                 {getServiceTypeName(service.type)}

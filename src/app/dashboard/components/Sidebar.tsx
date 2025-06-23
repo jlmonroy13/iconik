@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { NavLink } from './NavLink'
 import { NAVIGATION_ITEMS } from '@/lib/routes'
 import { IconButton, Button } from '@/components/ui'
+import { Gem, X } from 'lucide-react'
 
 interface SidebarProps {
   isOpen: boolean
@@ -30,7 +31,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between h-10">
           <div className="flex items-center space-x-2">
-            <span className="text-2xl">💅</span>
+            <Gem className="w-8 h-8 text-pink-500" />
             <div>
               <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
                 Iconik
@@ -44,7 +45,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <IconButton
             variant="ghost"
             size="sm"
-            icon="✕"
+            icon={<X className="w-5 h-5" />}
             onClick={onClose}
             label="Cerrar menú"
             className="lg:hidden"

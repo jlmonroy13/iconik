@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { Card, CardContent } from '@/components/ui'
+import { Card, CardContent, Button } from '@/components/ui'
 import type { Appointment } from '../types'
+import {
+  Calendar, Clock, DollarSign, User, Sparkles, Hand, Footprints, Brush, Gem, Wrench, SprayCan, Bath, Wand2, X, Eye, Pencil
+} from 'lucide-react'
 
 interface AppointmentListProps {
   appointments: Appointment[]
@@ -39,26 +42,27 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
     )
   }
 
-  const getServiceTypeIcon = (serviceType: string) => {
+  const getServiceTypeIcon = (serviceType: string, className = "w-6 h-6") => {
+    const iconProps = { className: `${className} text-pink-600 dark:text-pink-400` }
     const icons = {
-      MANICURE: '💅',
-      PEDICURE: '🦶',
-      NAIL_ART: '🎨',
-      GEL_POLISH: '✨',
-      ACRYLIC_NAILS: '💎',
-      NAIL_REPAIR: '🔧',
-      HAND_SPA: '🧴',
-      FOOT_SPA: '🛁',
-      OTHER: '💫'
+      MANICURE: <Hand {...iconProps} />,
+      PEDICURE: <Footprints {...iconProps} />,
+      NAIL_ART: <Brush {...iconProps} />,
+      GEL_POLISH: <Sparkles {...iconProps} />,
+      ACRYLIC_NAILS: <Gem {...iconProps} />,
+      NAIL_REPAIR: <Wrench {...iconProps} />,
+      HAND_SPA: <SprayCan {...iconProps} />,
+      FOOT_SPA: <Bath {...iconProps} />,
+      OTHER: <Wand2 {...iconProps} />
     }
-    return icons[serviceType as keyof typeof icons] || '💫'
+    return icons[serviceType as keyof typeof icons] || <Wand2 {...iconProps} />
   }
 
   if (appointments.length === 0) {
     return (
       <div className="text-center py-8 sm:py-12">
-        <div className="text-4xl sm:text-6xl mb-4">📅</div>
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <Calendar className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400" />
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mt-4 mb-2">
           No hay citas programadas
         </h3>
         <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
@@ -76,8 +80,8 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
             {/* Mobile Layout */}
             <div className="block sm:hidden">
               <div className="flex items-start gap-3">
-                <div className="text-xl sm:text-2xl flex-shrink-0">
-                  {getServiceTypeIcon(appointment.serviceType)}
+                <div className="flex-shrink-0">
+                  {getServiceTypeIcon(appointment.serviceType, "w-8 h-8")}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between mb-2">
@@ -92,28 +96,28 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
                     {getStatusBadge(appointment.status)}
                   </div>
 
-                  <div className="space-y-1 text-xs">
+                  <div className="space-y-1.5 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">📅</span>
+                      <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       <span className="text-gray-900 dark:text-white">
                         {format(new Date(appointment.scheduledAt), 'PPP')}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">🕐</span>
+                      <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       <span className="text-gray-900 dark:text-white">
                         {format(new Date(appointment.scheduledAt), 'HH:mm')} ({appointment.duration} min)
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">💰</span>
+                      <DollarSign className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       <span className="text-gray-900 dark:text-white font-medium">
                         {formatCurrency(appointment.price)}
                       </span>
                     </div>
                     {appointment.manicurist && (
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-500 dark:text-gray-400">✨</span>
+                        <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         <span className="text-gray-900 dark:text-white">
                           {appointment.manicurist.name}
                         </span>
@@ -132,15 +136,23 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
 
                   {/* Action buttons */}
                   <div className="flex gap-2 mt-3">
-                    <button
+                    <Button
+                      variant="primary"
+                      size="sm"
                       onClick={() => setSelectedAppointment(appointment)}
-                      className="flex-1 px-3 py-2 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      className="flex-1"
                     >
-                      Ver Detalles
-                    </button>
-                    <button className="flex-1 px-3 py-2 text-xs bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Ver
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
                       Editar
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -151,9 +163,7 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
               {/* Left side - Appointment details */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="text-2xl">
-                    {getServiceTypeIcon(appointment.serviceType)}
-                  </div>
+                  {getServiceTypeIcon(appointment.serviceType, "w-8 h-8")}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm sm:text-base font-medium text-gray-900 dark:text-white truncate">
                       {appointment.serviceType.replace('_', ' ')} - {appointment.client.name}
@@ -167,19 +177,19 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
                 {/* Appointment details */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">📅</span>
+                    <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <span className="text-gray-900 dark:text-white">
                       {format(new Date(appointment.scheduledAt), 'PPP')}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">🕐</span>
+                    <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <span className="text-gray-900 dark:text-white">
                       {format(new Date(appointment.scheduledAt), 'HH:mm')} ({appointment.duration} min)
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">💰</span>
+                    <DollarSign className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <span className="text-gray-900 dark:text-white font-medium">
                       {formatCurrency(appointment.price)}
                     </span>
@@ -202,17 +212,19 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
 
                 {/* Action buttons */}
                 <div className="flex gap-2">
-                  <button
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={() => setSelectedAppointment(appointment)}
-                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                   >
                     Ver
-                  </button>
-                  <button
-                    className="px-3 py-1 text-xs bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                   >
                     Editar
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -230,22 +242,22 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
               </h3>
               <button
                 onClick={() => setSelectedAppointment(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="p-1 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{getServiceTypeIcon(selectedAppointment.serviceType)}</span>
+              <div className="flex items-center gap-3">
+                {getServiceTypeIcon(selectedAppointment.serviceType, "w-10 h-10")}
                 <div>
-                  <div className="font-medium">{selectedAppointment.serviceType.replace('_', ' ')}</div>
+                  <div className="font-medium text-lg">{selectedAppointment.serviceType.replace('_', ' ')}</div>
                   <div className="text-gray-500 dark:text-gray-400">{selectedAppointment.client.name}</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
                 <div>
                   <span className="font-medium text-gray-700 dark:text-gray-300">Fecha:</span>
                   <div className="text-gray-900 dark:text-white">
@@ -291,15 +303,19 @@ export function AppointmentList({ appointments }: AppointmentListProps) {
             </div>
 
             <div className="flex gap-2 mt-6">
-              <button
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => setSelectedAppointment(null)}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
               >
                 Cerrar
-              </button>
-              <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+              >
                 Editar
-              </button>
+              </Button>
             </div>
           </div>
         </div>

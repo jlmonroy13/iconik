@@ -9,10 +9,10 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
+  useNotificationsContext
 } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { toast } from 'react-hot-toast'
 import { updateUserProfile } from '../actions'
 import { User } from '@/generated/prisma'
 
@@ -30,6 +30,7 @@ interface EditProfileFormProps {
 
 export function EditProfileForm({ user }: EditProfileFormProps) {
   const [isPending, startTransition] = useTransition()
+  const { showSuccess, showError } = useNotificationsContext()
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -42,11 +43,11 @@ export function EditProfileForm({ user }: EditProfileFormProps) {
     startTransition(async () => {
       const result = await updateUserProfile(user.id, data)
       if (result.success) {
-        toast.success('¡Perfil actualizado con éxito!')
+        showSuccess('¡Perfil actualizado con éxito!')
         // Optionally reset form if needed
         // form.reset(result.data)
       } else {
-        toast.error(result.error ?? 'Ocurrió un error al actualizar.')
+        showError('Error al actualizar', result.error ?? 'Ocurrió un error al actualizar.')
       }
     })
   }

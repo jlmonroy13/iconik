@@ -1,6 +1,7 @@
 import React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
+import { Star } from 'lucide-react'
 
 const badgeVariants = cva(
   "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -40,10 +41,18 @@ interface RatingBadgeProps {
 }
 
 function RatingBadge({ rating, className }: RatingBadgeProps) {
-  const stars = '⭐'.repeat(rating) + '☆'.repeat(5 - rating)
+  const fullStars = Math.floor(rating)
+  const emptyStars = 5 - fullStars
+
   return (
-    <Badge variant="rating" className={className}>
-      {stars} {rating}/5
+    <Badge variant="rating" className={cn("flex items-center gap-1", className)}>
+      {[...Array(fullStars)].map((_, i) => (
+        <Star key={`full-${i}`} className="w-3 h-3 text-yellow-500 fill-current" />
+      ))}
+      {[...Array(emptyStars)].map((_, i) => (
+        <Star key={`empty-${i}`} className="w-3 h-3 text-yellow-500/40" />
+      ))}
+      <span className="ml-1 font-semibold">{rating.toFixed(1)}/5</span>
     </Badge>
   )
 }

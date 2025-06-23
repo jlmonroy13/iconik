@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import type { Manicurist } from '../types'
+import { Medal, Star } from 'lucide-react'
 
 interface ManicuristPerformanceProps {
   manicurists: Manicurist[]
@@ -51,15 +52,31 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
   }
 
   const getRatingStars = (rating: number) => {
-    const stars = '⭐'.repeat(Math.floor(rating))
-    const hasHalfStar = rating % 1 >= 0.5
-    return stars + (hasHalfStar ? '⭐' : '') + '☆'.repeat(5 - Math.ceil(rating))
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+    return (
+      <div className="flex items-center">
+        {[...Array(fullStars)].map((_, i) => <Star key={`full-${i}`} className="w-4 h-4 text-yellow-400 fill-current" />)}
+        {halfStar && <Star key="half" className="w-4 h-4 text-yellow-400" />}
+        {[...Array(emptyStars)].map((_, i) => <Star key={`empty-${i}`} className="w-4 h-4 text-gray-300" />)}
+      </div>
+    )
   }
 
   const getEfficiencyColor = (efficiency: number) => {
     if (efficiency >= 20) return 'text-green-600 dark:text-green-400'
     if (efficiency >= 10) return 'text-yellow-600 dark:text-yellow-400'
     return 'text-red-600 dark:text-red-400'
+  }
+
+  const getMedalIcon = (index: number) => {
+    const props = { className: "w-6 h-6" }
+    if (index === 0) return <Medal {...props} color="#FFD700" />
+    if (index === 1) return <Medal {...props} color="#C0C0C0" />
+    if (index === 2) return <Medal {...props} color="#CD7F32" />
+    return null
   }
 
   return (
@@ -73,9 +90,7 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
                 <CardTitle className="text-base sm:text-lg">
                   #{index + 1} {manicurist.name}
                 </CardTitle>
-                <div className="text-2xl">
-                  {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                </div>
+                {getMedalIcon(index)}
               </div>
             </CardHeader>
             <CardContent>
@@ -94,7 +109,7 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Rating:</span>
-                  <span className="text-sm">{getRatingStars(manicurist.averageRating)}</span>
+                  {getRatingStars(manicurist.averageRating)}
                 </div>
                 {manicurist.specialty && (
                   <div className="flex justify-between items-center">
@@ -163,7 +178,7 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
                     </td>
                     <td className="text-right py-3 px-2">
                       <div className="flex items-center justify-end gap-1">
-                        <span className="text-xs">{getRatingStars(manicurist.averageRating)}</span>
+                        {getRatingStars(manicurist.averageRating)}
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           ({manicurist.averageRating})
                         </span>

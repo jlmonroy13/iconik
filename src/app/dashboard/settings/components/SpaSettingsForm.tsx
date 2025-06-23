@@ -6,8 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Spa } from '@/generated/prisma'
 import { updateSpaSettings } from '../actions'
-import { Button, Input } from '@/components/ui'
-import { toast } from 'react-hot-toast'
+import { Button, Input, useNotificationsContext } from '@/components/ui'
 
 const spaSettingsSchema = z.object({
   name: z.string().min(1, 'El nombre del spa es requerido'),
@@ -24,6 +23,7 @@ interface SpaSettingsFormProps {
 
 export function SpaSettingsForm({ spa }: SpaSettingsFormProps) {
   const [isPending, startTransition] = useTransition()
+  const { showSuccess, showError } = useNotificationsContext()
 
   const form = useForm<SpaSettingsFormValues>({
     resolver: zodResolver(spaSettingsSchema),
@@ -39,9 +39,9 @@ export function SpaSettingsForm({ spa }: SpaSettingsFormProps) {
     startTransition(async () => {
       const result = await updateSpaSettings(spa.id, data)
       if (result.success) {
-        toast.success('¡Configuración guardada con éxito!')
+        showSuccess('¡Configuración guardada con éxito!')
       } else {
-        toast.error(result.error || 'Ocurrió un error al guardar.')
+        showError('Error al guardar', result.error || 'Ocurrió un error al guardar.')
       }
     })
   }

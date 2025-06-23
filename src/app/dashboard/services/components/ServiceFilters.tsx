@@ -26,16 +26,13 @@ export function ServiceFiltersPanel({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div
-          className="flex items-center space-x-3"
-          style={{ minHeight: hasActiveFilters ? 36 : 8 }}
-        >
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 relative">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3">
           <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
             Filtros
           </h2>
-          {hasActiveFilters ? (
+          {hasActiveFilters && (
             <div className="flex items-center space-x-2">
               <Badge variant="primary">
                 {activeFiltersCount} filtro{activeFiltersCount !== 1 ? 's' : ''} activo{activeFiltersCount !== 1 ? 's' : ''}
@@ -49,8 +46,6 @@ export function ServiceFiltersPanel({
                 Limpiar
               </Button>
             </div>
-          ) : (
-            <div style={{ height: 0 }} />
           )}
         </div>
         <span className="text-sm text-gray-500 dark:text-gray-400">

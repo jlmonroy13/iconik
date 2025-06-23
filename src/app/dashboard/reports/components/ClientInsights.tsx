@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import type { Client } from '../types'
+import { Crown, Star, Sparkles, User } from 'lucide-react'
 
 interface ClientInsightsProps {
   clients: Client[]
@@ -76,15 +77,16 @@ export function ClientInsights({ clients }: ClientInsightsProps) {
   }
 
   const getLoyaltyIcon = (loyalty: string) => {
+    const iconProps = { className: "w-4 h-4" }
     switch (loyalty) {
       case 'VIP':
-        return '👑'
+        return <Crown {...iconProps} />
       case 'Regular':
-        return '⭐'
+        return <Star {...iconProps} />
       case 'New':
-        return '🆕'
+        return <Sparkles {...iconProps} />
       default:
-        return '👤'
+        return <User {...iconProps} />
     }
   }
 
@@ -94,8 +96,8 @@ export function ClientInsights({ clients }: ClientInsightsProps) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-              <span className="text-2xl">👑</span>
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2 text-purple-600 dark:text-purple-400">
+              <Crown className="w-5 h-5" />
               <span>Clientes VIP</span>
             </CardTitle>
           </CardHeader>
@@ -111,8 +113,8 @@ export function ClientInsights({ clients }: ClientInsightsProps) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-              <span className="text-2xl">⭐</span>
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2 text-blue-600 dark:text-blue-400">
+              <Star className="w-5 h-5" />
               <span>Regulares</span>
             </CardTitle>
           </CardHeader>
@@ -128,8 +130,8 @@ export function ClientInsights({ clients }: ClientInsightsProps) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-              <span className="text-2xl">🆕</span>
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2 text-green-600 dark:text-green-400">
+              <Sparkles className="w-5 h-5" />
               <span>Nuevos</span>
             </CardTitle>
           </CardHeader>
@@ -164,8 +166,9 @@ export function ClientInsights({ clients }: ClientInsightsProps) {
                     <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                       <span>{client.visitCount} visitas</span>
                       <span>•</span>
-                      <span className={`px-2 py-1 rounded-full text-xs ${getLoyaltyColor(client.loyalty)}`}>
-                        {getLoyaltyIcon(client.loyalty)} {client.loyalty}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${getLoyaltyColor(client.loyalty)}`}>
+                        {getLoyaltyIcon(client.loyalty)}
+                        {client.loyalty}
                       </span>
                     </div>
                   </div>
@@ -235,8 +238,9 @@ export function ClientInsights({ clients }: ClientInsightsProps) {
                       {client.lastVisit ? formatDate(client.lastVisit) : 'Nunca'}
                     </td>
                     <td className="text-right py-3 px-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${getLoyaltyColor(client.loyalty)}`}>
-                        {getLoyaltyIcon(client.loyalty)} {client.loyalty}
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs ${getLoyaltyColor(client.loyalty)}`}>
+                        {getLoyaltyIcon(client.loyalty)}
+                        <span>{client.loyalty}</span>
                       </span>
                     </td>
                   </tr>

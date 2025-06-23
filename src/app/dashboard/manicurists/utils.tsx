@@ -1,19 +1,22 @@
 import { Manicurist, ManicuristFilters, ManicuristStats, ServiceType } from './types'
+import { Hand, Footprints, Brush, Sparkles, Gem } from 'lucide-react'
+import React from 'react'
 
-export const getServiceTypeIcon = (type: ServiceType): string => {
+export const getServiceTypeIcon = (type: ServiceType): React.ReactElement => {
+  const iconProps = { className: "w-3 h-3" }
   switch (type) {
     case 'MANICURE':
-      return '💅'
+      return <Hand {...iconProps} />
     case 'PEDICURE':
-      return '🦶'
+      return <Footprints {...iconProps} />
     case 'NAIL_ART':
-      return '🎨'
+      return <Brush {...iconProps} />
     case 'GEL_POLISH':
-      return '✨'
+      return <Sparkles {...iconProps} />
     case 'ACRYLIC_NAILS':
-      return '💎'
+      return <Gem {...iconProps} />
     default:
-      return '💅'
+      return <Hand {...iconProps} />
   }
 }
 

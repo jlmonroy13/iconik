@@ -38,9 +38,9 @@ export function ManicuristCard({ manicurist }: ManicuristCardProps) {
 
           <div className="flex flex-wrap gap-2 mt-2">
             {manicurist.specialties.map(specialty => (
-              <Badge key={specialty} variant="secondary">
-                <span className="mr-1">{getServiceTypeIcon(specialty)}</span>
-                {getServiceTypeName(specialty)}
+              <Badge key={specialty} variant="secondary" className="flex items-center gap-1.5">
+                {getServiceTypeIcon(specialty)}
+                <span>{getServiceTypeName(specialty)}</span>
               </Badge>
             ))}
           </div>

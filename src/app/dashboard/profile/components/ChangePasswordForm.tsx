@@ -9,10 +9,10 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
+  useNotificationsContext
 } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { toast } from 'react-hot-toast'
 import { updateUserPassword } from '../actions'
 import { User } from '@/generated/prisma'
 
@@ -39,6 +39,7 @@ interface ChangePasswordFormProps {
 
 export function ChangePasswordForm({ user }: ChangePasswordFormProps) {
   const [isPending, startTransition] = useTransition()
+  const { showSuccess, showError } = useNotificationsContext()
 
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
@@ -53,10 +54,10 @@ export function ChangePasswordForm({ user }: ChangePasswordFormProps) {
     startTransition(async () => {
       const result = await updateUserPassword(user.id, { newPassword: data.newPassword })
       if (result.success) {
-        toast.success(result.message ?? '¡Contraseña actualizada!')
+        showSuccess(result.message ?? '¡Contraseña actualizada!')
         form.reset()
       } else {
-        toast.error(result.error ?? 'Ocurrió un error.')
+        showError('Error al actualizar contraseña', result.error ?? 'Ocurrió un error.')
       }
     })
   }
