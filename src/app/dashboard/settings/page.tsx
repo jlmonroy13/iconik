@@ -1,6 +1,12 @@
 import { SpaSettingsForm } from './components/SpaSettingsForm'
 import { prisma } from '@/lib/prisma'
 import { Card, CardHeader, CardTitle, CardContent, PageTransition, FadeIn, EmptyState } from '@/components/ui'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Configuración - Iconik',
+  description: 'Configura los ajustes de tu spa de uñas, incluyendo información del negocio y preferencias.',
+}
 
 async function getSpaData() {
   // Get the first spa for now (later we'll get from session)

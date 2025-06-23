@@ -56,41 +56,58 @@ export default function ClientsPage() {
   }
 
   return (
-    <PageTransition>
-      <div className="space-y-6">
-        <FadeIn>
-          <ClientStats clients={clients} />
-        </FadeIn>
-
-        {clients.length > 0 && (
-          <FadeIn delay={200}>
-            <ClientFilters
-              filters={filters}
-              onFiltersChange={setFilters}
-            />
+    <PageTransition className="h-full">
+      <div className="flex h-full flex-col">
+        {/* Fixed Header, Stats, and Filters */}
+        <div className="flex-shrink-0">
+          <FadeIn>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                  Clientes
+                </h1>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Administra la base de datos de tus clientes y su historial.
+                </p>
+              </div>
+            </div>
           </FadeIn>
-        )}
 
-        <FadeIn delay={400}>
-          {clients.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <EmptyClients />
-            </div>
-          ) : filteredClients.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <EmptyState
-                title="No se encontraron clientes"
-                description="Intenta ajustar los filtros de búsqueda para encontrar lo que buscas."
-                icon={<SearchX className="w-12 h-12 mx-auto text-gray-400" />}
+          <FadeIn delay={200}>
+            <ClientStats clients={clients} />
+          </FadeIn>
+
+          {clients.length > 0 && (
+            <FadeIn delay={400}>
+              <ClientFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                resultsCount={filteredClients.length}
               />
-            </div>
-          ) : (
-            <ClientList
-              clients={filteredClients}
-              filters={filters}
-            />
+            </FadeIn>
           )}
-        </FadeIn>
+        </div>
+
+        {/* Scrollable List */}
+        <div className="mt-6 flex-grow overflow-y-auto pr-2 min-h-0">
+          <FadeIn delay={600}>
+            {clients.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-full">
+                <EmptyClients />
+              </div>
+            ) : filteredClients.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-full">
+                <EmptyState
+                  title="No se encontraron clientes"
+                  description="Intenta ajustar los filtros de búsqueda para encontrar lo que buscas."
+                  icon={<SearchX className="w-12 h-12 mx-auto text-gray-400" />}
+                />
+              </div>
+            ) : (
+              <ClientList clients={filteredClients} filters={filters} />
+            )}
+          </FadeIn>
+        </div>
       </div>
     </PageTransition>
   )

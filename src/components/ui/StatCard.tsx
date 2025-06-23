@@ -23,15 +23,15 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     return (
       <Card
         ref={ref}
-        className={cn("p-4 sm:p-6 flex flex-col", className)}
+        className={cn("p-4 flex flex-col", className)}
         {...props}
       >
         <div className="flex items-center justify-between flex-grow">
           <div className="flex-1">
-            <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 h-10 mb-1">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
               {title}
             </p>
-            <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+            <p className="text-xl font-bold text-gray-900 dark:text-white">
               {mobileValue ? (
                 <>
                   <span className="hidden sm:inline">{value}</span>
@@ -43,10 +43,10 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
             </p>
           </div>
           <div className={cn(
-            "w-8 h-8 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center flex-shrink-0 ml-4",
+            "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ml-4",
             iconBgColor
           )}>
-            <div className="text-lg sm:text-2xl">
+            <div className="text-xl">
               {icon}
             </div>
           </div>

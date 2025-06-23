@@ -9,7 +9,7 @@ interface ServiceStatsProps {
 
 export function ServiceStatsCards({ stats }: ServiceStatsProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <StatCard
         title="Total Servicios"
         value={stats.totalServices.toString()}

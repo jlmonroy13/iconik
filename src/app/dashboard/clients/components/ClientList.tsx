@@ -1,41 +1,18 @@
 import { Client } from '../types'
 import { ClientItem } from './ClientItem'
-import { EmptyState } from '@/components/ui/EmptyState'
 
 interface ClientListProps {
   clients: Client[]
-  filters: {
+  filters: { // This is likely passed for other reasons, but we only need clients now
     search?: string
     status?: 'ACTIVE' | 'INACTIVE'
   }
 }
 
-export function ClientList({ clients, filters }: ClientListProps) {
-  // Filtrar clientes basado en los filtros
-  const filteredClients = clients.filter(client => {
-    const matchesSearch = !filters.search ||
-      client.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-      client.email.toLowerCase().includes(filters.search.toLowerCase()) ||
-      client.phone.includes(filters.search)
-
-    const matchesStatus = !filters.status || client.status === filters.status
-
-    return matchesSearch && matchesStatus
-  })
-
-  if (filteredClients.length === 0) {
-    return (
-      <EmptyState
-        title="No se encontraron clientes"
-        description="Intenta ajustar los filtros de búsqueda"
-        icon="👥"
-      />
-    )
-  }
-
+export function ClientList({ clients }: ClientListProps) {
   return (
-    <div className="space-y-3">
-      {filteredClients.map(client => (
+    <div className="grid grid-cols-1 gap-4">
+      {clients.map(client => (
         <ClientItem key={client.id} client={client} />
       ))}
     </div>

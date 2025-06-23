@@ -1,35 +1,33 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import type { Spa } from '@/generated/prisma'
 import { revalidatePath } from 'next/cache'
+import { SpaSettingsSchema, type SpaSettingsFormValues } from './schemas'
 
 export async function updateSpaSettings(
   spaId: string,
-  formData: Partial<Spa>
+  data: SpaSettingsFormValues
 ) {
   try {
+    const validatedData = SpaSettingsSchema.parse(data)
+
     const updatedSpa = await prisma.spa.update({
       where: { id: spaId },
-      data: {
-        name: formData.name,
-        address: formData.address,
-        phone: formData.phone,
-        email: formData.email
-      }
+      data: validatedData,
     })
 
     revalidatePath('/dashboard/settings')
 
     return {
       success: true,
-      data: updatedSpa
+      data: updatedSpa,
     }
   } catch (error) {
     console.error('Error updating spa settings:', error)
+    // Return a structured error
     return {
       success: false,
-      error: 'No se pudo actualizar la configuración del spa.'
+      message: 'No se pudo actualizar la configuración del spa. Inténtalo de nuevo.',
     }
   }
 }

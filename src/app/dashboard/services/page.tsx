@@ -69,52 +69,61 @@ export default function ServicesPage() {
   }
 
   return (
-    <PageTransition>
-      <div className="flex flex-col h-full">
-        {/* Fixed Top Section */}
-        <div className="flex-shrink-0 space-y-4 sm:space-y-6">
-          <div className="min-h-[180px] sm:min-h-[112px]">
-            {/* Stats Summary */}
-            <FadeIn>
-              <ServiceStatsCards stats={stats} />
-            </FadeIn>
+    <PageTransition className="h-full">
+      <div className="flex h-full flex-col">
+        {/* Fixed Header, Stats, and Filters */}
+        <div className="flex-shrink-0">
+          <FadeIn>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                  Historial de Servicios
+                </h1>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Consulta y filtra todos los servicios registrados en tu spa.
+                </p>
+              </div>
+            </div>
+          </FadeIn>
 
-            {/* Filters */}
-            {(services.length > 0 || isLoading) && (
-              <FadeIn delay={200}>
-                <div className="mt-4 sm:mt-6">
-                  <ServiceFiltersPanel
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    uniqueManicurists={uniqueManicurists}
-                    resultsCount={filteredServices.length}
-                  />
-                </div>
-              </FadeIn>
-            )}
-          </div>
+          <FadeIn delay={200}>
+            <ServiceStatsCards stats={stats} />
+          </FadeIn>
+
+          {(services.length > 0 || isLoading) && (
+            <FadeIn delay={400}>
+              <ServiceFiltersPanel
+                filters={filters}
+                onFiltersChange={setFilters}
+                uniqueManicurists={uniqueManicurists}
+                resultsCount={filteredServices.length}
+              />
+            </FadeIn>
+          )}
         </div>
 
-        {/* Scrollable Services List */}
-        <FadeIn delay={400}>
-          <div className="flex-1 mt-4 sm:mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-            <div className="h-full overflow-y-auto">
-              {services.length === 0 ? (
+        {/* Scrollable List */}
+        <div className="mt-6 flex-grow overflow-y-auto pr-2 min-h-0">
+          <FadeIn delay={600}>
+            {services.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm h-full">
                 <EmptyServices />
-              ) : filteredServices.length > 0 ? (
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredServices.map((service, index) => (
-                    <FadeIn key={service.id} delay={index * 100}>
-                      <ServiceItem service={service} />
-                    </FadeIn>
-                  ))}
-                </div>
-              ) : (
+              </div>
+            ) : filteredServices.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {filteredServices.map((service, index) => (
+                  <FadeIn key={service.id} delay={index * 100}>
+                    <ServiceItem service={service} />
+                  </FadeIn>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm h-full">
                 <EmptyState onClearFilters={clearFilters} />
-              )}
-            </div>
-          </div>
-        </FadeIn>
+              </div>
+            )}
+          </FadeIn>
+        </div>
       </div>
     </PageTransition>
   )

@@ -3,35 +3,18 @@
 import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-  useNotificationsContext
+  useNotifications,
+  Button,
+  Input,
 } from '@/components/ui'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
 import { updateUserPassword } from '../actions'
 import { User } from '@/generated/prisma'
-
-const passwordFormSchema = z
-  .object({
-    currentPassword: z.string().min(1, {
-      message: 'Debes ingresar tu contraseña actual.',
-    }),
-    newPassword: z.string().min(8, {
-      message: 'La nueva contraseña debe tener al menos 8 caracteres.',
-    }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Las contraseñas no coinciden.',
-    path: ['confirmPassword'], // Path of error
-  })
-
-type PasswordFormValues = z.infer<typeof passwordFormSchema>
+import { PasswordFormSchema, type PasswordFormValues } from '../schemas'
 
 interface ChangePasswordFormProps {
   user: User
@@ -39,10 +22,10 @@ interface ChangePasswordFormProps {
 
 export function ChangePasswordForm({ user }: ChangePasswordFormProps) {
   const [isPending, startTransition] = useTransition()
-  const { showSuccess, showError } = useNotificationsContext()
+  const { showSuccess, showError } = useNotifications()
 
   const form = useForm<PasswordFormValues>({
-    resolver: zodResolver(passwordFormSchema),
+    resolver: zodResolver(PasswordFormSchema),
     defaultValues: {
       currentPassword: '',
       newPassword: '',
@@ -52,12 +35,12 @@ export function ChangePasswordForm({ user }: ChangePasswordFormProps) {
 
   const onSubmit = (data: PasswordFormValues) => {
     startTransition(async () => {
-      const result = await updateUserPassword(user.id, { newPassword: data.newPassword })
+      const result = await updateUserPassword(user.id, data)
       if (result.success) {
         showSuccess(result.message ?? '¡Contraseña actualizada!')
         form.reset()
       } else {
-        showError('Error al actualizar contraseña', result.error ?? 'Ocurrió un error.')
+        showError('Error al actualizar contraseña', result.message ?? 'Ocurrió un error.')
       }
     })
   }

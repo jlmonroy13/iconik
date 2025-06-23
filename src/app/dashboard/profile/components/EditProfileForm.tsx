@@ -3,26 +3,18 @@
 import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-  useNotificationsContext
+  useNotifications,
+  Button,
+  Input,
 } from '@/components/ui'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
 import { updateUserProfile } from '../actions'
 import { User } from '@/generated/prisma'
-
-const profileFormSchema = z.object({
-  name: z.string().min(2, {
-    message: 'El nombre debe tener al menos 2 caracteres.',
-  }),
-})
-
-type ProfileFormValues = z.infer<typeof profileFormSchema>
+import { ProfileFormSchema, type ProfileFormValues } from '../schemas'
 
 interface EditProfileFormProps {
   user: User
@@ -30,10 +22,10 @@ interface EditProfileFormProps {
 
 export function EditProfileForm({ user }: EditProfileFormProps) {
   const [isPending, startTransition] = useTransition()
-  const { showSuccess, showError } = useNotificationsContext()
+  const { showSuccess, showError } = useNotifications()
 
   const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
+    resolver: zodResolver(ProfileFormSchema),
     defaultValues: {
       name: user.name ?? '',
     },
@@ -44,10 +36,9 @@ export function EditProfileForm({ user }: EditProfileFormProps) {
       const result = await updateUserProfile(user.id, data)
       if (result.success) {
         showSuccess('¡Perfil actualizado con éxito!')
-        // Optionally reset form if needed
-        // form.reset(result.data)
+        form.reset({ name: result.data?.name ?? '' })
       } else {
-        showError('Error al actualizar', result.error ?? 'Ocurrió un error al actualizar.')
+        showError('Error al actualizar', result.message ?? 'Ocurrió un error.')
       }
     })
   }

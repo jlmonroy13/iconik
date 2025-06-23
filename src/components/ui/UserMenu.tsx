@@ -4,11 +4,12 @@ import { useState, useRef, useEffect } from 'react'
 import { Avatar } from './Avatar'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { type ReactNode } from 'react'
 
 interface UserMenuItem {
   href?: string
   onClick?: () => void
-  icon?: string
+  icon?: ReactNode
   label?: string
   divider?: boolean
 }
@@ -74,7 +75,7 @@ export function UserMenu({ items, fallback = "U", alt = "Usuario" }: UserMenuPro
                   className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  <span className="text-lg">{item.icon}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{item.icon}</span>
                   <span>{item.label}</span>
                 </Link>
               )}
@@ -86,7 +87,7 @@ export function UserMenu({ items, fallback = "U", alt = "Usuario" }: UserMenuPro
                   }}
                   className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-full text-left"
                 >
-                  <span className="text-lg">{item.icon}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{item.icon}</span>
                   <span>{item.label}</span>
                 </button>
               )}

@@ -1,5 +1,11 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Iconik - SaaS para Gestión de Spas de Uñas',
+  description: 'Plataforma multi-tenant para gestionar operaciones de spas de uñas: agendamiento, ventas, inventario y más.',
+}
 
 export default function Home() {
   return (

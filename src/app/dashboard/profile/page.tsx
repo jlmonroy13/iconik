@@ -3,6 +3,12 @@ import { Avatar } from '@/components/ui/Avatar'
 import { EditProfileForm } from './components/EditProfileForm'
 import { ChangePasswordForm } from './components/ChangePasswordForm'
 import { PageTransition, FadeIn, EmptyState } from '@/components/ui'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Perfil - Iconik',
+  description: 'Gestiona tu información personal y configuración de cuenta en Iconik.',
+}
 
 async function getUserData() {
   // TEMP: Get the first user for now.

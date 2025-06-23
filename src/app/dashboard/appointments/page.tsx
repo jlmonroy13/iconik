@@ -7,6 +7,12 @@ import {
   FloatingActionButton
 } from './components'
 import { PageTransition, FadeIn, EmptyAppointments } from '@/components/ui'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Citas - Iconik',
+  description: 'Gestiona el calendario de citas de tu spa de uñas. Programa, confirma y organiza las citas de tus clientes.',
+}
 
 async function getAppointmentsData() {
   // Get the first spa for now (later we'll get from session)
@@ -53,54 +59,68 @@ export default async function AppointmentsPage() {
   const { appointments, stats } = await getAppointmentsData()
 
   return (
-    <PageTransition>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Stats Cards */}
-        <FadeIn>
-          <AppointmentStats stats={stats} />
-        </FadeIn>
-
-        {/* Calendar View */}
-        <FadeIn delay={200}>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-            <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                Calendario de Citas
-              </h2>
-            </div>
-            <div className="p-3 sm:p-4 lg:p-6">
-              {appointments.length > 0 ? (
-                <AppointmentCalendar appointments={appointments} />
-              ) : (
-                <EmptyAppointments />
-              )}
-            </div>
-          </div>
-        </FadeIn>
-
-        {/* List View with Filters */}
-        <FadeIn delay={400}>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-            <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                  Lista de Citas
-                </h2>
-                {appointments.length > 0 && <AppointmentFilters />}
+    <PageTransition className="h-full">
+      <div className="flex h-full flex-col">
+        {/* Fixed Header and Stats */}
+        <div className="flex-shrink-0">
+          <FadeIn>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                  Gestión de Citas
+                </h1>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Organiza, programa y visualiza todas las citas de tu spa.
+                </p>
               </div>
             </div>
-            <div className="p-3 sm:p-4 lg:p-6">
-              {appointments.length > 0 ? (
-                <AppointmentList appointments={appointments} />
-              ) : (
-                <EmptyAppointments />
-              )}
-            </div>
-          </div>
-        </FadeIn>
-      </div>
+          </FadeIn>
 
-      {/* Floating Action Button for Mobile */}
+          <FadeIn delay={200}>
+            <AppointmentStats stats={stats} />
+          </FadeIn>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="mt-6 flex-grow overflow-y-auto pr-2 min-h-0 space-y-6">
+          <FadeIn delay={400}>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                  Calendario de Citas
+                </h2>
+              </div>
+              <div className="p-3 sm:p-4 lg:p-6">
+                {appointments.length > 0 ? (
+                  <AppointmentCalendar appointments={appointments} />
+                ) : (
+                  <EmptyAppointments />
+                )}
+              </div>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={600}>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                    Lista de Citas
+                  </h2>
+                  {appointments.length > 0 && <AppointmentFilters />}
+                </div>
+              </div>
+              <div className="p-3 sm:p-4 lg:p-6">
+                {appointments.length > 0 ? (
+                  <AppointmentList appointments={appointments} />
+                ) : (
+                  <EmptyAppointments />
+                )}
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </div>
       <FloatingActionButton />
     </PageTransition>
   )

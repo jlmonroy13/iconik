@@ -1,21 +1,16 @@
 'use client'
 
-import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTransition } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Spa } from '@/generated/prisma'
 import { updateSpaSettings } from '../actions'
-import { Button, Input, useNotificationsContext } from '@/components/ui'
-
-const spaSettingsSchema = z.object({
-  name: z.string().min(1, 'El nombre del spa es requerido'),
-  address: z.string().min(1, 'La dirección es requerida'),
-  phone: z.string().min(1, 'El teléfono es requerido'),
-  email: z.string().min(1, 'El email es requerido').email('Email inválido')
-})
-
-type SpaSettingsFormValues = z.infer<typeof spaSettingsSchema>
+import { SpaSettingsSchema, type SpaSettingsFormValues } from '../schemas'
+import {
+  Button,
+  Input,
+  useNotifications,
+} from '@/components/ui'
 
 interface SpaSettingsFormProps {
   spa: Spa
@@ -23,25 +18,26 @@ interface SpaSettingsFormProps {
 
 export function SpaSettingsForm({ spa }: SpaSettingsFormProps) {
   const [isPending, startTransition] = useTransition()
-  const { showSuccess, showError } = useNotificationsContext()
+  const { showSuccess, showError } = useNotifications()
 
   const form = useForm<SpaSettingsFormValues>({
-    resolver: zodResolver(spaSettingsSchema),
+    resolver: zodResolver(SpaSettingsSchema),
     defaultValues: {
       name: spa.name || '',
       address: spa.address || '',
       phone: spa.phone || '',
-      email: spa.email || ''
-    }
+      email: spa.email || '',
+    },
   })
 
-  const onSubmit = async (data: SpaSettingsFormValues) => {
+  const onSubmit = (data: SpaSettingsFormValues) => {
     startTransition(async () => {
       const result = await updateSpaSettings(spa.id, data)
       if (result.success) {
-        showSuccess('¡Configuración guardada con éxito!')
+        showSuccess('Configuración guardada', 'La información de tu spa ha sido actualizada.')
+        form.reset(data)
       } else {
-        showError('Error al guardar', result.error || 'Ocurrió un error al guardar.')
+        showError('Error al guardar', result.message)
       }
     })
   }
@@ -86,8 +82,16 @@ export function SpaSettingsForm({ spa }: SpaSettingsFormProps) {
         />
       </div>
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isPending}>
+      <div className="flex justify-end gap-3 mt-8">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => form.reset(form.formState.defaultValues)}
+          disabled={!form.formState.isDirty || isPending}
+        >
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={!form.formState.isDirty || isPending}>
           {isPending ? 'Guardando...' : 'Guardar Cambios'}
         </Button>
       </div>

@@ -1,100 +1,127 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ManicuristStatsCards } from './components/ManicuristStats'
-import { ManicuristCard } from './components/ManicuristCard'
+import { useState, useCallback } from 'react'
+import { PageTransition, FadeIn, Button } from '@/components/ui'
+import { Plus } from 'lucide-react'
 import { ManicuristFilters } from './components/ManicuristFilters'
-import { ManicuristFilters as ManicuristFiltersType, sampleManicurists } from './types'
-import { calculateStats, filterManicurists } from './utils'
-import { PageTransition, FadeIn, EmptyManicurists, StatsSkeleton, EmptyState } from '@/components/ui'
-import { SearchX } from 'lucide-react'
+import { ManicuristCard } from './components/ManicuristCard'
+import { ManicuristStatsCards } from './components/ManicuristStats'
+import { ManicuristModal } from './components/ManicuristModal'
+import { sampleManicurists } from './types'
+import { filterManicurists, calculateStats } from './utils'
+import type { ManicuristFormData } from './schemas'
 
 export default function ManicuristsPage() {
-  const [filters, setFilters] = useState<ManicuristFiltersType>({})
-  const [isLoading, setIsLoading] = useState(true)
+  const [manicurists, setManicurists] = useState(sampleManicurists)
+  const [filters, setFilters] = useState({})
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedManicurist, setSelectedManicurist] = useState<typeof manicurists[0] | undefined>()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1200)
-
-    return () => clearTimeout(timer)
+  const openCreateModal = useCallback(() => {
+    setSelectedManicurist(undefined)
+    setIsModalOpen(true)
   }, [])
 
-  const filteredManicurists = filterManicurists(sampleManicurists, filters)
-  const stats = calculateStats(sampleManicurists)
+  const filteredManicurists = filterManicurists(manicurists, filters)
+  const stats = calculateStats(filteredManicurists)
 
-  if (isLoading) {
-    return (
-      <PageTransition>
-        <div className="space-y-6">
-          <StatsSkeleton />
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="space-y-4">
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse" />
-                <div className="flex gap-4">
-                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse" />
-                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse" />
-                </div>
-              </div>
-            </div>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="p-4 sm:p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse" />
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </PageTransition>
-    )
+  const handleCreateOrUpdate = async (data: ManicuristFormData) => {
+    setIsSubmitting(true)
+    try {
+      if (selectedManicurist) {
+        setManicurists(prev =>
+          prev.map(m =>
+            m.id === selectedManicurist.id
+              ? { ...m, ...data, updatedAt: new Date().toISOString() }
+              : m
+          )
+        )
+      } else {
+        const newManicurist = {
+          id: Math.random().toString(36).substring(2, 9),
+          ...data,
+          joinedAt: new Date().toISOString(),
+          rating: 0,
+          totalServices: 0,
+          totalRevenue: 0,
+          thisMonthServices: 0,
+          thisMonthRevenue: 0,
+        }
+        setManicurists(prev => [...prev, newManicurist])
+      }
+      setIsModalOpen(false)
+      setSelectedManicurist(undefined)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEdit = (manicurist: typeof manicurists[0]) => {
+    setSelectedManicurist(manicurist)
+    setIsModalOpen(true)
   }
 
   return (
-    <PageTransition>
-      <div className="space-y-6">
-        <FadeIn>
-          <ManicuristStatsCards stats={stats} />
-        </FadeIn>
-
-        <FadeIn delay={200}>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              {sampleManicurists.length > 0 && (
-                <ManicuristFilters filters={filters} onFiltersChange={setFilters} />
-              )}
+    <PageTransition className="h-full">
+      <div className="flex h-full flex-col">
+        {/* Fixed Header, Stats, and Filters */}
+        <div className="flex-shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                Manicuristas
+              </h1>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Gestiona el equipo de profesionales de tu spa.
+              </p>
             </div>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {sampleManicurists.length === 0 ? (
-                <EmptyManicurists />
-              ) : filteredManicurists.length > 0 ? (
-                filteredManicurists.map((manicurist, index) => (
-                  <FadeIn key={manicurist.id} delay={400 + index * 100}>
-                    <ManicuristCard manicurist={manicurist} />
-                  </FadeIn>
-                ))
-              ) : (
-                <div className="p-8 text-center">
-                  <EmptyState
-                    title="No se encontraron manicuristas"
-                    description="Intenta ajustar los filtros de búsqueda."
-                    icon={<SearchX className="w-12 h-12 mx-auto text-gray-400" />}
-                  />
-                </div>
-              )}
-            </div>
+            <Button onClick={openCreateModal} variant="primary" className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva Manicurista
+            </Button>
           </div>
-        </FadeIn>
+
+          <FadeIn>
+            <ManicuristStatsCards stats={stats} />
+          </FadeIn>
+
+          <FadeIn delay={200}>
+            <ManicuristFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              resultsCount={filteredManicurists.length}
+            />
+          </FadeIn>
+        </div>
+
+        {/* Scrollable List - Added min-h-0 to allow flex-grow to work correctly */}
+        <div className="mt-6 flex-grow overflow-y-auto pr-2 min-h-0">
+          <FadeIn delay={400}>
+            <div className="grid grid-cols-1 gap-4">
+              {filteredManicurists.map((manicurist, index) => (
+                <FadeIn key={manicurist.id} delay={index * 100}>
+                  <ManicuristCard
+                    manicurist={manicurist}
+                    onEdit={() => handleEdit(manicurist)}
+                  />
+                </FadeIn>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
       </div>
+
+      <ManicuristModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedManicurist(undefined)
+        }}
+        onSubmit={handleCreateOrUpdate}
+        manicurist={selectedManicurist}
+        isSubmitting={isSubmitting}
+      />
     </PageTransition>
   )
 }
