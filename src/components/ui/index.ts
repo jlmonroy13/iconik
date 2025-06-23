@@ -17,3 +17,21 @@ export { Notification } from './Notification'
 export { NotificationProvider, useNotifications } from './NotificationContext'
 export { MultiSelect } from './MultiSelect'
 export { Modal } from './Modal'
+export { ItemActions } from './ItemActions'
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+} from './dropdown-menu'

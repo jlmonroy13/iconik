@@ -1,18 +1,85 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ClientStats } from './components/ClientStats'
 import { ClientFilters } from './components/ClientFilters'
 import { ClientList } from './components/ClientList'
-import { StatsSkeleton, EmptyClients, EmptyState, PageTransition, FadeIn, Skeleton } from '@/components/ui'
+import { ClientModal } from './components/ClientModal'
+import { StatsSkeleton, EmptyClients, EmptyState, PageTransition, FadeIn, Skeleton, Button } from '@/components/ui'
 import { mockClients } from './types'
-import type { ClientFilters as ClientFiltersType } from './types'
-import { SearchX } from 'lucide-react'
+import type { Client, ClientFilters as ClientFiltersType } from './types'
+import { SearchX, Plus } from 'lucide-react'
+import type { ClientFormData } from './schemas'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 export default function ClientsPage() {
   const [filters, setFilters] = useState<ClientFiltersType>({})
   const [isLoading, setIsLoading] = useState(true)
-  const [clients] = useState(mockClients)
+  const [clients, setClients] = useState(mockClients)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<Client | undefined>()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false)
+
+  const openCreateModal = useCallback(() => {
+    setSelectedClient(undefined)
+    setIsModalOpen(true)
+  }, [])
+
+  const handleEdit = useCallback((client: Client) => {
+    setSelectedClient(client)
+    setIsModalOpen(true)
+  }, [])
+
+  const handleDelete = useCallback((client: Client) => {
+    setClientToDelete(client)
+  }, [])
+
+  const handleCreateOrUpdate = async (data: ClientFormData) => {
+    setIsSubmitting(true)
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      if (selectedClient) {
+        // Update logic will go here
+        setClients(prev => prev.map(c =>
+          c.id === selectedClient.id
+            ? { ...c, ...data, status: data.status as 'ACTIVE' | 'INACTIVE' }
+            : c
+        ))
+      } else {
+        const newClient: Client = {
+          id: `client_${Date.now()}`,
+          ...data,
+          status: data.status as 'ACTIVE' | 'INACTIVE',
+          registeredAt: new Date().toISOString(),
+          visits: 0,
+          totalSpent: 0,
+        }
+        setClients(prev => [newClient, ...prev])
+      }
+      setIsModalOpen(false)
+      setSelectedClient(undefined)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!clientToDelete) return
+    setIsDeleteLoading(true)
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 800))
+    setClients(prev => prev.filter(c => c.id !== clientToDelete.id))
+    setIsDeleteLoading(false)
+    setClientToDelete(null)
+  }
+
+  const cancelDelete = () => {
+    setClientToDelete(null)
+  }
 
   // Simulate loading
   useEffect(() => {
@@ -69,6 +136,10 @@ export default function ClientsPage() {
                   Administra la base de datos de tus clientes y su historial.
                 </p>
               </div>
+              <Button onClick={openCreateModal} variant="primary" className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Cliente
+              </Button>
             </div>
           </FadeIn>
 
@@ -103,11 +174,36 @@ export default function ClientsPage() {
                 />
               </div>
             ) : (
-              <ClientList clients={filteredClients} filters={filters} />
+              <ClientList
+                clients={filteredClients}
+                filters={filters}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             )}
           </FadeIn>
         </div>
       </div>
+      <ClientModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedClient(undefined)
+        }}
+        onSubmit={handleCreateOrUpdate}
+        client={selectedClient}
+        isSubmitting={isSubmitting}
+      />
+      <ConfirmDialog
+        open={!!clientToDelete}
+        title="Eliminar cliente"
+        description={clientToDelete ? `¿Estás seguro de que deseas eliminar a ${clientToDelete.name}? Esta acción no se puede deshacer.` : ''}
+        onCancel={cancelDelete}
+        onConfirm={confirmDelete}
+        isLoading={isDeleteLoading}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+      />
     </PageTransition>
   )
 }

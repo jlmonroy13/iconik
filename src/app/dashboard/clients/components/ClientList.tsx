@@ -7,13 +7,20 @@ interface ClientListProps {
     search?: string
     status?: 'ACTIVE' | 'INACTIVE'
   }
+  onEdit?: (client: Client) => void
+  onDelete?: (client: Client) => void
 }
 
-export function ClientList({ clients }: ClientListProps) {
+export function ClientList({ clients, onEdit, onDelete }: ClientListProps) {
   return (
     <div className="grid grid-cols-1 gap-4">
       {clients.map(client => (
-        <ClientItem key={client.id} client={client} />
+        <ClientItem
+          key={client.id}
+          client={client}
+          onEdit={onEdit ? () => onEdit(client) : undefined}
+          onDelete={onDelete ? () => onDelete(client) : undefined}
+        />
       ))}
     </div>
   )

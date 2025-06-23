@@ -9,6 +9,7 @@ interface ModalProps {
   isOpen: boolean
   onClose: () => void
   title: string
+  description?: string
   children: React.ReactNode
   className?: string
 }
@@ -17,6 +18,7 @@ export function Modal({
   isOpen,
   onClose,
   title,
+  description,
   children,
   className
 }: ModalProps) {
@@ -64,13 +66,20 @@ export function Modal({
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {title}
-          </h2>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {title}
+            </h2>
+            {description && (
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {description}
+              </p>
+            )}
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 ml-4"
           >
             <X className="h-5 w-5" />
           </button>

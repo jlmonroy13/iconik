@@ -3,6 +3,8 @@ export interface Client {
   name: string
   email: string
   phone: string
+  identificationType: 'CC' | 'CE' | 'PAS' | 'NIT' | 'OTRO'
+  identification: string
   registeredAt: string // ISO date
   status: 'ACTIVE' | 'INACTIVE'
   totalSpent: number
@@ -23,6 +25,8 @@ export const mockClients: Client[] = [
     name: 'Ana López',
     email: 'ana.lopez@example.com',
     phone: '+57 300 111 2233',
+    identificationType: 'CC',
+    identification: '123456789',
     registeredAt: '2023-01-15',
     status: 'ACTIVE',
     totalSpent: 1200000,
@@ -33,6 +37,8 @@ export const mockClients: Client[] = [
     name: 'María García',
     email: 'maria.garcia@example.com',
     phone: '+57 300 222 3344',
+    identificationType: 'CE',
+    identification: '987654321',
     registeredAt: '2023-03-10',
     status: 'ACTIVE',
     totalSpent: 950000,
@@ -43,6 +49,8 @@ export const mockClients: Client[] = [
     name: 'Laura Torres',
     email: 'laura.torres@example.com',
     phone: '+57 300 333 4455',
+    identificationType: 'PAS',
+    identification: 'A1234567',
     registeredAt: '2022-11-20',
     status: 'INACTIVE',
     totalSpent: 400000,
@@ -53,6 +61,8 @@ export const mockClients: Client[] = [
     name: 'Ana López',
     email: 'ana.lopez@example.com',
     phone: '+57 300 111 2233',
+    identificationType: 'CC',
+    identification: '123456789',
     registeredAt: '2023-01-15',
     status: 'ACTIVE',
     totalSpent: 1200000,
@@ -63,6 +73,8 @@ export const mockClients: Client[] = [
     name: 'María García',
     email: 'maria.garcia@example.com',
     phone: '+57 300 222 3344',
+    identificationType: 'CE',
+    identification: '987654321',
     registeredAt: '2023-03-10',
     status: 'ACTIVE',
     totalSpent: 950000,
@@ -73,6 +85,8 @@ export const mockClients: Client[] = [
     name: 'Laura Torres',
     email: 'laura.torres@example.com',
     phone: '+57 300 333 4455',
+    identificationType: 'PAS',
+    identification: 'A1234567',
     registeredAt: '2022-11-20',
     status: 'INACTIVE',
     totalSpent: 400000,
@@ -83,6 +97,8 @@ export const mockClients: Client[] = [
     name: 'Ana López',
     email: 'ana.lopez@example.com',
     phone: '+57 300 111 2233',
+    identificationType: 'CC',
+    identification: '123456789',
     registeredAt: '2023-01-15',
     status: 'ACTIVE',
     totalSpent: 1200000,
@@ -93,6 +109,8 @@ export const mockClients: Client[] = [
     name: 'María García',
     email: 'maria.garcia@example.com',
     phone: '+57 300 222 3344',
+    identificationType: 'CE',
+    identification: '987654321',
     registeredAt: '2023-03-10',
     status: 'ACTIVE',
     totalSpent: 950000,
@@ -103,6 +121,8 @@ export const mockClients: Client[] = [
     name: 'Laura Torres',
     email: 'laura.torres@example.com',
     phone: '+57 300 333 4455',
+    identificationType: 'PAS',
+    identification: 'A1234567',
     registeredAt: '2022-11-20',
     status: 'INACTIVE',
     totalSpent: 400000,
