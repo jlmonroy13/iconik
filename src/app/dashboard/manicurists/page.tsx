@@ -7,15 +7,15 @@ import { ManicuristFilters } from './components/ManicuristFilters'
 import { ManicuristCard } from './components/ManicuristCard'
 import { ManicuristStatsCards } from './components/ManicuristStats'
 import { ManicuristModal } from './components/ManicuristModal'
-import { sampleManicurists } from './types'
 import { filterManicurists, calculateStats } from './utils'
 import type { ManicuristFormData } from './schemas'
+import type { Manicurist } from './types'
 
 export default function ManicuristsPage() {
-  const [manicurists, setManicurists] = useState(sampleManicurists)
+  const [manicurists, setManicurists] = useState<Manicurist[]>([]) // TODO: Will be used when implementing API calls
   const [filters, setFilters] = useState({})
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedManicurist, setSelectedManicurist] = useState<typeof manicurists[0] | undefined>()
+  const [selectedManicurist, setSelectedManicurist] = useState<Manicurist | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -36,27 +36,10 @@ export default function ManicuristsPage() {
   const handleCreateOrUpdate = async (data: ManicuristFormData) => {
     setIsSubmitting(true)
     try {
-      if (selectedManicurist) {
-        setManicurists(prev =>
-          prev.map(m =>
-            m.id === selectedManicurist.id
-              ? { ...m, ...data, updatedAt: new Date().toISOString() }
-              : m
-          )
-        )
-      } else {
-        const newManicurist = {
-          id: Math.random().toString(36).substring(2, 9),
-          ...data,
-          joinedAt: new Date().toISOString(),
-          rating: 0,
-          totalServices: 0,
-          totalRevenue: 0,
-          thisMonthServices: 0,
-          thisMonthRevenue: 0,
-        }
-        setManicurists(prev => [...prev, newManicurist])
-      }
+      // TODO: Implement API call to create/update manicurist
+      console.log('Creating/updating manicurist:', data)
+      // TODO: Add real API call here
+      // TODO: Refresh manicurists list after successful submission
       setIsModalOpen(false)
       setSelectedManicurist(undefined)
     } finally {
@@ -64,7 +47,7 @@ export default function ManicuristsPage() {
     }
   }
 
-  const handleEdit = (manicurist: typeof manicurists[0]) => {
+  const handleEdit = (manicurist: Manicurist) => {
     setSelectedManicurist(manicurist)
     setIsModalOpen(true)
   }

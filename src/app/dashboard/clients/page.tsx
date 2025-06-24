@@ -6,7 +6,6 @@ import { ClientFilters } from './components/ClientFilters'
 import { ClientList } from './components/ClientList'
 import { ClientModal } from './components/ClientModal'
 import { StatsSkeleton, EmptyClients, EmptyState, PageTransition, FadeIn, Skeleton, Button } from '@/components/ui'
-import { mockClients } from './types'
 import type { Client, ClientFilters as ClientFiltersType } from './types'
 import { SearchX, Plus } from 'lucide-react'
 import type { ClientFormData } from './schemas'
@@ -15,7 +14,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 export default function ClientsPage() {
   const [filters, setFilters] = useState<ClientFiltersType>({})
   const [isLoading, setIsLoading] = useState(true)
-  const [clients, setClients] = useState(mockClients)
+  const [clients, setClients] = useState<Client[]>([]) // TODO: Will be used when implementing API calls
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,27 +38,10 @@ export default function ClientsPage() {
   const handleCreateOrUpdate = async (data: ClientFormData) => {
     setIsSubmitting(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      if (selectedClient) {
-        // Update logic will go here
-        setClients(prev => prev.map(c =>
-          c.id === selectedClient.id
-            ? { ...c, ...data, status: data.status as 'ACTIVE' | 'INACTIVE' }
-            : c
-        ))
-      } else {
-        const newClient: Client = {
-          id: `client_${Date.now()}`,
-          ...data,
-          status: data.status as 'ACTIVE' | 'INACTIVE',
-          registeredAt: new Date().toISOString(),
-          visits: 0,
-          totalSpent: 0,
-        }
-        setClients(prev => [newClient, ...prev])
-      }
+      // TODO: Implement API call to create/update client
+      console.log('Creating/updating client:', data)
+      // TODO: Add real API call here
+      // TODO: Refresh clients list after successful submission
       setIsModalOpen(false)
       setSelectedClient(undefined)
     } finally {
@@ -70,11 +52,16 @@ export default function ClientsPage() {
   const confirmDelete = async () => {
     if (!clientToDelete) return
     setIsDeleteLoading(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800))
-    setClients(prev => prev.filter(c => c.id !== clientToDelete.id))
-    setIsDeleteLoading(false)
-    setClientToDelete(null)
+    try {
+      // TODO: Implement API call to delete client
+      console.log('Deleting client:', clientToDelete.id)
+      // TODO: Add real API call here
+      // TODO: Refresh clients list after successful deletion
+      setIsDeleteLoading(false)
+      setClientToDelete(null)
+    } finally {
+      setIsDeleteLoading(false)
+    }
   }
 
   const cancelDelete = () => {

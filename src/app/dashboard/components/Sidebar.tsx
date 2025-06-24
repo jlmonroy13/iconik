@@ -29,17 +29,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     <div className={sidebarClasses}>
       {/* Sidebar Header */}
       <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between h-10">
+        <div className="flex items-center justify-between h-8">
           <div className="flex items-center space-x-2">
-            <Gem className="w-8 h-8 text-pink-500" />
-            <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-                Iconik
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight hidden sm:block">
-                Bella Nails Spa
-              </p>
-            </div>
+            <Gem className="w-5 h-5 text-pink-500" />
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+              Iconik
+            </h1>
           </div>
           {/* Close button for mobile */}
           <IconButton

@@ -43,14 +43,14 @@ export function AppointmentsClient({
   services,
   children
 }: AppointmentsClientProps) {
-  const [clients, setClients] = useState<Option[]>(initialClients)
+  const [clients, setClients] = useState<Option[]>(initialClients) // TODO: Will be used when implementing client creation API
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null)
   const [isClientModalOpen, setIsClientModalOpen] = useState(false)
-  const [clientFormSetValue, setClientFormSetValue] = useState<((name: keyof AppointmentFormData, value: string | number | Date) => void) | null>(null)
+  const [clientFormSetValue, setClientFormSetValue] = useState<((name: keyof AppointmentFormData, value: string | number | Date) => void) | null>(null) // TODO: Will be used when implementing client creation API
 
   const handleCreate = () => {
     setSelectedAppointment(undefined)
@@ -75,9 +75,10 @@ export function AppointmentsClient({
   const handleSubmit = async (data: AppointmentFormData) => {
     setIsSubmitting(true)
     try {
-      // TODO: Implement API call
+      // TODO: Implement API call to create/update appointment
       console.log('Submitting appointment:', data)
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      // TODO: Add real API call here
+      // TODO: Refresh appointments list after successful submission
     } finally {
       setIsSubmitting(false)
     }
@@ -88,22 +89,13 @@ export function AppointmentsClient({
     try {
       // TODO: Implement API call to create client
       console.log('Creating client:', data)
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-
-      // Simulate adding the new client to the list
-      const newClient: Option = {
-        id: `client-${Date.now()}`, // This would come from the API
-        name: data.name
-      }
-      setClients(prev => [...prev, newClient])
+      // TODO: Add real API call here
+      // TODO: Get the real client ID from the API response
+      // TODO: Add the new client to the clients list
+      // TODO: Select the newly created client in the appointment form
 
       // Close the client modal
       setIsClientModalOpen(false)
-
-      // Select the newly created client in the appointment form
-      if (clientFormSetValue) {
-        clientFormSetValue('clientId', newClient.id)
-      }
     } finally {
       setIsSubmitting(false)
     }
@@ -114,9 +106,10 @@ export function AppointmentsClient({
 
     setIsSubmitting(true)
     try {
-      // TODO: Implement API call
+      // TODO: Implement API call to delete appointment
       console.log('Deleting appointment:', appointmentToDelete.id)
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      // TODO: Add real API call here
+      // TODO: Refresh appointments list after successful deletion
       setIsDeleteDialogOpen(false)
       setAppointmentToDelete(null)
     } finally {

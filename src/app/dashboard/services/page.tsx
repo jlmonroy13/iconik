@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { STATIC_SERVICES, SERVICE_HISTORY } from './data'
 import { ServiceFilters } from './types'
-import { filterServices, calculateStats, getUniqueManicurists, getMostRequestedServiceName } from './utils'
+import { filterServices, calculateStats, getUniqueManicurists } from './utils'
 import {
   ServiceStatsCards,
   ServiceFiltersPanel,
@@ -15,11 +14,10 @@ import { PageTransition, FadeIn, EmptyServices, StatsSkeleton, Skeleton, Button 
 import { Plus } from 'lucide-react'
 import type { ServiceFormData } from './schemas'
 import type { Service } from './types'
-import { mockServices } from './types'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 export default function ServicesPage() {
-  const [services] = useState(STATIC_SERVICES)
+  const [services, setServices] = useState<Service[]>([]) // TODO: Will be used when implementing API calls
   const [filters, setFilters] = useState<ServiceFilters>({
     serviceType: '',
     manicurist: '',
@@ -30,7 +28,7 @@ export default function ServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedService, setSelectedService] = useState<Service | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [servicesList, setServicesList] = useState<Service[]>(mockServices)
+  const [servicesList, setServicesList] = useState<Service[]>([]) // TODO: Will be used when implementing API calls
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null)
   const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
@@ -51,7 +49,7 @@ export default function ServicesPage() {
 
   const stats = useMemo(() => {
     const { total, active, inactive } = calculateStats(servicesList)
-    const mostRequestedServiceName = getMostRequestedServiceName(SERVICE_HISTORY, servicesList)
+    const mostRequestedServiceName = 'N/A'
     return { total, active, inactive, mostRequestedServiceName }
   }, [servicesList])
 
@@ -77,18 +75,10 @@ export default function ServicesPage() {
   const handleCreateOrUpdate = async (data: ServiceFormData) => {
     setIsSubmitting(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
-      if (selectedService) {
-        setServicesList(prev => prev.map(s =>
-          s.id === selectedService.id ? { ...s, ...data } : s
-        ))
-      } else {
-        const newService: Service = {
-          id: `service_${Date.now()}`,
-          ...data,
-        }
-        setServicesList(prev => [newService, ...prev])
-      }
+      // TODO: Implement API call to create/update service
+      console.log('Creating/updating service:', data)
+      // TODO: Add real API call here
+      // TODO: Refresh services list after successful submission
       setIsModalOpen(false)
       setSelectedService(undefined)
     } finally {
@@ -103,10 +93,16 @@ export default function ServicesPage() {
   const confirmDelete = async () => {
     if (!serviceToDelete) return
     setIsDeleteLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 800))
-    setServicesList(prev => prev.filter(s => s.id !== serviceToDelete.id))
-    setIsDeleteLoading(false)
-    setServiceToDelete(null)
+    try {
+      // TODO: Implement API call to delete service
+      console.log('Deleting service:', serviceToDelete.id)
+      // TODO: Add real API call here
+      // TODO: Refresh services list after successful deletion
+      setIsDeleteLoading(false)
+      setServiceToDelete(null)
+    } finally {
+      setIsDeleteLoading(false)
+    }
   }
 
   const cancelDelete = () => {

@@ -32,7 +32,7 @@ export function DashboardHeader({ onMenuToggle }: DashboardHeaderProps) {
   ]
 
   return (
-    <header className="flex-shrink-0 bg-white dark:bg-gray-800 shadow-sm">
+    <header className="flex-shrink-0 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
@@ -46,14 +46,10 @@ export function DashboardHeader({ onMenuToggle }: DashboardHeaderProps) {
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <UserMenu
-              items={userMenuItems}
-              fallback="M"
-              alt="Usuario"
-            />
+            <UserMenu items={userMenuItems} fallback="M" alt="Usuario" />
           </div>
         </div>
       </div>
     </header>
-  )
+  );
 }
