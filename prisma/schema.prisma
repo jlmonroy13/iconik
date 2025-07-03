@@ -63,8 +63,37 @@ model Spa {
   cashRegisterShifts         CashRegisterShift[]
   cashRegisterTransactions   CashRegisterTransaction[]
   bookingLinkServices        BookingLinkService[]
+  spaSchedules               SpaSchedule[]
 
   @@map("spas")
+}
+
+model SpaSchedule {
+  id          String        @id @default(cuid())
+  dayOfWeek   Int?          // 0 = Sunday, 1 = Monday, ..., 6 = Saturday, null = holiday
+  isHoliday   Boolean       @default(false)
+  isActive    Boolean       @default(true)
+
+  // Schedule details
+  startTime   String        // Format: "08:30"
+  endTime     String        // Format: "19:00"
+  isOpen      Boolean       @default(true) // false = closed day
+
+  // Optional: specific date for holidays
+  specificDate DateTime?    // For specific holiday dates
+
+  // Optional: description
+  description String?       // "Festivos", "Domingos no laboramos", etc.
+
+  spaId       String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  spa         Spa           @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@unique([spaId, dayOfWeek, isHoliday])
+  @@map("spa_schedules")
 }
 
 model User {
@@ -321,7 +350,7 @@ model BookingLinkService {
 
   spaId     String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
 
   // Relations
   bookingLink BookingLink @relation(fields: [bookingLinkId], references: [id], onDelete: Cascade)

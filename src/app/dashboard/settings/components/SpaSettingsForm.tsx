@@ -27,12 +27,13 @@ export function SpaSettingsForm({ spa }: SpaSettingsFormProps) {
       address: spa.address || '',
       phone: spa.phone || '',
       email: spa.email || '',
+      logoUrl: spa.logoUrl || '',
     },
   })
 
   const onSubmit = (data: SpaSettingsFormValues) => {
     startTransition(async () => {
-      const result = await updateSpaSettings(spa.id, data)
+      const result = await updateSpaSettings(data)
       if (result.success) {
         showSuccess('Configuración guardada', 'La información de tu spa ha sido actualizada.')
         form.reset(data)
@@ -80,6 +81,20 @@ export function SpaSettingsForm({ spa }: SpaSettingsFormProps) {
           error={form.formState.errors.phone?.message}
           disabled={isPending}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Input
+          label="URL del Logo"
+          type="url"
+          placeholder="https://ejemplo.com/logo.png"
+          {...form.register('logoUrl')}
+          error={form.formState.errors.logoUrl?.message}
+          disabled={isPending}
+        />
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          URL de la imagen del logo de tu spa (opcional)
+        </p>
       </div>
 
       <div className="flex justify-end gap-3 mt-8">

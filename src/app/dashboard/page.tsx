@@ -10,7 +10,8 @@ import {
   RecentPayments,
   TopPerformers,
   PopularServices,
-  CashRegisterStatus
+  CashRegisterStatus,
+  SalesGoalsOverview
 } from './components'
 
 export const metadata: Metadata = {
@@ -61,8 +62,13 @@ export default async function DashboardPage() {
               />
             </FadeIn>
 
+            {/* Sales Goals Overview */}
+            <FadeIn delay={250}>
+              <SalesGoalsOverview goals={stats.activeSalesGoals} />
+            </FadeIn>
+
             {/* Alerts & Pending Items */}
-            <FadeIn delay={300}>
+            <FadeIn delay={350}>
               <AlertsSection
                 pendingApprovals={stats.pendingApprovals}
                 pendingPreConfirmations={stats.pendingPreConfirmations}
@@ -74,12 +80,12 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
               {/* Upcoming Appointments */}
-              <FadeIn delay={400}>
+              <FadeIn delay={450}>
                 <UpcomingAppointments appointments={stats.upcomingAppointments} />
               </FadeIn>
 
               {/* Recent Payments */}
-              <FadeIn delay={500}>
+              <FadeIn delay={550}>
                 <RecentPayments payments={stats.recentPayments} />
               </FadeIn>
             </div>
@@ -88,19 +94,19 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
               {/* Top Manicurists */}
-              <FadeIn delay={600}>
+              <FadeIn delay={650}>
                 <TopPerformers manicurists={stats.topManicurists} />
               </FadeIn>
 
               {/* Popular Services */}
-              <FadeIn delay={700}>
+              <FadeIn delay={750}>
                 <PopularServices services={stats.popularServices} />
               </FadeIn>
             </div>
 
             {/* Cash Register Status */}
             {stats.openCashRegister && (
-              <FadeIn delay={800}>
+              <FadeIn delay={850}>
                 <CashRegisterStatus
                   openCashRegister={stats.openCashRegister}
                   todayCashTransactions={stats.todayCashTransactions}

@@ -36,6 +36,20 @@ export interface PopularService {
   _sum: { price: number }
 }
 
+export interface SalesGoal {
+  id: string
+  name: string
+  type: 'REVENUE' | 'SERVICES' | 'CLIENTS' | 'APPOINTMENTS'
+  period: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+  targetAmount: number
+  currentAmount: number
+  startDate: Date
+  endDate?: Date | null
+  isActive: boolean
+  manicurist?: { name: string } | null
+  service?: { name: string } | null
+}
+
 export interface DashboardStats {
   // Today's stats
   todayAppointments: number
@@ -87,4 +101,7 @@ export interface DashboardStats {
   // Alerts
   overdueFollowUps: number
   lowStockAlerts: number
+
+  // Sales Goals
+  activeSalesGoals: SalesGoal[]
 }

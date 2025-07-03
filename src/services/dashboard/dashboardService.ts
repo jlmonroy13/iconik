@@ -63,7 +63,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
     // Alerts
     overdueFollowUps,
-    lowStockAlerts
+    lowStockAlerts,
+
+    // Active sales goals
+    activeSalesGoals
   ] = await Promise.all([
     // Today's appointments
     prisma.appointment.count({
@@ -295,7 +298,24 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     }),
 
     // Low stock alerts (placeholder - would need inventory system)
-    Promise.resolve(0)
+    Promise.resolve(0),
+
+    // Active sales goals
+    prisma.salesGoal.findMany({
+      where: {
+        spaId,
+        isActive: true
+      },
+      include: {
+        manicurist: {
+          select: { name: true }
+        },
+        service: {
+          select: { name: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
   ])
 
   // Get manicurist details for top performers
@@ -370,6 +390,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
     // Alerts
     overdueFollowUps,
-    lowStockAlerts
+    lowStockAlerts,
+
+    // Active sales goals
+    activeSalesGoals: activeSalesGoals as DashboardStats['activeSalesGoals']
   }
 }
