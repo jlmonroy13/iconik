@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
-import type { Manicurist } from '../types'
+import type { ManicuristWithDetails } from '@/types'
 import { Medal, Star } from 'lucide-react'
 
 interface ManicuristPerformanceProps {
-  manicurists: Manicurist[]
+  manicurists: ManicuristWithDetails[]
 }
 
 export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProps) {
@@ -14,9 +14,14 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
     return manicurists
       .filter(m => m.isActive)
       .map(manicurist => {
-        const totalServices = manicurist.services.length
-        const totalRevenue = manicurist.services.reduce((sum, service) => sum + service.price, 0)
-        const ratings = manicurist.services.filter(s => s.rating).map(s => s.rating!)
+        // Calculate stats from appointmentServices
+        const totalServices = manicurist.appointmentServices.length
+        const totalRevenue = manicurist.appointmentServices.reduce((sum, service) => sum + service.price, 0)
+
+        // Calculate ratings from feedback
+        const ratings = manicurist.appointmentServices
+          .filter(s => s.feedback)
+          .map(s => s.feedback!.workQualityRating)
         const averageRating = ratings.length > 0
           ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
           : 0
@@ -24,7 +29,7 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
         // Calculate efficiency (services per month)
         const now = new Date()
         const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
-        const recentServices = manicurist.services.filter(s =>
+        const recentServices = manicurist.appointmentServices.filter(s =>
           new Date(s.createdAt) >= threeMonthsAgo
         )
         const efficiency = recentServices.length / 3 // services per month

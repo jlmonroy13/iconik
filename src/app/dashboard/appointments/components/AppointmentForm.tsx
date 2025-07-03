@@ -1,10 +1,11 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Input, Select, Button, Textarea, SearchSelect, useNotifications } from '@/components/ui'
 import { appointmentFormSchema, type AppointmentFormData } from '../schemas'
-import type { Appointment } from '../types'
+import { Plus, Trash2 } from 'lucide-react'
+import type { AppointmentWithDetails } from '@/types'
 
 interface Option {
   id: string
@@ -12,62 +13,62 @@ interface Option {
 }
 
 interface AppointmentFormProps {
-  appointment?: Appointment
+  appointment?: AppointmentWithDetails
   clients: Option[]
   manicurists: Option[]
   services: Option[]
   onSubmit: (data: AppointmentFormData) => Promise<void>
-  onCreateClient?: (initialName?: string, setValue?: (name: keyof AppointmentFormData, value: string | number | Date) => void) => void
+  onCreateClient?: (initialName?: string) => void
   isSubmitting?: boolean
-}
-
-function mapAppointmentToFormData(appointment: Appointment, manicurists: Option[], services: Option[]): AppointmentFormData {
-  return {
-    clientId: appointment.clientId,
-    manicuristId: String(appointment.manicuristId || '') !== ''
-      ? String(appointment.manicuristId)
-      : (manicurists.length > 0 ? manicurists[0].id : ''),
-    serviceType: String(appointment.serviceType || '') !== ''
-      ? String(appointment.serviceType)
-      : (services.length > 0 ? services[0].id : ''),
-    scheduledAt: appointment.scheduledAt,
-    duration: appointment.duration,
-    price: appointment.price,
-    status: (['SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED'] as readonly AppointmentFormData['status'][]).includes(appointment.status as AppointmentFormData['status'])
-      ? appointment.status as AppointmentFormData['status']
-      : 'SCHEDULED',
-    notes: appointment.notes ?? '',
-  }
 }
 
 export function AppointmentForm({ appointment, clients, manicurists, services, onSubmit, onCreateClient, isSubmitting }: AppointmentFormProps) {
   const { showSuccess, showError } = useNotifications()
-  const defaultValues: AppointmentFormData = appointment
-    ? mapAppointmentToFormData(appointment, manicurists, services)
-    : {
-        clientId: '',
+
+  const defaultValues: AppointmentFormData = appointment ? {
+    clientId: appointment.clientId,
+    isScheduled: appointment.isScheduled,
+    scheduledAt: new Date(appointment.scheduledAt),
+    status: appointment.status,
+    notes: appointment.notes || '',
+    services: appointment.services.map(service => ({
+      serviceId: service.serviceId,
+      manicuristId: service.manicuristId,
+      price: service.price
+    }))
+  } : {
+    clientId: '',
+    isScheduled: true,
+    scheduledAt: new Date(),
+    status: 'SCHEDULED',
+    notes: '',
+    services: [
+      {
+        serviceId: services.length > 0 ? services[0].id : '',
         manicuristId: manicurists.length > 0 ? manicurists[0].id : '',
-        serviceType: services.length > 0 ? services[0].id : '',
-        scheduledAt: new Date(),
-        duration: 30,
-        price: 0,
-        status: 'SCHEDULED',
-        notes: ''
+        price: 0
       }
+    ]
+  }
+
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues
   })
 
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'services'
+  })
+
   const clientId = watch('clientId')
-  const manicuristId = watch('manicuristId')
-  const serviceType = watch('serviceType')
   const status = watch('status')
 
   const onSubmitForm = async (data: AppointmentFormData) => {
@@ -94,53 +95,15 @@ export function AppointmentForm({ appointment, clients, manicurists, services, o
         options={clients}
         value={clientId || ''}
         onChange={(value) => setValue('clientId', value)}
-        onCreateNew={() => onCreateClient?.(undefined, setValue)}
+        onCreateNew={() => onCreateClient?.()}
         error={errors.clientId?.message}
         placeholder="Selecciona un cliente..."
       />
-      <Select
-        label="Manicurista"
-        {...register('manicuristId')}
-        value={manicuristId}
-        error={errors.manicuristId?.message}
-      >
-        <option value="">Selecciona...</option>
-        {manicurists.map(m => (
-          <option key={m.id} value={m.id}>{m.name}</option>
-        ))}
-      </Select>
-      <Select
-        label="Servicio"
-        {...register('serviceType')}
-        value={serviceType}
-        error={errors.serviceType?.message}
-      >
-        <option value="">Selecciona...</option>
-        {services.map(s => (
-          <option key={s.id} value={s.id}>{s.name}</option>
-        ))}
-      </Select>
       <Input
         label="Fecha y hora"
         type="datetime-local"
         {...register('scheduledAt', { valueAsDate: true })}
         error={errors.scheduledAt?.message}
-      />
-      <Input
-        label="Duración (minutos)"
-        type="number"
-        min={1}
-        step={1}
-        {...register('duration', { valueAsNumber: true })}
-        error={errors.duration?.message}
-      />
-      <Input
-        label="Precio"
-        type="number"
-        min={1}
-        step={100}
-        {...register('price', { valueAsNumber: true })}
-        error={errors.price?.message}
       />
       <Select
         label="Estado"
@@ -158,6 +121,68 @@ export function AppointmentForm({ appointment, clients, manicurists, services, o
         {...register('notes')}
         error={errors.notes?.message}
       />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="font-medium">Servicios</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => append({ serviceId: services.length > 0 ? services[0].id : '', manicuristId: manicurists.length > 0 ? manicurists[0].id : '', price: 0 })}
+            className="h-8"
+          >
+            <Plus className="h-4 w-4 mr-1" /> Agregar servicio
+          </Button>
+        </div>
+        {fields.map((field, idx) => (
+          <div key={field.id} className="flex gap-2 items-end border-b pb-2 mb-2">
+            <Select
+              label="Servicio"
+              {...register(`services.${idx}.serviceId` as const)}
+              error={errors.services?.[idx]?.serviceId?.message}
+              className="w-1/3"
+            >
+              <option value="">Selecciona...</option>
+              {services.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </Select>
+            <Select
+              label="Manicurista"
+              {...register(`services.${idx}.manicuristId` as const)}
+              error={errors.services?.[idx]?.manicuristId?.message}
+              className="w-1/3"
+            >
+              <option value="">Selecciona...</option>
+              {manicurists.map(m => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </Select>
+            <Input
+              label="Precio"
+              type="number"
+              min={1}
+              step={100}
+              {...register(`services.${idx}.price` as const, { valueAsNumber: true })}
+              error={errors.services?.[idx]?.price?.message}
+              className="w-1/4"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => remove(idx)}
+              className="h-8"
+              aria-label="Eliminar servicio"
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        ))}
+        {errors.services?.message && (
+          <div className="text-destructive text-sm mt-1">{errors.services.message}</div>
+        )}
+      </div>
       <div className="flex justify-end pt-4">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Guardando...' : appointment ? 'Actualizar Cita' : 'Crear Cita'}

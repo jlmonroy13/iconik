@@ -14,7 +14,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 export default function ClientsPage() {
   const [filters, setFilters] = useState<ClientFiltersType>({})
   const [isLoading, setIsLoading] = useState(true)
-  const [clients, setClients] = useState<Client[]>([]) // TODO: Will be used when implementing API calls
+  const [clients] = useState<Client[]>([]) // TODO: Will be used when implementing API calls
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -80,9 +80,6 @@ export default function ClientsPage() {
   // Filter clients based on filters
   const filteredClients = clients.filter(client => {
     if (filters.search && !client.name.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false
-    }
-    if (filters.status && client.status !== filters.status) {
       return false
     }
     return true

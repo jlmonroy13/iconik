@@ -33,51 +33,80 @@ async function getReportsData() {
     }
   }
 
-  const [services, clients, manicurists] = await Promise.all([
-    // Get all services with related data
-    prisma.service.findMany({
-      where: { spaId: spa.id },
+  const [appointmentServices, clients, manicurists] = await Promise.all([
+    // Get all appointment services with related data
+    prisma.appointmentService.findMany({
+      where: {
+        appointment: { spaId: spa.id }
+      },
       include: {
-        client: true,
-        manicurist: true
+        appointment: {
+          include: {
+            client: true
+          }
+        },
+        service: true,
+        manicurist: true,
+        feedback: true
       },
       orderBy: { createdAt: 'desc' }
     }),
 
-    // Get all clients
+    // Get all clients with appointments
     prisma.client.findMany({
       where: { spaId: spa.id },
       include: {
-        services: true,
-        appointments: true
+        appointments: {
+          include: {
+            services: {
+              include: {
+                service: true,
+                manicurist: true,
+                feedback: true
+              }
+            }
+          }
+        }
       }
     }),
 
-    // Get all manicurists
+    // Get all manicurists with appointment services
     prisma.manicurist.findMany({
       where: { spaId: spa.id },
       include: {
-        services: true,
-        appointments: true
+        appointmentServices: {
+          include: {
+            appointment: {
+              include: {
+                client: true
+              }
+            },
+            service: true,
+            feedback: true
+          }
+        }
       }
     })
   ])
 
-  // Calculate comprehensive stats
-  const totalRevenue = services.reduce((sum, service) => sum + service.price, 0)
-  const totalServices = services.length
+  // Calculate comprehensive stats from appointment services
+  const totalRevenue = appointmentServices.reduce((sum, service) => sum + service.price, 0)
+  const totalServices = appointmentServices.length
   const totalClients = clients.length
-  const averageRating = services.filter(s => s.rating).length > 0
-    ? services.filter(s => s.rating).reduce((sum, service) => sum + (service.rating || 0), 0) / services.filter(s => s.rating).length
+
+  // Calculate average rating from feedback
+  const servicesWithFeedback = appointmentServices.filter(s => s.feedback)
+  const averageRating = servicesWithFeedback.length > 0
+    ? servicesWithFeedback.reduce((sum, service) => sum + service.feedback!.workQualityRating, 0) / servicesWithFeedback.length
     : 0
 
   // Calculate monthly growth (simplified)
   const currentMonth = new Date().getMonth()
   const lastMonth = new Date().getMonth() - 1
-  const currentMonthRevenue = services
+  const currentMonthRevenue = appointmentServices
     .filter(s => new Date(s.createdAt).getMonth() === currentMonth)
     .reduce((sum, s) => sum + s.price, 0)
-  const lastMonthRevenue = services
+  const lastMonthRevenue = appointmentServices
     .filter(s => new Date(s.createdAt).getMonth() === lastMonth)
     .reduce((sum, s) => sum + s.price, 0)
   const monthlyGrowth = lastMonthRevenue > 0
@@ -93,7 +122,7 @@ async function getReportsData() {
   }
 
   return {
-    services,
+    services: appointmentServices,
     clients,
     manicurists,
     stats
@@ -133,7 +162,7 @@ export default async function ReportsPage() {
           {hasData ? (
             <div className="space-y-6">
               <FadeIn delay={200}>
-                <RevenueStats stats={stats} />
+                <RevenueStats stats={stats as any} />
               </FadeIn>
 
               <FadeIn delay={400}>
@@ -144,7 +173,7 @@ export default async function ReportsPage() {
                     </h2>
                   </div>
                   <div className="p-3 sm:p-4 lg:p-6">
-                    <ServiceAnalytics services={services} />
+                    <ServiceAnalytics services={services as any} />
                   </div>
                 </div>
               </FadeIn>
@@ -159,7 +188,7 @@ export default async function ReportsPage() {
                     </div>
                   </div>
                   <div className="p-3 sm:p-4 lg:p-6">
-                    <ManicuristPerformance manicurists={manicurists} />
+                    <ManicuristPerformance manicurists={manicurists as any} />
                   </div>
                 </div>
               </FadeIn>
@@ -172,7 +201,7 @@ export default async function ReportsPage() {
                     </h2>
                   </div>
                   <div className="p-3 sm:p-4 lg:p-6">
-                    <ClientInsights clients={clients} />
+                    <ClientInsights clients={clients as any} />
                   </div>
                 </div>
               </FadeIn>

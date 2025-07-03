@@ -1,9 +1,18 @@
-import { ManicuristStats } from '../types'
 import { StatCard } from '@/components/ui'
-import { Users, UserCheck, Star } from 'lucide-react'
+import { Users, UserCheck, DollarSign } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
+
+interface ManicuristSummaryStats {
+  totalManicurists: number
+  activeManicurists: number
+  totalRevenue: number
+  averageRating: number
+  thisMonthServices: number
+  thisMonthRevenue: number
+}
 
 interface ManicuristStatsProps {
-  stats: ManicuristStats
+  stats: ManicuristSummaryStats
 }
 
 export function ManicuristStatsCards({ stats }: ManicuristStatsProps) {
@@ -22,9 +31,9 @@ export function ManicuristStatsCards({ stats }: ManicuristStatsProps) {
         iconBgColor="bg-green-100 dark:bg-green-900/20"
       />
       <StatCard
-        title="Rating Promedio"
-        value={stats.averageRating.toFixed(1)}
-        icon={<Star className="text-yellow-500 dark:text-yellow-400" />}
+        title="Ingresos Totales"
+        value={formatCurrency(stats.totalRevenue)}
+        icon={<DollarSign className="text-yellow-500 dark:text-yellow-400" />}
         iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
       />
     </div>

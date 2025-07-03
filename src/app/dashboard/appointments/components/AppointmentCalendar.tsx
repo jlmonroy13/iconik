@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { format, startOfWeek, addDays, isSameDay, isToday } from 'date-fns'
-import type { Appointment } from '../types'
+import type { AppointmentWithDetails } from '@/types'
 
 interface AppointmentCalendarProps {
-  appointments: Appointment[]
+  appointments: AppointmentWithDetails[]
 }
 
 export function AppointmentCalendar({ appointments }: AppointmentCalendarProps) {
@@ -60,6 +60,19 @@ export function AppointmentCalendar({ appointments }: AppointmentCalendarProps) 
       currency: 'COP',
       minimumFractionDigits: 0
     }).format(amount)
+  }
+
+  // Helper function to get primary service info
+  const getPrimaryServiceInfo = (appointment: AppointmentWithDetails) => {
+    if (appointment.services.length === 0) {
+      return { name: 'Sin servicios', duration: 0, price: 0 }
+    }
+    const primaryService = appointment.services[0]
+    return {
+      name: primaryService.service.name,
+      duration: primaryService.service.duration,
+      price: appointment.services.reduce((sum, s) => sum + s.price, 0)
+    }
   }
 
   return (
@@ -124,27 +137,30 @@ export function AppointmentCalendar({ appointments }: AppointmentCalendarProps) 
             </h4>
             <div className="space-y-3">
               {getAppointmentsForDay(selectedDate).length > 0 ? (
-                getAppointmentsForDay(selectedDate).map(appointment => (
-                  <div
-                    key={appointment.id}
-                    className={`p-3 rounded-lg ${getStatusColor(appointment.status)}`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-sm">
-                        {appointment.client.name}
-                      </span>
-                      <span className="text-xs">
-                        {format(new Date(appointment.scheduledAt), 'HH:mm')}
-                      </span>
+                getAppointmentsForDay(selectedDate).map(appointment => {
+                  const serviceInfo = getPrimaryServiceInfo(appointment)
+                  return (
+                    <div
+                      key={appointment.id}
+                      className={`p-3 rounded-lg ${getStatusColor(appointment.status)}`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-sm">
+                          {appointment.client.name}
+                        </span>
+                        <span className="text-xs">
+                          {format(new Date(appointment.scheduledAt), 'HH:mm')}
+                        </span>
+                      </div>
+                      <div className="text-xs opacity-75">
+                        {serviceInfo.name} • {serviceInfo.duration} min
+                      </div>
+                      <div className="text-xs font-medium mt-1">
+                        {formatCurrency(serviceInfo.price)}
+                      </div>
                     </div>
-                    <div className="text-xs opacity-75">
-                      {appointment.serviceType.replace('_', ' ')} • {appointment.duration} min
-                    </div>
-                    <div className="text-xs font-medium mt-1">
-                      {formatCurrency(appointment.price)}
-                    </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                   No hay citas programadas para este día
@@ -191,20 +207,25 @@ export function AppointmentCalendar({ appointments }: AppointmentCalendarProps) 
                     key={`${day.toISOString()}-${hour}`}
                     className="p-1 min-h-[60px] border-r border-gray-200 dark:border-gray-700 last:border-r-0"
                   >
-                    {dayAppointments.map(appointment => (
-                      <div
-                        key={appointment.id}
-                        className={`p-1 text-xs rounded mb-1 ${getStatusColor(appointment.status)}`}
-                        title={`${appointment.client.name} - ${appointment.serviceType.replace('_', ' ')}`}
-                      >
-                        <div className="font-medium truncate">
-                          {appointment.client.name}
+                    {dayAppointments.map(appointment => {
+                      const serviceInfo = getPrimaryServiceInfo(appointment)
+                      return (
+                        <div
+                          key={appointment.id}
+                          className={`p-2 rounded text-xs ${getStatusColor(appointment.status)} mb-1`}
+                        >
+                          <div className="font-medium truncate">
+                            {appointment.client.name}
+                          </div>
+                          <div className="opacity-75 truncate">
+                            {serviceInfo.name}
+                          </div>
+                          <div className="font-medium">
+                            {formatCurrency(serviceInfo.price)}
+                          </div>
                         </div>
-                        <div className="text-xs opacity-75 truncate">
-                          {appointment.serviceType.replace('_', ' ')}
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )
               })}

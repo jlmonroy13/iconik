@@ -72,17 +72,6 @@ export function ManicuristFilters({
           label="Buscar"
         />
         <Select
-          name="status"
-          value={filters.status || ''}
-          onChange={handleSelectChange}
-          active={!!filters.status}
-          label="Estado"
-        >
-          <option value="">Todos los estados</option>
-          <option value="ACTIVE">Activos</option>
-          <option value="INACTIVE">Inactivos</option>
-        </Select>
-        <Select
           name="specialty"
           value={filters.specialty || ''}
           onChange={handleSelectChange}

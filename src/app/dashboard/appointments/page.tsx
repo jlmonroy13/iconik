@@ -30,8 +30,10 @@ async function getAppointmentsData() {
         total: 0,
         scheduled: 0,
         confirmed: 0,
+        inProgress: 0,
         completed: 0,
-        cancelled: 0
+        cancelled: 0,
+        noShow: 0
       }
     }
   }
@@ -41,7 +43,24 @@ async function getAppointmentsData() {
       where: { spaId: spa.id },
       include: {
         client: true,
-        manicurist: true
+        manicurist: true,
+        services: {
+          include: {
+            service: true,
+            manicurist: true,
+            payments: {
+              include: {
+                paymentMethod: true
+              }
+            },
+            feedback: true
+          }
+        },
+        payments: {
+          include: {
+            paymentMethod: true
+          }
+        }
       },
       orderBy: { scheduledAt: 'asc' }
     }),
@@ -62,13 +81,96 @@ async function getAppointmentsData() {
     })
   ])
 
+  // Clean nulls to undefined for all appointments and their relations
+  const cleanedAppointments = appointments.map(a => ({
+    ...a,
+    manicuristId: a.manicuristId ?? undefined,
+    notes: a.notes ?? undefined,
+    client: {
+      ...a.client,
+      phone: a.client.phone ?? undefined,
+      email: a.client.email ?? undefined,
+      notes: a.client.notes ?? undefined,
+      birthday: a.client.birthday ?? undefined,
+    },
+    manicurist: a.manicurist
+      ? {
+          ...a.manicurist,
+          phone: a.manicurist.phone ?? undefined,
+          email: a.manicurist.email ?? undefined,
+          specialty: a.manicurist.specialty ?? undefined,
+        }
+      : undefined,
+    services: a.services
+      .filter(s => !!s.service && !!s.manicurist)
+      .map(s => ({
+        ...s,
+        appointment: {
+          ...a,
+          manicuristId: a.manicuristId ?? undefined,
+          notes: a.notes ?? undefined,
+        },
+        service: {
+          ...s.service,
+          description: s.service.description ?? undefined,
+          kitCost: s.service.kitCost ?? undefined,
+          taxRate: s.service.taxRate ?? undefined,
+          imageUrl: s.service.imageUrl ?? undefined,
+        },
+        startedAtByManicurist: s.startedAtByManicurist ?? undefined,
+        endedAtByManicurist: s.endedAtByManicurist ?? undefined,
+        startedAtByAdmin: s.startedAtByAdmin ?? undefined,
+        endedAtByAdmin: s.endedAtByAdmin ?? undefined,
+        durationAvg: s.durationAvg ?? undefined,
+        kitCost: s.kitCost ?? undefined,
+        taxRate: s.taxRate ?? undefined,
+        manicurist: {
+          ...s.manicurist,
+          phone: s.manicurist.phone ?? undefined,
+          email: s.manicurist.email ?? undefined,
+          specialty: s.manicurist.specialty ?? undefined,
+        },
+        payments: (s.payments ?? [])
+          .filter(p => !!p.paymentMethod)
+          .map(p => ({
+            ...p,
+            appointmentId: p.appointmentId ?? undefined,
+            appointmentServiceId: p.appointmentServiceId ?? undefined,
+            paymentMethod: {
+              ...p.paymentMethod,
+              type: p.paymentMethod.type ?? undefined,
+              icon: p.paymentMethod.icon ?? undefined
+            },
+            reference: p.reference ?? undefined,
+            discountReason: p.discountReason ?? undefined,
+          })),
+        feedback: s.feedback ? { ...s.feedback, comment: s.feedback.comment ?? undefined, submittedAt: s.feedback.submittedAt ?? undefined } : undefined,
+      })),
+    payments: (a.payments ?? [])
+      .filter(p => !!p.paymentMethod)
+      .map(p => ({
+        ...p,
+        appointmentId: p.appointmentId ?? undefined,
+        appointmentServiceId: p.appointmentServiceId ?? undefined,
+        paymentMethod: {
+          ...p.paymentMethod,
+          type: p.paymentMethod.type ?? undefined,
+          icon: p.paymentMethod.icon ?? undefined
+        },
+        reference: p.reference ?? undefined,
+        discountReason: p.discountReason ?? undefined,
+      })),
+  }))
+
   // Calculate stats
   const stats = {
-    total: appointments.length,
-    scheduled: appointments.filter(a => a.status === 'SCHEDULED').length,
-    confirmed: appointments.filter(a => a.status === 'CONFIRMED').length,
-    completed: appointments.filter(a => a.status === 'COMPLETED').length,
-    cancelled: appointments.filter(a => a.status === 'CANCELLED').length
+    total: cleanedAppointments.length,
+    scheduled: cleanedAppointments.filter(a => a.status === 'SCHEDULED').length,
+    confirmed: cleanedAppointments.filter(a => a.status === 'CONFIRMED').length,
+    inProgress: cleanedAppointments.filter(a => a.status === 'IN_PROGRESS').length,
+    completed: cleanedAppointments.filter(a => a.status === 'COMPLETED').length,
+    cancelled: cleanedAppointments.filter(a => a.status === 'CANCELLED').length,
+    noShow: cleanedAppointments.filter(a => a.status === 'NO_SHOW').length
   }
 
   // Transform services to have name property
@@ -78,7 +180,7 @@ async function getAppointmentsData() {
   }))
 
   return {
-    appointments,
+    appointments: cleanedAppointments,
     clients,
     manicurists,
     services: servicesWithNames,
@@ -139,7 +241,17 @@ export default async function AppointmentsPage() {
                 </div>
                 <div className="p-3 sm:p-4 lg:p-6">
                   {appointments.length > 0 ? (
-                    <AppointmentList appointments={appointments} />
+                    <AppointmentList
+                      appointments={appointments}
+                      onEdit={(appointment) => {
+                        // This will be handled by the context
+                        console.log('Edit appointment:', appointment.id)
+                      }}
+                      onDelete={(appointment) => {
+                        // This will be handled by the context
+                        console.log('Delete appointment:', appointment.id)
+                      }}
+                    />
                   ) : (
                     <EmptyAppointments />
                   )}

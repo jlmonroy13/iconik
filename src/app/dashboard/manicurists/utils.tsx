@@ -1,4 +1,5 @@
-import { Manicurist, ManicuristFilters, ManicuristStats, ServiceType } from './types'
+import { ServiceType } from '@/generated/prisma'
+import type { Manicurist, ManicuristFilters } from './types'
 import { Hand, Footprints, Brush, Sparkles, Gem } from 'lucide-react'
 import React from 'react'
 
@@ -15,6 +16,14 @@ export const getServiceTypeIcon = (type: ServiceType): React.ReactElement => {
       return <Sparkles {...iconProps} />
     case 'ACRYLIC_NAILS':
       return <Gem {...iconProps} />
+    case 'NAIL_REPAIR':
+      return <Hand {...iconProps} />
+    case 'HAND_SPA':
+      return <Hand {...iconProps} />
+    case 'FOOT_SPA':
+      return <Footprints {...iconProps} />
+    case 'OTHER':
+      return <Sparkles {...iconProps} />
     default:
       return <Hand {...iconProps} />
   }
@@ -32,28 +41,36 @@ export const getServiceTypeName = (type: ServiceType): string => {
       return 'Esmalte en Gel'
     case 'ACRYLIC_NAILS':
       return 'Uñas Acrílicas'
+    case 'NAIL_REPAIR':
+      return 'Reparación de Uñas'
+    case 'HAND_SPA':
+      return 'Spa de Manos'
+    case 'FOOT_SPA':
+      return 'Spa de Pies'
+    case 'OTHER':
+      return 'Otro'
     default:
       return String(type).replace('_', ' ')
   }
 }
 
-export const getStatusBadgeVariant = (status: 'ACTIVE' | 'INACTIVE'): 'success' | 'secondary' => {
-  return status === 'ACTIVE' ? 'success' : 'secondary'
+export const getStatusBadgeVariant = (isActive: boolean): 'success' | 'secondary' => {
+  return isActive ? 'success' : 'secondary'
 }
 
-export const getStatusText = (status: 'ACTIVE' | 'INACTIVE'): string => {
-  return status === 'ACTIVE' ? 'Activo' : 'Inactivo'
+export const getStatusText = (isActive: boolean): string => {
+  return isActive ? 'Activo' : 'Inactivo'
 }
 
 export const filterManicurists = (manicurists: Manicurist[], filters: ManicuristFilters): Manicurist[] => {
   return manicurists.filter(manicurist => {
-    // Filter by status
-    if (filters.status && manicurist.status !== filters.status) {
+    // Filter by active status
+    if (filters.isActive !== undefined && manicurist.isActive !== filters.isActive) {
       return false
     }
 
     // Filter by specialty
-    if (filters.specialty && !manicurist.specialties.includes(filters.specialty)) {
+    if (filters.specialty && manicurist.specialty !== filters.specialty) {
       return false
     }
 
@@ -62,8 +79,8 @@ export const filterManicurists = (manicurists: Manicurist[], filters: Manicurist
       const searchLower = filters.search.toLowerCase()
       return (
         manicurist.name.toLowerCase().includes(searchLower) ||
-        manicurist.email.toLowerCase().includes(searchLower) ||
-        manicurist.phone.includes(searchLower)
+        manicurist.email?.toLowerCase().includes(searchLower) ||
+        manicurist.phone?.includes(searchLower)
       )
     }
 
@@ -71,21 +88,29 @@ export const filterManicurists = (manicurists: Manicurist[], filters: Manicurist
   })
 }
 
-export const calculateStats = (manicurists: Manicurist[]): ManicuristStats => {
-  const activeManicurists = manicurists.filter(m => m.status === 'ACTIVE').length
-  const totalRevenue = manicurists.reduce((sum, m) => sum + m.totalRevenue, 0)
-  const averageRating = manicurists.length > 0
-    ? manicurists.reduce((sum, m) => sum + m.rating, 0) / manicurists.length
-    : 0
-  const thisMonthServices = manicurists.reduce((sum, m) => sum + m.thisMonthServices, 0)
-  const thisMonthRevenue = manicurists.reduce((sum, m) => sum + m.thisMonthRevenue, 0)
+// Summary stats for the manicurists page
+export interface ManicuristSummaryStats {
+  totalManicurists: number
+  activeManicurists: number
+  totalRevenue: number
+  averageRating: number
+  thisMonthServices: number
+  thisMonthRevenue: number
+}
+
+export const calculateSummaryStats = (manicurists: Manicurist[]): ManicuristSummaryStats => {
+  const activeManicurists = manicurists.filter(m => m.isActive).length
+  const totalManicurists = manicurists.length
 
   return {
-    totalManicurists: manicurists.length,
+    totalManicurists,
     activeManicurists,
-    totalRevenue,
-    averageRating,
-    thisMonthServices,
-    thisMonthRevenue
+    totalRevenue: 0, // Will be calculated from payments
+    averageRating: 0, // Will be calculated from feedback
+    thisMonthServices: 0, // Will be calculated from appointment services
+    thisMonthRevenue: 0 // Will be calculated from payments
   }
 }
+
+// Export calculateStats as an alias for calculateSummaryStats for backward compatibility
+export const calculateStats = calculateSummaryStats

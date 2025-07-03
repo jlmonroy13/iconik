@@ -1,6 +1,5 @@
 import { Client } from '../types'
-import { Badge, Avatar, ItemActions } from '@/components/ui'
-import { formatCurrency } from '@/lib/utils'
+import { Avatar, ItemActions } from '@/components/ui'
 
 interface ClientItemProps {
   client: Client
@@ -20,24 +19,19 @@ export function ClientItem({ client, onEdit, onDelete }: ClientItemProps) {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-900 dark:text-white">{client.name}</span>
-              <Badge variant={client.status === 'ACTIVE' ? 'success' : 'secondary'}>
-                {client.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
-              </Badge>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{client.email}</p>
+            {client.email && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">{client.email}</p>
+            )}
+            {client.phone && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">{client.phone}</p>
+            )}
+            {client.notes && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{client.notes}</p>
+            )}
           </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <div className="flex flex-col items-end space-y-1">
-            <div className="text-sm text-gray-900 dark:text-white font-bold">
-              {client.visits} visita{client.visits !== 1 ? 's' : ''}
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Total gastado: <span className="font-semibold text-pink-600 dark:text-pink-400">{formatCurrency(client.totalSpent)}</span>
-            </div>
-          </div>
-          <ItemActions onEdit={onEdit} onDelete={onDelete} />
-        </div>
+        <ItemActions onEdit={onEdit} onDelete={onDelete} />
       </div>
     </div>
   )

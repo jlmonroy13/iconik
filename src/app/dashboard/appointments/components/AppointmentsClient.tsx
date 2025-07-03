@@ -4,7 +4,7 @@ import { useState, createContext, useContext } from 'react'
 import { ConfirmDialog } from '@/components/ui'
 import { AppointmentModal } from './AppointmentModal'
 import { ClientModal } from '../../clients/components/ClientModal'
-import type { Appointment } from '../types'
+import type { AppointmentWithDetails } from '@/types'
 import type { AppointmentFormData } from '../schemas'
 import type { ClientFormData } from '../../clients/schemas'
 
@@ -15,8 +15,8 @@ interface Option {
 
 interface AppointmentsContextType {
   handleCreate: () => void
-  handleEdit: (appointment: Appointment) => void
-  handleDelete: (appointment: Appointment) => void
+  handleEdit: (appointment: AppointmentWithDetails) => void
+  handleDelete: (appointment: AppointmentWithDetails) => void
   handleCreateClient: (initialName?: string, setValue?: (name: keyof AppointmentFormData, value: string | number | Date) => void) => void
 }
 
@@ -43,32 +43,30 @@ export function AppointmentsClient({
   services,
   children
 }: AppointmentsClientProps) {
-  const [clients, setClients] = useState<Option[]>(initialClients) // TODO: Will be used when implementing client creation API
+  const [clients] = useState<Option[]>(initialClients)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>()
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithDetails | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null)
+  const [appointmentToDelete, setAppointmentToDelete] = useState<AppointmentWithDetails | null>(null)
   const [isClientModalOpen, setIsClientModalOpen] = useState(false)
-  const [clientFormSetValue, setClientFormSetValue] = useState<((name: keyof AppointmentFormData, value: string | number | Date) => void) | null>(null) // TODO: Will be used when implementing client creation API
 
   const handleCreate = () => {
     setSelectedAppointment(undefined)
     setIsModalOpen(true)
   }
 
-  const handleEdit = (appointment: Appointment) => {
+  const handleEdit = (appointment: AppointmentWithDetails) => {
     setSelectedAppointment(appointment)
     setIsModalOpen(true)
   }
 
-  const handleDelete = (appointment: Appointment) => {
+  const handleDelete = (appointment: AppointmentWithDetails) => {
     setAppointmentToDelete(appointment)
     setIsDeleteDialogOpen(true)
   }
 
-  const handleCreateClient = (initialName?: string, setValue?: (name: keyof AppointmentFormData, value: string | number | Date) => void) => {
-    setClientFormSetValue(() => setValue || null)
+  const handleCreateClient = () => {
     setIsClientModalOpen(true)
   }
 
@@ -129,7 +127,6 @@ export function AppointmentsClient({
 
   const handleCloseClientModal = () => {
     setIsClientModalOpen(false)
-    setClientFormSetValue(null)
   }
 
   const contextValue: AppointmentsContextType = {

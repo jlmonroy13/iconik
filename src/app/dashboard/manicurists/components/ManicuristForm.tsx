@@ -2,11 +2,11 @@
 
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Input, Select, Button, MultiSelect, useNotifications } from '@/components/ui'
+import { Input, Select, Button, useNotifications } from '@/components/ui'
 import { manicuristFormSchema, type ManicuristFormData } from '../schemas'
 import { Manicurist } from '../types'
 
-const SERVICE_OPTIONS = [
+const SPECIALTY_OPTIONS = [
   { value: 'MANICURE', label: 'Manicure' },
   { value: 'PEDICURE', label: 'Pedicure' },
   { value: 'NAIL_ART', label: 'Nail Art' },
@@ -31,14 +31,18 @@ export function ManicuristForm({ manicurist, onSubmit, isSubmitting }: Manicuris
     resolver: zodResolver(manicuristFormSchema),
     defaultValues: manicurist ? {
       name: manicurist.name,
-      email: manicurist.email,
-      phone: manicurist.phone,
-      specialties: manicurist.specialties,
-      status: manicurist.status,
-      avatar: manicurist.avatar,
+      email: manicurist.email || '',
+      phone: manicurist.phone || '',
+      specialty: manicurist.specialty || '',
+      commission: manicurist.commission,
+      isActive: manicurist.isActive,
     } : {
-      status: 'ACTIVE',
-      specialties: [],
+      name: '',
+      email: '',
+      phone: '',
+      specialty: '',
+      commission: 50,
+      isActive: true,
     }
   })
 
@@ -81,31 +85,46 @@ export function ManicuristForm({ manicurist, onSubmit, isSubmitting }: Manicuris
       />
 
       <Controller
-        name="specialties"
+        name="specialty"
         control={control}
         render={({ field }) => (
-          <MultiSelect
-            label="Especialidades"
-            options={SERVICE_OPTIONS}
-            value={field.value}
+          <Select
+            label="Especialidad"
+            value={field.value || ''}
             onChange={field.onChange}
-            error={errors.specialties?.message}
-          />
+            error={errors.specialty?.message}
+          >
+            <option value="">Seleccionar especialidad</option>
+            {SPECIALTY_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         )}
       />
 
+      <Input
+        label="Comisión (%)"
+        type="number"
+        min="0"
+        max="100"
+        {...register('commission', { valueAsNumber: true })}
+        error={errors.commission?.message}
+      />
+
       <Controller
-        name="status"
+        name="isActive"
         control={control}
         render={({ field }) => (
           <Select
             label="Estado"
-            value={field.value}
-            onChange={field.onChange}
-            error={errors.status?.message}
+            value={field.value ? 'true' : 'false'}
+            onChange={(e) => field.onChange(e.target.value === 'true')}
+            error={errors.isActive?.message}
           >
-            <option value="ACTIVE">Activo</option>
-            <option value="INACTIVE">Inactivo</option>
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
           </Select>
         )}
       />

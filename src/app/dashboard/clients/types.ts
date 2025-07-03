@@ -1,19 +1,17 @@
-export interface Client {
+import type { Client, ClientWithDetails, ClientFilters } from '@/types'
+
+// Re-export the main types from shared types
+export type { Client, ClientWithDetails, ClientFilters }
+
+// Client stats interface
+export interface ClientStats {
   id: string
   name: string
-  email: string
-  phone: string
-  identificationType: 'CC' | 'CE' | 'PAS' | 'NIT' | 'OTRO'
-  identification: string
-  registeredAt: string // ISO date
-  status: 'ACTIVE' | 'INACTIVE'
   totalSpent: number
-  visits: number
-}
-
-export interface ClientFilters {
-  search?: string
-  status?: 'ACTIVE' | 'INACTIVE'
-  dateFrom?: string
-  dateTo?: string
+  visitCount: number
+  lastVisit: Date | null
+  averageSpending: number
+  loyalty: 'VIP' | 'Regular' | 'New'
+  averageRating: number
+  totalFeedback: number
 }

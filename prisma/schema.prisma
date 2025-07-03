@@ -20,23 +20,49 @@ datasource db {
 // =====================================================
 
 model Spa {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  address     String?
-  phone       String?
-  email       String?
-  logoUrl     String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id       String  @id @default(cuid())
+  name     String
+  slug     String  @unique
+  address  String?
+  phone    String?
+  email    String?
+  logoUrl  String?
+  isActive Boolean @default(true)
+
+  // Operating hours
+  openingTime String? // Format: "09:00" - Spa opening time
+  closingTime String? // Format: "18:00" - Spa closing time
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  users       User[]
-  services    Service[]
-  manicurists Manicurist[]
-  clients     Client[]
-  appointments Appointment[]
+  users                      User[]
+  services                   Service[]
+  manicurists                Manicurist[]
+  clients                    Client[]
+  appointments               Appointment[]
+  paymentMethods             PaymentMethod[]
+  payments                   Payment[]
+  feedbacks                  Feedback[]
+  commissions                Commission[]
+  expenses                   Expense[]
+  expensePayments            ExpensePayment[]
+  clientServiceHistory       ClientServiceHistory[]
+  followUpNotifications      FollowUpNotification[]
+  manicuristSchedules        ManicuristSchedule[]
+  manicuristAvailability     ManicuristAvailability[]
+  bookingLinks               BookingLink[]
+  timeSlots                  TimeSlot[]
+  manicuristServiceDurations ManicuristServiceDuration[]
+  salesGoals                 SalesGoal[]
+  salesGoalProgress          SalesGoalProgress[]
+  appointmentApprovalHistory AppointmentApprovalHistory[]
+  preConfirmationReminders   PreConfirmationReminder[]
+  cashRegisters              CashRegister[]
+  cashRegisterShifts         CashRegisterShift[]
+  cashRegisterTransactions   CashRegisterTransaction[]
+  bookingLinkServices        BookingLinkService[]
 
   @@map("spas")
 }
@@ -45,101 +71,739 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  password  String   // Hashed password for Auth.js
+  password  String? // Hashed password for Auth.js (optional for magic link/OAuth)
   role      UserRole @default(CLIENT)
-  spaId     String
+  spaId     String? // Spa association is optional for super admin
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  isSuperAdmin Boolean @default(false) // Marks if the user is a super admin
 
-  // Relations
-  spa       Spa      @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  // Auth.js fields
+  emailVerified DateTime?
+  image         String?
+
+  // Auth.js relations
+  accounts      Account[]
+  sessions      Session[]
+  Authenticators Authenticator[]
+
+  // App relations
+  spa                        Spa?                          @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  approvedAppointments       Appointment[]                @relation("AppointmentApprover")
+  preConfirmedAppointments   Appointment[]                @relation("AppointmentPreConfirmer")
+  appointmentApprovalHistory AppointmentApprovalHistory[]
+  cashRegisterShiftsOpened   CashRegisterShift[]          @relation("CashRegisterOpener")
+  cashRegisterShiftsClosed   CashRegisterShift[]          @relation("CashRegisterCloser")
+  cashRegisterTransactions   CashRegisterTransaction[]
 
   @@map("users")
 }
 
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+}
+
 model Client {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
   phone     String?
   email     String?
   birthday  DateTime?
   notes     String?
   spaId     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   // Relations
-  spa          Spa           @relation(fields: [spaId], references: [id], onDelete: Cascade)
-  services     Service[]
-  appointments Appointment[]
+  spa                  Spa                    @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  appointments         Appointment[]
+  clientServiceHistory ClientServiceHistory[]
 
   @@map("clients")
 }
 
+model ClientServiceHistory {
+  id                    String    @id @default(cuid())
+  clientId              String
+  serviceId             String
+  appointmentServiceId  String
+  serviceDate           DateTime // When the service was performed
+  recommendedReturnDate DateTime // When client should return (calculated from service.recommendedReturnDays)
+  isNotified            Boolean   @default(false) // Whether admin has been notified about follow-up
+  notifiedAt            DateTime? // When admin was notified
+  isFollowedUp          Boolean   @default(false) // Whether admin has contacted the client
+  followedUpAt          DateTime? // When admin contacted the client
+  notes                 String? // Admin notes about follow-up
+  spaId                 String
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  client                Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service               Service                @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  appointmentService    AppointmentService     @relation(fields: [appointmentServiceId], references: [id], onDelete: Cascade)
+  spa                   Spa                    @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  followUpNotifications FollowUpNotification[]
+
+  @@map("client_service_history")
+}
+
+model FollowUpNotification {
+  id                     String                     @id @default(cuid())
+  clientServiceHistoryId String
+  type                   FollowUpNotificationType
+  status                 FollowUpNotificationStatus @default(PENDING)
+  scheduledFor           DateTime // When the notification should be sent
+  sentAt                 DateTime? // When the notification was actually sent
+  message                String? // Custom message for the notification
+  spaId                  String
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+
+  // Relations
+  clientServiceHistory ClientServiceHistory @relation(fields: [clientServiceHistoryId], references: [id], onDelete: Cascade)
+  spa                  Spa                  @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("follow_up_notifications")
+}
+
 model Manicurist {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String?
-  email     String?
-  specialty String?  // "manicure", "pedicure", "nail art", etc.
-  commission Float   @default(0.5) // Commission percentage (0.0 to 1.0)
-  isActive  Boolean  @default(true)
+  id         String   @id @default(cuid())
+  name       String
+  phone      String?
+  email      String?
+  specialty  String? // "manicure", "pedicure", "nail art", etc.
+  commission Float    @default(0.5) // Commission percentage (0.0 to 1.0)
+  isActive   Boolean  @default(true)
+  spaId      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  spa                 Spa                         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  appointments        Appointment[]
+  appointmentServices AppointmentService[]
+  commissions         Commission[]
+  schedules           ManicuristSchedule[]
+  availability        ManicuristAvailability[]
+  timeSlots           TimeSlot[]
+  serviceDurations    ManicuristServiceDuration[]
+  salesGoals          SalesGoal[]
+
+  @@map("manicurists")
+}
+
+model ManicuristSchedule {
+  id           String   @id @default(cuid())
+  manicuristId String
+  dayOfWeek    Int // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  startTime    String // Format: "09:00"
+  endTime      String // Format: "17:00"
+  isActive     Boolean  @default(true)
+  spaId        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  manicurist Manicurist @relation(fields: [manicuristId], references: [id], onDelete: Cascade)
+  spa        Spa        @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@unique([manicuristId, dayOfWeek])
+  @@map("manicurist_schedules")
+}
+
+model ManicuristAvailability {
+  id           String   @id @default(cuid())
+  manicuristId String
+  date         DateTime // Specific date
+  startTime    String? // Format: "09:00" - If null, uses regular schedule
+  endTime      String? // Format: "17:00" - If null, uses regular schedule
+  isAvailable  Boolean  @default(true) // false = day off, true = available
+  reason       String? // Reason for unavailability (vacation, sick, etc.)
+  spaId        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  manicurist Manicurist @relation(fields: [manicuristId], references: [id], onDelete: Cascade)
+  spa        Spa        @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@unique([manicuristId, date])
+  @@map("manicurist_availability")
+}
+
+model BookingLink {
+  id       String  @id @default(cuid())
+  token    String  @unique // Unique token for the booking URL
+  name     String // Name/description of the booking link
+  isActive Boolean @default(true)
+
+  // Booking window
+  validFrom  DateTime // When bookings can start
+  validUntil DateTime // When bookings can no longer be made
+
+  // Advanced settings
+  maxAdvanceDays          Int? // Maximum days in advance to book (null = unlimited)
+  minAdvanceHours         Int? // Minimum hours in advance to book (default: 2)
+  allowSameDayBooking     Boolean @default(false) // Allow booking for same day
+  requiresApproval        Boolean @default(true) // Whether appointments need admin approval
+  requiresPreConfirmation Boolean @default(true) // Whether admin needs to confirm before appointment
+  preConfirmationHours    Int     @default(24) // Hours before appointment when admin should confirm
+
   spaId     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  spa          Spa           @relation(fields: [spaId], references: [id], onDelete: Cascade)
-  services     Service[]
+  spa          Spa                  @relation(fields: [spaId], references: [id], onDelete: Cascade)
   appointments Appointment[]
+  services     BookingLinkService[]
 
-  @@map("manicurists")
+  @@map("booking_links")
+}
+
+model BookingLinkService {
+  id            String  @id @default(cuid())
+  bookingLinkId String
+  serviceId     String
+  isActive      Boolean @default(true)
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  bookingLink BookingLink @relation(fields: [bookingLinkId], references: [id], onDelete: Cascade)
+  service     Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  spa         Spa         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingLinkId, serviceId])
+  @@map("booking_link_services")
+}
+
+model TimeSlot {
+  id          String   @id @default(cuid())
+  date        DateTime // Date of the time slot
+  startTime   String // Format: "09:00"
+  endTime     String // Format: "10:00"
+  duration    Int // Duration in minutes
+  isAvailable Boolean  @default(true)
+  isBooked    Boolean  @default(false)
+
+  // Optional: specific manicurist for this slot
+  manicuristId String?
+
+  // Optional: appointment that occupies this slot
+  appointmentId String?
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  manicurist  Manicurist?  @relation(fields: [manicuristId], references: [id], onDelete: SetNull)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  spa         Spa          @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@unique([date, startTime, manicuristId])
+  @@map("time_slots")
+}
+
+model ManicuristServiceDuration {
+  id           String @id @default(cuid())
+  manicuristId String
+  serviceId    String
+
+  // Duration statistics
+  totalServices   Int   @default(0) // Total number of services performed
+  totalDuration   Int   @default(0) // Total minutes spent
+  averageDuration Float @default(0) // Average duration in minutes
+  minDuration     Int? // Fastest time recorded
+  maxDuration     Int? // Slowest time recorded
+
+  // Last updated
+  lastServiceDate DateTime?
+  spaId           String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  manicurist Manicurist @relation(fields: [manicuristId], references: [id], onDelete: Cascade)
+  service    Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  spa        Spa        @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@unique([manicuristId, serviceId])
+  @@map("manicurist_service_durations")
+}
+
+model SalesGoal {
+  id           String          @id @default(cuid())
+  name         String // "Meta diaria enero", "Meta semanal manicuristas", etc.
+  type         SalesGoalType
+  period       SalesGoalPeriod
+  targetAmount Float // Target amount in currency
+  startDate    DateTime // When this goal starts
+  endDate      DateTime? // When this goal ends (null = ongoing)
+  isActive     Boolean         @default(true)
+
+  // Optional: specific target for manicurist or service
+  manicuristId String?
+  serviceId    String?
+
+  // Progress tracking
+  currentAmount Float    @default(0) // Current progress
+  lastUpdated   DateTime @default(now())
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  manicurist Manicurist?         @relation(fields: [manicuristId], references: [id], onDelete: SetNull)
+  service    Service?            @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  spa        Spa                 @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  progress   SalesGoalProgress[]
+
+  @@map("sales_goals")
+}
+
+model SalesGoalProgress {
+  id          String   @id @default(cuid())
+  salesGoalId String
+  date        DateTime // Date of the progress entry
+
+  // Progress for this specific date
+  amount       Float @default(0) // Amount achieved on this date
+  services     Int   @default(0) // Number of services on this date
+  clients      Int   @default(0) // Number of clients on this date
+  appointments Int   @default(0) // Number of appointments on this date
+
+  // Calculated fields
+  percentage Float @default(0) // Percentage of daily goal achieved
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  salesGoal SalesGoal @relation(fields: [salesGoalId], references: [id], onDelete: Cascade)
+  spa       Spa       @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@unique([salesGoalId, date])
+  @@map("sales_goal_progress")
+}
+
+model AppointmentApprovalHistory {
+  id            String         @id @default(cuid())
+  appointmentId String
+  action        ApprovalAction // APPROVE, REJECT, REQUEST_CHANGES
+  notes         String? // Admin notes about the action
+  adminId       String // User ID who performed the action
+
+  spaId     String
+  createdAt DateTime @default(now())
+
+  // Relations
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  admin       User        @relation(fields: [adminId], references: [id])
+  spa         Spa         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("appointment_approval_history")
+}
+
+model PreConfirmationReminder {
+  id            String                        @id @default(cuid())
+  appointmentId String
+  scheduledFor  DateTime // When the reminder should be sent
+  sentAt        DateTime? // When the reminder was actually sent
+  type          PreConfirmationReminderType
+  status        PreConfirmationReminderStatus @default(PENDING)
+  message       String? // Custom message for the reminder
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  spa         Spa         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("pre_confirmation_reminders")
+}
+
+model CashRegister {
+  id             String  @id @default(cuid())
+  name           String // "Caja Principal", "Caja Secundaria", etc.
+  isActive       Boolean @default(true)
+  currentBalance Float   @default(0) // Current cash balance
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa    Spa                 @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  shifts CashRegisterShift[]
+
+  @@map("cash_registers")
+}
+
+model CashRegisterShift {
+  id             String  @id @default(cuid())
+  cashRegisterId String
+  openedBy       String // User ID who opened the shift
+  closedBy       String? // User ID who closed the shift
+
+  // Shift timing
+  openedAt DateTime  @default(now())
+  closedAt DateTime? // When the shift was closed
+
+  // Opening balance
+  openingBalance Float @default(0) // Cash at start of shift
+
+  // Closing balance
+  closingBalance  Float? // Cash at end of shift
+  expectedBalance Float? // Expected cash based on transactions
+  difference      Float? // Difference between expected and actual
+
+  // Shift status
+  status CashRegisterShiftStatus @default(OPEN)
+  notes  String? // Notes about the shift
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  cashRegister CashRegister              @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+  opener       User                      @relation("CashRegisterOpener", fields: [openedBy], references: [id])
+  closer       User?                     @relation("CashRegisterCloser", fields: [closedBy], references: [id])
+  spa          Spa                       @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  transactions CashRegisterTransaction[]
+
+  @@map("cash_register_shifts")
+}
+
+model CashRegisterTransaction {
+  id                  String  @id @default(cuid())
+  cashRegisterShiftId String
+  paymentId           String? @unique // If related to a payment (unique for one-to-one relation)
+
+  // Transaction details
+  type        CashRegisterTransactionType
+  amount      Float // Amount of the transaction
+  description String // Description of the transaction
+  reference   String? // External reference
+
+  // Cash flow
+  cashIn  Float @default(0) // Cash received
+  cashOut Float @default(0) // Cash given out
+
+  // User tracking
+  performedBy String // User ID who performed the transaction
+
+  spaId     String
+  createdAt DateTime @default(now())
+
+  // Relations
+  cashRegisterShift CashRegisterShift @relation(fields: [cashRegisterShiftId], references: [id], onDelete: Cascade)
+  payment           Payment?          @relation(fields: [paymentId], references: [id])
+  performer         User              @relation(fields: [performedBy], references: [id])
+  spa               Spa               @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("cash_register_transactions")
 }
 
 model Service {
-  id           String      @id @default(cuid())
-  type         ServiceType // Type of service
-  clientId     String
-  manicuristId String?
-  price        Float
-  duration     Int         // Duration in minutes
-  notes        String?
-  imageUrl     String?     // Photo of the work done
-  rating       Int?        @db.SmallInt // Client rating 1-5
-  paymentMethod PaymentMethod @default(CASH)
-  spaId        String
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id                    String      @id @default(cuid())
+  type                  ServiceType // Type of service
+  name                  String
+  description           String?
+  price                 Float // Base service price
+  kitCost               Float? // Optional kit cost (goes directly to spa)
+  taxRate               Float? // Optional tax rate (e.g., 0.19 for 19% VAT)
+  duration              Int // Standard duration in minutes
+  recommendedReturnDays Int? // Days recommended for client to return (e.g., 15 for traditional nails)
+  imageUrl              String?
+  isActive              Boolean     @default(true)
+  spaId                 String
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
 
   // Relations
-  spa          Spa         @relation(fields: [spaId], references: [id], onDelete: Cascade)
-  client       Client      @relation(fields: [clientId], references: [id])
-  manicurist   Manicurist? @relation(fields: [manicuristId], references: [id])
-
-  @@map("services")
+  spa                  Spa                         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  appointmentServices  AppointmentService[]
+  clientServiceHistory ClientServiceHistory[]
+  serviceDurations     ManicuristServiceDuration[]
+  salesGoals           SalesGoal[]
+  bookingLinkServices  BookingLinkService[]
 }
 
 model Appointment {
-  id           String            @id @default(cuid())
-  clientId     String
-  manicuristId String?
-  serviceType  ServiceType
-  scheduledAt  DateTime
-  duration     Int               // Duration in minutes
-  price        Float
-  status       AppointmentStatus @default(SCHEDULED)
-  notes        String?
-  spaId        String
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  id            String            @id @default(cuid())
+  clientId      String
+  manicuristId  String?
+  isScheduled   Boolean // true = scheduled, false = walk-in
+  scheduledAt   DateTime
+  status        AppointmentStatus @default(SCHEDULED)
+  notes         String?
+  bookingLinkId String? // If appointment was created via booking link
+
+  // Approval fields
+  requiresApproval Boolean   @default(false) // Whether this appointment needs admin approval
+  approvedBy       String? // User ID who approved/rejected
+  approvedAt       DateTime? // When it was approved/rejected
+  approvalNotes    String? // Admin notes about approval/rejection
+
+  // Pre-confirmation fields
+  requiresPreConfirmation     Boolean   @default(false) // Whether admin needs to confirm before appointment
+  preConfirmedBy              String? // User ID who pre-confirmed
+  preConfirmedAt              DateTime? // When it was pre-confirmed
+  preConfirmationNotes        String? // Admin notes about pre-confirmation
+  preConfirmationReminderSent Boolean   @default(false) // Whether reminder was sent to admin
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  spa          Spa         @relation(fields: [spaId], references: [id], onDelete: Cascade)
-  client       Client      @relation(fields: [clientId], references: [id])
-  manicurist   Manicurist? @relation(fields: [manicuristId], references: [id])
+  spa                      Spa                          @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  client                   Client                       @relation(fields: [clientId], references: [id])
+  manicurist               Manicurist?                  @relation(fields: [manicuristId], references: [id])
+  services                 AppointmentService[]
+  payments                 Payment[]
+  bookingLink              BookingLink?                 @relation(fields: [bookingLinkId], references: [id])
+  approver                 User?                        @relation("AppointmentApprover", fields: [approvedBy], references: [id])
+  preConfirmer             User?                        @relation("AppointmentPreConfirmer", fields: [preConfirmedBy], references: [id])
+  approvalHistory          AppointmentApprovalHistory[]
+  preConfirmationReminders PreConfirmationReminder[]
+  timeSlots                TimeSlot[]
+}
 
-  @@map("appointments")
+model AppointmentService {
+  id            String @id @default(cuid())
+  appointmentId String
+  serviceId     String
+  manicuristId  String
+
+  // Times by manicurist
+  startedAtByManicurist DateTime?
+  endedAtByManicurist   DateTime?
+
+  // Times by admin
+  startedAtByAdmin DateTime?
+  endedAtByAdmin   DateTime?
+
+  // Duration tracking
+  estimatedDuration Int // minutes - from service.duration
+  actualDuration    Int? // minutes - calculated from real start/end times
+  durationAvg       Int? // minutes - historical average for this manicurist + service combination
+
+  price     Float // Base service price
+  kitCost   Float? // Optional kit cost (goes directly to spa)
+  taxRate   Float? // Optional tax rate (e.g., 0.19 for 19% VAT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  appointment          Appointment            @relation(fields: [appointmentId], references: [id])
+  service              Service                @relation(fields: [serviceId], references: [id])
+  manicurist           Manicurist             @relation(fields: [manicuristId], references: [id])
+  payments             Payment[]
+  feedback             Feedback?
+  clientServiceHistory ClientServiceHistory[]
+}
+
+model PaymentMethod {
+  id             String   @id @default(cuid())
+  name           String
+  type           String? // 'Cash', 'Digital', 'Card', etc.
+  isActive       Boolean  @default(true)
+  icon           String? // (optional) for UI
+  transactionFee Float    @default(0) // Transaction fee percentage (e.g., 0.035 for 3.5%)
+  spaId          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  spa             Spa              @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+  expensePayments ExpensePayment[]
+}
+
+model Payment {
+  id                   String   @id @default(cuid())
+  appointmentId        String?
+  appointmentServiceId String?
+  paymentMethodId      String
+  amount               Float
+  paidAt               DateTime @default(now())
+  reference            String?
+
+  // Discount fields
+  originalAmount            Float // Original amount before discount
+  discountAmount            Float   @default(0) // Amount of discount
+  discountReason            String? // Reason for discount
+  discountAffectsCommission Boolean @default(false) // If true, discount affects manicurist commission
+
+  // Transaction fee fields
+  transactionFeeAmount Float @default(0) // Amount of transaction fee
+  transactionFeeRate   Float @default(0) // Transaction fee rate used
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa                     Spa                      @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  appointment             Appointment?             @relation(fields: [appointmentId], references: [id])
+  appointmentService      AppointmentService?      @relation(fields: [appointmentServiceId], references: [id])
+  paymentMethod           PaymentMethod            @relation(fields: [paymentMethodId], references: [id])
+  commission              Commission?
+  cashRegisterTransaction CashRegisterTransaction?
+}
+
+model Commission {
+  id               String           @id @default(cuid())
+  paymentId        String           @unique
+  manicuristId     String
+  serviceAmount    Float // Original service amount before discount
+  commissionRate   Float // Commission rate (e.g., 0.5 for 50%)
+  commissionAmount Float // Final commission amount after discount
+  spaAmount        Float // Final spa amount after discount
+  status           CommissionStatus @default(PENDING)
+
+  // Discount tracking
+  originalCommissionAmount  Float // Commission amount before discount
+  discountAmount            Float   @default(0) // Amount of discount applied to commission
+  discountAffectsCommission Boolean @default(false) // Whether discount affects commission
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa        Spa        @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  payment    Payment    @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  manicurist Manicurist @relation(fields: [manicuristId], references: [id])
+}
+
+model Feedback {
+  id                   String   @id @default(cuid())
+  appointmentServiceId String   @unique // One feedback per service
+  token                String   @unique // Unique token for the feedback link
+  tokenExpiresAt       DateTime // Token expiration time
+
+  // Ratings
+  serviceTimeRating         ServiceTimeRating // Muy rápido, Tiempo adecuado, Muy demorado
+  workQualityRating         Int // 1-5 stars - Calidad del trabajo realizado
+  manicuristAttentionRating Int // 1-5 stars - Atención de la manicurista
+  spaAdminAttentionRating   Int // 1-5 stars - Atención del admin del spa
+
+  // Optional comment
+  comment String?
+
+  // Status
+  isSubmitted Boolean   @default(false)
+  submittedAt DateTime?
+
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa                Spa                @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  appointmentService AppointmentService @relation(fields: [appointmentServiceId], references: [id])
+}
+
+model Expense {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  amount      Float
+  type        ExpenseType // FIXED, VARIABLE
+  category    ExpenseCategory
+  frequency   ExpenseFrequency // MONTHLY, WEEKLY, DAILY, ONE_TIME
+  dueDate     DateTime? // For recurring expenses
+  paidAt      DateTime? // When it was actually paid
+  isPaid      Boolean          @default(false)
+  isActive    Boolean          @default(true)
+  spaId       String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  spa      Spa              @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  payments ExpensePayment[]
+}
+
+model ExpensePayment {
+  id              String   @id @default(cuid())
+  expenseId       String
+  amount          Float
+  paidAt          DateTime @default(now())
+  paymentMethodId String
+  reference       String?
+  notes           String?
+  spaId           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  expense       Expense       @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  spa           Spa           @relation(fields: [spaId], references: [id], onDelete: Cascade)
 }
 
 // =====================================================
@@ -147,9 +811,9 @@ model Appointment {
 // =====================================================
 
 enum UserRole {
-  ADMIN        // Spa owner/administrator
-  MANICURIST   // Nail technician
-  CLIENT       // Regular customer
+  ADMIN // Spa owner/administrator
+  MANICURIST // Nail technician
+  CLIENT // Regular customer
 }
 
 enum ServiceType {
@@ -164,19 +828,122 @@ enum ServiceType {
   OTHER
 }
 
-enum PaymentMethod {
-  CASH
-  CARD
-  TRANSFER
-  NEQUI
-  DAVIPLATA
+enum AppointmentStatus {
+  PENDING_APPROVAL // Pending admin approval (for booking link appointments)
+  SCHEDULED // Scheduled and confirmed
+  IN_PROGRESS // In progress
+  COMPLETED // Completed
+  CANCELLED // Cancelled
+  NO_SHOW // No show
 }
 
-enum AppointmentStatus {
-  SCHEDULED
-  CONFIRMED
-  IN_PROGRESS
-  COMPLETED
+enum ServiceTimeRating {
+  VERY_FAST // ⏱️ Muy rápido
+  ADEQUATE // ✅ Tiempo adecuado
+  VERY_SLOW // 🕒 Muy demorado
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
   CANCELLED
-  NO_SHOW
+}
+
+enum ExpenseType {
+  FIXED
+  VARIABLE
+}
+
+enum ExpenseCategory {
+  RENT // Arriendo
+  SALARIES // Sueldos
+  MARKETING // Marketing y publicidad
+  SUPPLIES // Suministros
+  UTILITIES // Servicios públicos
+  INSURANCE // Seguros
+  MAINTENANCE // Mantenimiento
+  EQUIPMENT // Equipos
+  SOFTWARE // Software y tecnología
+  PROFESSIONAL // Servicios profesionales
+  TRAINING // Capacitación
+  TRAVEL // Viajes
+  FOOD // Alimentación
+  CLEANING // Limpieza
+  SECURITY // Seguridad
+  OTHER // Otros
+}
+
+enum ExpenseFrequency {
+  MONTHLY
+  WEEKLY
+  DAILY
+  ONE_TIME
+}
+
+enum FollowUpNotificationType {
+  EMAIL
+  SMS
+  PUSH
+  DASHBOARD // In-app notification for admin
+}
+
+enum FollowUpNotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum SalesGoalType {
+  REVENUE // Meta de ingresos totales
+  SERVICES // Meta de número de servicios
+  CLIENTS // Meta de número de clientes nuevos
+  APPOINTMENTS // Meta de número de citas
+}
+
+enum SalesGoalPeriod {
+  DAILY // Meta diaria
+  WEEKLY // Meta semanal
+  MONTHLY // Meta mensual
+  QUARTERLY // Meta trimestral
+  YEARLY // Meta anual
+}
+
+enum ApprovalAction {
+  APPROVE // Approve the appointment
+  REJECT // Reject the appointment
+  REQUEST_CHANGES // Request changes to the appointment
+}
+
+enum PreConfirmationReminderType {
+  EMAIL
+  SMS
+  PUSH
+  DASHBOARD // In-app notification for admin
+}
+
+enum PreConfirmationReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum CashRegisterShiftStatus {
+  OPEN // Shift is currently open
+  CLOSED // Shift has been closed
+  SUSPENDED // Shift is temporarily suspended
+}
+
+enum CashRegisterTransactionType {
+  PAYMENT_RECEIVED // Cash payment received from client
+  PAYMENT_REFUND // Cash refund given to client
+  CASH_DEPOSIT // Cash deposited to bank
+  CASH_WITHDRAWAL // Cash withdrawn from bank
+  EXPENSE_PAYMENT // Cash used to pay expense
+  CHANGE_GIVEN // Change given to client
+  OPENING_BALANCE // Initial cash when opening shift
+  CLOSING_BALANCE // Final cash when closing shift
+  ADJUSTMENT // Manual adjustment/correction
+  OTHER // Other cash transaction
 }

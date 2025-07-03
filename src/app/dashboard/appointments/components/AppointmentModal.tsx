@@ -2,7 +2,7 @@
 
 import { Modal } from '@/components/ui'
 import { AppointmentForm } from './AppointmentForm'
-import type { Appointment } from '../types'
+import type { AppointmentWithDetails } from '@/types'
 import type { AppointmentFormData } from '../schemas'
 
 interface Option {
@@ -13,7 +13,7 @@ interface Option {
 interface AppointmentModalProps {
   isOpen: boolean
   onClose: () => void
-  appointment?: Appointment
+  appointment?: AppointmentWithDetails
   clients: Option[]
   manicurists: Option[]
   services: Option[]

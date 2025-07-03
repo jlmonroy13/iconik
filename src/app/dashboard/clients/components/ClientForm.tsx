@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Input, Select, Button, useNotifications } from '@/components/ui'
+import { Input, Button, useNotifications } from '@/components/ui'
 import { clientFormSchema, type ClientFormData } from '../schemas'
 import type { Client } from '../types'
 
@@ -17,9 +17,8 @@ function getClientFormDefaultValues(client?: Client): ClientFormData {
     name: client?.name || '',
     email: client?.email || '',
     phone: client?.phone || '',
-    identificationType: client?.identificationType || 'CC',
-    identification: client?.identification || '',
-    status: client?.status || 'ACTIVE',
+    birthday: client?.birthday,
+    notes: client?.notes || '',
   }
 }
 
@@ -28,15 +27,11 @@ export function ClientForm({ client, onSubmit, isSubmitting }: ClientFormProps) 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: getClientFormDefaultValues(client)
   })
-
-  const identificationType = watch('identificationType')
-  const status = watch('status')
 
   const onSubmitForm = async (data: ClientFormData) => {
     try {
@@ -73,32 +68,17 @@ export function ClientForm({ client, onSubmit, isSubmitting }: ClientFormProps) 
         {...register("phone")}
         error={errors.phone?.message}
       />
-      <Select
-        label="Tipo de Identificación"
-        {...register("identificationType")}
-        value={identificationType}
-        error={errors.identificationType?.message}
-      >
-        <option value="CC">Cédula de Ciudadanía</option>
-        <option value="CE">Cédula de Extranjería</option>
-        <option value="PAS">Pasaporte</option>
-        <option value="NIT">NIT</option>
-        <option value="OTRO">Otro</option>
-      </Select>
       <Input
-        label="Identificación"
-        {...register("identification")}
-        error={errors.identification?.message}
+        label="Fecha de Nacimiento"
+        type="date"
+        {...register("birthday")}
+        error={errors.birthday?.message}
       />
-      <Select
-        label="Estado"
-        {...register("status")}
-        value={status}
-        error={errors.status?.message}
-      >
-        <option value="ACTIVE">Activo</option>
-        <option value="INACTIVE">Inactivo</option>
-      </Select>
+      <Input
+        label="Notas"
+        {...register("notes")}
+        error={errors.notes?.message}
+      />
 
       <div className="flex justify-end pt-4">
         <Button type="submit" disabled={isSubmitting}>

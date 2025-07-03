@@ -2,20 +2,28 @@
 
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
-import type { Client } from '../types'
+import type { ClientWithDetails } from '@/types'
 import { Crown, Star, Sparkles, User } from 'lucide-react'
 
 interface ClientInsightsProps {
-  clients: Client[]
+  clients: ClientWithDetails[]
 }
 
 export function ClientInsights({ clients }: ClientInsightsProps) {
   const clientStats = useMemo(() => {
     return clients.map(client => {
-      const totalSpent = client.services.reduce((sum, service) => sum + service.price, 0)
-      const visitCount = client.services.length
-      const lastVisit = client.services.length > 0
-        ? new Date(Math.max(...client.services.map(s => new Date(s.createdAt).getTime())))
+      // Calculate stats from appointments and their services
+      const allServices = client.appointments.flatMap(appointment =>
+        appointment.services.map(service => ({
+          price: service.price,
+          createdAt: service.createdAt
+        }))
+      )
+
+      const totalSpent = allServices.reduce((sum, service) => sum + service.price, 0)
+      const visitCount = client.appointments.length
+      const lastVisit = allServices.length > 0
+        ? new Date(Math.max(...allServices.map(s => new Date(s.createdAt).getTime())))
         : null
       const averageSpending = visitCount > 0 ? totalSpent / visitCount : 0
 

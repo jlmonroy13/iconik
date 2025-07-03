@@ -1,32 +1,19 @@
-export interface Manicurist {
+import type { Manicurist, ManicuristWithDetails, ManicuristFilters } from '@/types'
+
+// Re-export the main types from shared types
+export type { Manicurist, ManicuristWithDetails, ManicuristFilters }
+
+// Manicurist stats interface
+export interface ManicuristStats {
   id: string
   name: string
-  email: string
-  phone: string
-  avatar?: string
-  status: 'ACTIVE' | 'INACTIVE'
-  specialties: ServiceType[]
-  joinedAt: string
-  rating: number
   totalServices: number
   totalRevenue: number
-  thisMonthServices: number
-  thisMonthRevenue: number
-}
-
-export type ServiceType = 'MANICURE' | 'PEDICURE' | 'NAIL_ART' | 'GEL_POLISH' | 'ACRYLIC_NAILS'
-
-export interface ManicuristFilters {
-  status?: 'ACTIVE' | 'INACTIVE'
-  specialty?: ServiceType
-  search?: string
-}
-
-export interface ManicuristStats {
-  totalManicurists: number
-  activeManicurists: number
-  totalRevenue: number
   averageRating: number
-  thisMonthServices: number
-  thisMonthRevenue: number
+  commission: number
+  efficiency: number // services per month
+  averageServiceTime: number // minutes
+  totalFeedback: number
+  averageWorkQualityRating: number
+  averageAttentionRating: number
 }
