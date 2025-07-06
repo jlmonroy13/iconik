@@ -4,13 +4,22 @@ import { Modal } from '@/components/ui'
 import { ManicuristForm } from './ManicuristForm'
 import type { Manicurist } from '../types'
 import type { ManicuristFormData } from '../schemas'
+import type { Service } from '@/types'
+
+// Extend ManicuristFormData to include selectedServices
+type ExtendedManicuristFormData = ManicuristFormData & {
+  selectedServices?: string[]
+}
 
 interface ManicuristModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: ManicuristFormData) => Promise<void>
+  onSubmit: (data: ExtendedManicuristFormData) => Promise<void>
   manicurist?: Manicurist
   isSubmitting?: boolean
+  services: Service[]
+  selectedServices: string[]
+  setSelectedServices: (ids: string[]) => void
 }
 
 export function ManicuristModal({
@@ -18,7 +27,10 @@ export function ManicuristModal({
   onClose,
   onSubmit,
   manicurist,
-  isSubmitting
+  isSubmitting,
+  services,
+  selectedServices,
+  setSelectedServices
 }: ManicuristModalProps) {
   return (
     <Modal
@@ -30,6 +42,9 @@ export function ManicuristModal({
         manicurist={manicurist}
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
+        services={services}
+        selectedServices={selectedServices}
+        setSelectedServices={setSelectedServices}
       />
     </Modal>
   )

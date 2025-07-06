@@ -17,3 +17,9 @@ export interface ManicuristStats {
   averageWorkQualityRating: number
   averageAttentionRating: number
 }
+
+export interface ManicuristStatsData {
+  total: number
+  active: number
+  inactive: number
+}

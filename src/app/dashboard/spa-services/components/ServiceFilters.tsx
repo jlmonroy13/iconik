@@ -51,7 +51,7 @@ export function ServiceFiltersPanel({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
         <div>
           <Input
             type="text"
@@ -63,24 +63,6 @@ export function ServiceFiltersPanel({
             labelAdornment={filters.search && (<span className="ml-1 text-pink-600 dark:text-pink-400">●</span>)}
           />
         </div>
-
-        <div>
-          <Select
-            value={filters.type || ''}
-            onChange={e => updateFilter('type', e.target.value || undefined)}
-            active={!!filters.type}
-            label="Tipo de Servicio"
-            labelAdornment={filters.type && (<span className="ml-1 text-pink-600 dark:text-pink-400">●</span>)}
-          >
-            <option value="">Todos los tipos</option>
-            <option value="MANICURE">Manicure</option>
-            <option value="PEDICURE">Pedicure</option>
-            <option value="NAIL_ART">Nail Art</option>
-            <option value="GEL_POLISH">Esmalte en Gel</option>
-            <option value="ACRYLIC_NAILS">Uñas Acrílicas</option>
-          </Select>
-        </div>
-
         <div>
           <Select
             value={filters.isActive === undefined ? '' : filters.isActive ? 'true' : 'false'}

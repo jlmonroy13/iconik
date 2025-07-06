@@ -1,4 +1,7 @@
-import { Input, Select, Button, Badge } from '@/components/ui'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import type { ClientFilters } from '../types'
 
 interface ClientFiltersProps {

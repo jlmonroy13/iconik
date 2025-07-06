@@ -14,7 +14,7 @@ export const ROUTES = {
 
   // Dashboard routes
   DASHBOARD: '/dashboard',
-  SERVICES: '/dashboard/services',
+  SERVICES: '/dashboard/spa-services',
   APPOINTMENTS: '/dashboard/appointments',
   CLIENTS: '/dashboard/clients',
   MANICURISTS: '/dashboard/manicurists',

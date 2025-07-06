@@ -1,11 +1,12 @@
 'use client'
 
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Input, Select, Button, Textarea, SearchSelect, useNotifications } from '@/components/ui'
 import { appointmentFormSchema, type AppointmentFormData } from '../schemas'
 import { Plus, Trash2 } from 'lucide-react'
 import type { AppointmentWithDetails } from '@/types'
+import { CurrencyInput } from '@/components/ui/CurrencyInput'
 
 interface Option {
   id: string
@@ -34,7 +35,7 @@ export function AppointmentForm({ appointment, clients, manicurists, services, o
     services: appointment.services.map(service => ({
       serviceId: service.serviceId,
       manicuristId: service.manicuristId,
-      price: service.price
+      price: service.price ?? 0
     }))
   } : {
     clientId: '',
@@ -158,14 +159,19 @@ export function AppointmentForm({ appointment, clients, manicurists, services, o
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </Select>
-            <Input
-              label="Precio"
-              type="number"
-              min={1}
-              step={100}
-              {...register(`services.${idx}.price` as const, { valueAsNumber: true })}
-              error={errors.services?.[idx]?.price?.message}
-              className="w-1/4"
+            <Controller
+              name={`services.${idx}.price` as const}
+              control={control}
+              render={({ field, fieldState }) => (
+                <CurrencyInput
+                  label="Precio"
+                  value={field.value === 0 ? '' : field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                  className="w-1/4"
+                  placeholder="Precio"
+                />
+              )}
             />
             <Button
               type="button"

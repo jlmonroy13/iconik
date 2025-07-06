@@ -1,8 +1,9 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { Resolver, useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Input, Select, Button, useNotifications, Textarea } from '@/components/ui'
+import { CurrencyInput } from '@/components/ui/CurrencyInput'
 import { serviceFormSchema, type ServiceFormData } from '../schemas'
 import type { Service } from '../types'
 
@@ -18,15 +19,33 @@ export function ServiceForm({ service, onSubmit, isSubmitting }: ServiceFormProp
     register,
     handleSubmit,
     formState: { errors },
+    control,
   } = useForm<ServiceFormData>({
-    resolver: zodResolver(serviceFormSchema) as any,
-    defaultValues: service || {
-      isActive: true,
-      kitCost: 0,
-      taxRate: 0,
-      imageUrl: ''
-    }
-  })
+    resolver: zodResolver(serviceFormSchema) as Resolver<ServiceFormData>,
+    defaultValues: service
+      ? {
+          ...service,
+          kitCost: service.kitCost ?? undefined,
+          taxRate: service.taxRate ?? 0,
+          price: service.price ?? undefined,
+          duration: service.duration ?? 0,
+          isActive: service.isActive ?? true,
+          imageUrl: service.imageUrl ?? "",
+          description: service.description ?? "",
+          recommendedReturnDays: service.recommendedReturnDays ?? 0,
+        }
+      : {
+          isActive: true,
+          kitCost: undefined,
+          taxRate: 0,
+          imageUrl: "",
+          price: undefined,
+          duration: 0,
+          name: "",
+          description: "",
+          recommendedReturnDays: 0,
+        },
+  });
 
   const onSubmitForm = async (data: ServiceFormData) => {
     try {
@@ -46,7 +65,7 @@ export function ServiceForm({ service, onSubmit, isSubmitting }: ServiceFormProp
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmitForm) as any} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
       <Input
         label="Nombre"
         {...register('name')}
@@ -57,52 +76,47 @@ export function ServiceForm({ service, onSubmit, isSubmitting }: ServiceFormProp
         {...register('description')}
         error={errors.description?.message}
       />
-      <Input
-        label="Precio"
-        type="number"
-        min={1}
-        step={100}
-        {...register('price', { valueAsNumber: true })}
-        error={errors.price?.message}
+      <Controller
+        name="price"
+        control={control}
+        render={({ field, fieldState }) => (
+          <CurrencyInput
+            label="Precio"
+            value={field.value ?? ''}
+            onChange={field.onChange}
+            error={fieldState.error?.message}
+            placeholder="Ingresa el precio"
+          />
+        )}
       />
       <Input
         label="Duración (minutos)"
         type="number"
-        min={1}
-        step={1}
         {...register('duration', { valueAsNumber: true })}
         error={errors.duration?.message}
       />
-      <Select
-        label="Tipo de Servicio"
-        {...register('type')}
-        error={errors.type?.message}
-      >
-        <option value="">Selecciona...</option>
-        <option value="MANICURE">Manicure</option>
-        <option value="PEDICURE">Pedicure</option>
-        <option value="NAIL_ART">Nail Art</option>
-        <option value="GEL_POLISH">Esmalte en Gel</option>
-        <option value="ACRYLIC_NAILS">Uñas Acrílicas</option>
-        <option value="NAIL_REPAIR">Reparación de Uñas</option>
-        <option value="HAND_SPA">Spa de Manos</option>
-        <option value="FOOT_SPA">Spa de Pies</option>
-        <option value="OTHER">Otro</option>
-      </Select>
       <Input
-        label="Costo del Kit (opcional)"
+        label="Días recomendados para volver (opcional)"
         type="number"
-        min={0}
-        step={100}
-        {...register('kitCost', { valueAsNumber: true })}
-        error={errors.kitCost?.message}
+        {...register('recommendedReturnDays', { valueAsNumber: true })}
+        error={errors.recommendedReturnDays?.message}
+      />
+      <Controller
+        name="kitCost"
+        control={control}
+        render={({ field, fieldState }) => (
+          <CurrencyInput
+            label="Costo del Kit (opcional)"
+            value={field.value ?? ''}
+            onChange={field.onChange}
+            error={fieldState.error?.message}
+            placeholder="Ingresa el costo del kit"
+          />
+        )}
       />
       <Input
         label="Tasa de Impuesto (opcional, ej: 0.19 para 19%)"
         type="number"
-        min={0}
-        max={1}
-        step={0.01}
         {...register('taxRate', { valueAsNumber: true })}
         error={errors.taxRate?.message}
       />

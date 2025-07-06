@@ -4,6 +4,89 @@ Reusable component system for the Iconik project. All components follow a consis
 
 ## Available Components
 
+### Input
+
+Versatile input component with support for various types including currency formatting.
+
+```tsx
+import { Input } from '@/components/ui'
+
+// Basic input
+<Input
+  label="Name"
+  placeholder="Enter your name"
+  error={errors.name?.message}
+/>
+
+// Number input
+<Input
+  label="Age"
+  type="number"
+  min={0}
+  max={120}
+  error={errors.age?.message}
+/>
+
+// Currency input with automatic formatting
+<Input
+  label="Price"
+  type="number"
+  min={1}
+  currency="COP"
+  error={errors.price?.message}
+/>
+
+// Date input
+<Input
+  label="Birth Date"
+  type="date"
+  error={errors.birthDate?.message}
+/>
+
+// Email input
+<Input
+  label="Email"
+  type="email"
+  error={errors.email?.message}
+/>
+
+// URL input
+<Input
+  label="Website"
+  type="url"
+  error={errors.website?.message}
+/>
+```
+
+#### Currency Formatting
+
+The Input component supports automatic currency formatting when the `currency` prop is provided. This is particularly useful for price and cost fields.
+
+```tsx
+// Colombian Peso formatting
+<Input
+  label="Service Price"
+  type="number"
+  currency="COP"
+  {...register('price', { valueAsNumber: true })}
+/>
+
+// US Dollar formatting
+<Input
+  label="Cost"
+  type="number"
+  currency="USD"
+  {...register('cost', { valueAsNumber: true })}
+/>
+```
+
+**Features:**
+- Automatically formats numbers as currency (e.g., "$ 25,000" for COP)
+- Maintains numeric value for form handling
+- Supports different currencies via the `currency` prop
+- Only formats when value is a number and not zero
+- Preserves all existing input functionality
+
 ### Button
 
 Versatile button with multiple variants and sizes.

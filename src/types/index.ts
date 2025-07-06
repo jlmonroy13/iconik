@@ -35,6 +35,8 @@ export interface User {
 export interface Client {
   id: string
   name: string
+  documentType: string
+  documentNumber: string
   phone?: string
   email?: string
   birthday?: Date
@@ -49,7 +51,6 @@ export interface Manicurist {
   name: string
   phone?: string
   email?: string
-  specialty?: string
   commission: number
   isActive: boolean
   spaId: string
@@ -61,12 +62,13 @@ export interface Service {
   id: string
   type: ServiceType
   name: string
-  description?: string
+  description?: string | null
   price: number // Base service price
-  kitCost?: number // Optional kit cost (goes directly to spa)
-  taxRate?: number // Optional tax rate (e.g., 0.19 for 19% VAT)
+  kitCost?: number | null // Optional kit cost (goes directly to spa)
+  taxRate?: number | null // Optional tax rate (e.g., 0.19 for 19% VAT)
   duration: number // minutes
-  imageUrl?: string
+  recommendedReturnDays?: number | null
+  imageUrl?: string | null
   isActive: boolean
   spaId: string
   createdAt: Date
@@ -396,7 +398,6 @@ export interface ClientFilters {
 export interface ManicuristFilters {
   search?: string
   isActive?: boolean
-  specialty?: string
 }
 
 export interface ExpenseFilters {

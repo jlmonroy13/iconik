@@ -7,6 +7,8 @@ import { assertUserSpaAccess } from '@/lib/authz'
 // Validation schemas
 const createClientSchema = z.object({
   name: z.string().min(1, 'Name is required'),
+  documentType: z.string().min(2, 'Document type is required'),
+  documentNumber: z.string().min(5, 'Document number is required'),
   email: z.string().email('Invalid email').optional(),
   phone: z.string().min(1, 'Phone is required'),
   address: z.string().optional(),
@@ -103,6 +105,8 @@ export async function POST(request: NextRequest) {
     // Parse date of birth if provided
     const data = {
       ...validatedData,
+      documentType: validatedData.documentType,
+      documentNumber: validatedData.documentNumber,
       dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : undefined,
     }
 

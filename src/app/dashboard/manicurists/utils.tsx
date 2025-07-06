@@ -69,11 +69,6 @@ export const filterManicurists = (manicurists: Manicurist[], filters: Manicurist
       return false
     }
 
-    // Filter by specialty
-    if (filters.specialty && manicurist.specialty !== filters.specialty) {
-      return false
-    }
-
     // Filter by search
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()

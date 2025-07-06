@@ -1,7 +1,6 @@
 import { Service } from '../types'
 import { Badge, Button } from '@/components/ui'
 import { Pencil, Trash2 } from 'lucide-react'
-import { getServiceTypeName } from '../utils'
 
 interface ServiceItemProps {
   service: Service
@@ -22,11 +21,13 @@ export function ServiceItem({ service, onEdit, onDelete }: ServiceItemProps) {
           </p>
         )}
         <div className="flex flex-wrap gap-2 mt-2">
-          <Badge variant="secondary">{getServiceTypeName(service.type)}</Badge>
           <Badge variant={service.isActive ? 'success' : 'secondary'}>
             {service.isActive ? 'Activo' : 'Inactivo'}
           </Badge>
           <Badge variant="primary">{service.duration} min</Badge>
+          {typeof service.recommendedReturnDays === 'number' && service.recommendedReturnDays > 0 && (
+            <Badge variant="outline">Recom: {service.recommendedReturnDays} días</Badge>
+          )}
         </div>
       </div>
       <div className="flex flex-col items-end gap-2 min-w-[120px]">

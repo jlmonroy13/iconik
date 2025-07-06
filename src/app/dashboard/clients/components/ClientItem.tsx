@@ -1,5 +1,6 @@
 import { Client } from '../types'
-import { Avatar, ItemActions } from '@/components/ui'
+import { Avatar } from '@/components/ui/Avatar'
+import { ItemActions } from '@/components/ui/ItemActions'
 
 interface ClientItemProps {
   client: Client
@@ -20,12 +21,11 @@ export function ClientItem({ client, onEdit, onDelete }: ClientItemProps) {
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-900 dark:text-white">{client.name}</span>
             </div>
-            {client.email && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">{client.email}</p>
-            )}
-            {client.phone && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">{client.phone}</p>
-            )}
+            <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <span><b>Doc:</b> {client.documentType} {client.documentNumber}</span>
+              {client.email && <span><b>Email:</b> {client.email}</span>}
+              {client.phone && <span><b>Tel:</b> {client.phone}</span>}
+            </div>
             {client.notes && (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{client.notes}</p>
             )}

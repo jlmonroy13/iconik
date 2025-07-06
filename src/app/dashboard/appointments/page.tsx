@@ -1,14 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import {
-  AppointmentStats,
-  AppointmentCalendar,
-  AppointmentList,
-  AppointmentFilters,
-  FloatingActionButton,
-  AppointmentsClient,
-  AppointmentsHeader
+  AppointmentsClient
 } from './components'
-import { PageTransition, FadeIn, EmptyAppointments } from '@/components/ui'
+import { AppointmentsSection } from './components/AppointmentsSection'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -98,7 +92,6 @@ async function getAppointmentsData() {
           ...a.manicurist,
           phone: a.manicurist.phone ?? undefined,
           email: a.manicurist.email ?? undefined,
-          specialty: a.manicurist.specialty ?? undefined,
         }
       : undefined,
     services: a.services
@@ -128,7 +121,6 @@ async function getAppointmentsData() {
           ...s.manicurist,
           phone: s.manicurist.phone ?? undefined,
           email: s.manicurist.email ?? undefined,
-          specialty: s.manicurist.specialty ?? undefined,
         },
         payments: (s.payments ?? [])
           .filter(p => !!p.paymentMethod)
@@ -197,71 +189,7 @@ export default async function AppointmentsPage() {
       manicurists={manicurists}
       services={services}
     >
-      <PageTransition className="h-full">
-        <div className="flex h-full flex-col">
-          {/* Fixed Header and Stats */}
-          <div className="flex-shrink-0">
-            <FadeIn>
-              <AppointmentsHeader />
-            </FadeIn>
-
-            <FadeIn delay={200}>
-              <AppointmentStats stats={stats} />
-            </FadeIn>
-          </div>
-
-          {/* Scrollable Content */}
-          <div className="mt-6 flex-grow overflow-y-auto pr-2 min-h-0 space-y-6">
-            <FadeIn delay={400}>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                    Calendario de Citas
-                  </h2>
-                </div>
-                <div className="p-3 sm:p-4 lg:p-6">
-                  {appointments.length > 0 ? (
-                    <AppointmentCalendar appointments={appointments} />
-                  ) : (
-                    <EmptyAppointments />
-                  )}
-                </div>
-              </div>
-            </FadeIn>
-
-            <FadeIn delay={600}>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                      Lista de Citas
-                    </h2>
-                    {appointments.length > 0 && <AppointmentFilters />}
-                  </div>
-                </div>
-                <div className="p-3 sm:p-4 lg:p-6">
-                  {appointments.length > 0 ? (
-                    <AppointmentList
-                      appointments={appointments}
-                      onEdit={(appointment) => {
-                        // This will be handled by the context
-                        console.log('Edit appointment:', appointment.id)
-                      }}
-                      onDelete={(appointment) => {
-                        // This will be handled by the context
-                        console.log('Delete appointment:', appointment.id)
-                      }}
-                    />
-                  ) : (
-                    <EmptyAppointments />
-                  )}
-                </div>
-              </div>
-            </FadeIn>
-          </div>
-        </div>
-        <FloatingActionButton />
-      </PageTransition>
+      <AppointmentsSection appointments={appointments} stats={stats} />
     </AppointmentsClient>
   )
 }

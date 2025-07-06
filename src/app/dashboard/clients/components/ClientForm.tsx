@@ -1,10 +1,22 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Input, Button, useNotifications } from '@/components/ui'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { useNotifications } from '@/components/ui/NotificationContext'
+import { Select } from '@/components/ui/Select'
 import { clientFormSchema, type ClientFormData } from '../schemas'
 import type { Client } from '../types'
+
+const DOCUMENT_TYPES = [
+  { value: 'CC', label: 'Cédula de Ciudadanía' },
+  { value: 'TI', label: 'Tarjeta de Identidad' },
+  { value: 'CE', label: 'Cédula de Extranjería' },
+  { value: 'PA', label: 'Pasaporte' },
+  { value: 'NIT', label: 'NIT' },
+  { value: 'OTRO', label: 'Otro' },
+]
 
 interface ClientFormProps {
   client?: Client
@@ -15,9 +27,11 @@ interface ClientFormProps {
 function getClientFormDefaultValues(client?: Client): ClientFormData {
   return {
     name: client?.name || '',
+    documentType: client?.documentType || '',
+    documentNumber: client?.documentNumber || '',
     email: client?.email || '',
     phone: client?.phone || '',
-    birthday: client?.birthday,
+    birthday: client?.birthday ? (typeof client.birthday === 'string' ? client.birthday : client.birthday.toISOString().slice(0, 10)) : '',
     notes: client?.notes || '',
   }
 }
@@ -28,6 +42,7 @@ export function ClientForm({ client, onSubmit, isSubmitting }: ClientFormProps) 
     register,
     handleSubmit,
     formState: { errors },
+    control,
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: getClientFormDefaultValues(client)
@@ -35,7 +50,12 @@ export function ClientForm({ client, onSubmit, isSubmitting }: ClientFormProps) 
 
   const onSubmitForm = async (data: ClientFormData) => {
     try {
-      await onSubmit(data)
+      const submitData = {
+        ...data,
+        birthday: data.birthday || undefined,
+      }
+      console.log('ClientForm submit data:', submitData)
+      await onSubmit(submitData)
       showSuccess(
         client ? 'Cliente actualizado' : 'Cliente creado',
         client
@@ -56,6 +76,28 @@ export function ClientForm({ client, onSubmit, isSubmitting }: ClientFormProps) 
         label="Nombre"
         {...register("name")}
         error={errors.name?.message}
+      />
+      <Controller
+        name="documentType"
+        control={control}
+        render={({ field, fieldState }) => (
+          <Select
+            label="Tipo de Documento"
+            value={field.value}
+            onChange={field.onChange}
+            error={fieldState.error?.message}
+          >
+            <option value="">Selecciona...</option>
+            {DOCUMENT_TYPES.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </Select>
+        )}
+      />
+      <Input
+        label="Número de Documento"
+        {...register("documentNumber")}
+        error={errors.documentNumber?.message}
       />
       <Input
         label="Email"

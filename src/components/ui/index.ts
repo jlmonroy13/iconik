@@ -20,6 +20,7 @@ export { MultiSelect } from './MultiSelect'
 export { Modal } from './Modal'
 export { ConfirmDialog } from './ConfirmDialog'
 export { ItemActions } from './ItemActions'
+export { CurrencyInput } from './CurrencyInput'
 export {
   DropdownMenu,
   DropdownMenuTrigger,

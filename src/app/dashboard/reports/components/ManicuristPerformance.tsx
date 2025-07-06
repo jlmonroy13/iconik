@@ -42,7 +42,6 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
           averageRating: Math.round(averageRating * 10) / 10,
           commission: manicurist.commission,
           efficiency: Math.round(efficiency * 10) / 10,
-          specialty: manicurist.specialty
         }
       })
       .sort((a, b) => b.totalRevenue - a.totalRevenue)
@@ -116,14 +115,6 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
                   <span className="text-sm text-gray-600 dark:text-gray-400">Rating:</span>
                   {getRatingStars(manicurist.averageRating)}
                 </div>
-                {manicurist.specialty && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Especialidad:</span>
-                    <span className="text-sm text-gray-900 dark:text-white">
-                      {manicurist.specialty}
-                    </span>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -164,15 +155,8 @@ export function ManicuristPerformance({ manicurists }: ManicuristPerformanceProp
                 {manicuristStats.map((manicurist) => (
                   <tr key={manicurist.id} className="border-b border-gray-100 dark:border-gray-800">
                     <td className="py-3 px-2">
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {manicurist.name}
-                        </div>
-                        {manicurist.specialty && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {manicurist.specialty}
-                          </div>
-                        )}
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {manicurist.name}
                       </div>
                     </td>
                     <td className="text-right py-3 px-2 text-gray-900 dark:text-white">

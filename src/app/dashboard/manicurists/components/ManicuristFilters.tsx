@@ -1,6 +1,5 @@
 import { ManicuristFilters as ManicuristFiltersType } from '../types'
 import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
 import { Badge, Button } from '@/components/ui'
 
 interface ManicuristFiltersProps {
@@ -15,10 +14,6 @@ export function ManicuristFilters({
   resultsCount,
 }: ManicuristFiltersProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFiltersChange({ ...filters, [e.target.name]: e.target.value })
-  }
-
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onFiltersChange({ ...filters, [e.target.name]: e.target.value })
   }
 
@@ -71,20 +66,6 @@ export function ManicuristFilters({
           active={!!filters.search}
           label="Buscar"
         />
-        <Select
-          name="specialty"
-          value={filters.specialty || ''}
-          onChange={handleSelectChange}
-          active={!!filters.specialty}
-          label="Especialidad"
-        >
-          <option value="">Todas las especialidades</option>
-          <option value="MANICURE">💅 Manicure</option>
-          <option value="PEDICURE">🦶 Pedicure</option>
-          <option value="NAIL_ART">🎨 Nail Art</option>
-          <option value="GEL_POLISH">✨ Esmalte en Gel</option>
-          <option value="ACRYLIC_NAILS">💎 Uñas Acrílicas</option>
-        </Select>
       </div>
     </div>
   )

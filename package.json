@@ -24,6 +24,7 @@
     "next": "15.3.2",
     "next-auth": "^5.0.0-beta.29",
     "react": "^19.0.0",
+    "react-currency-input-field": "^3.10.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.58.1",
     "tailwind-merge": "^3.3.1",

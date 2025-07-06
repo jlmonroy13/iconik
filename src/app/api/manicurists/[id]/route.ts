@@ -9,7 +9,6 @@ const updateManicuristSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   email: z.string().email('Invalid email').optional(),
   phone: z.string().min(1, 'Phone is required').optional(),
-  specialty: z.string().optional(),
   commission: z.number().min(0).max(1).optional(),
   isActive: z.boolean().optional(),
 })

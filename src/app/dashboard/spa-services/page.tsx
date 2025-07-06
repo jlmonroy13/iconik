@@ -1,212 +1,43 @@
-'use client'
+import { getServices, getServiceStats } from './actions'
+import { DashboardSectionLayout } from '../components/DashboardSectionLayout'
+import { Package } from 'lucide-react'
+import ServicesClientPage from './components/ServicesClientPage'
 
-import { useState, useMemo, useEffect } from 'react'
-import { ServiceFilters } from './types'
-import { filterServices, calculateStats } from './utils'
-import {
-  ServiceStatsCards,
-  ServiceFiltersPanel,
-  ServiceItem,
-  EmptyState,
-  ServiceModal
-} from './components'
-import { PageTransition, FadeIn, EmptyServices, StatsSkeleton, Skeleton, Button } from '@/components/ui'
-import { Plus } from 'lucide-react'
-import type { ServiceFormData } from './schemas'
-import type { Service } from './types'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+export default async function ServicesPage() {
+  const servicesResult = await getServices()
+  const statsResult = await getServiceStats()
 
-export default function ServicesPage() {
-  const [services] = useState<Service[]>([]) // TODO: Will be used when implementing API calls
-  const [filters, setFilters] = useState<ServiceFilters>({
-    type: undefined,
-    isActive: undefined,
-    search: ''
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedService, setSelectedService] = useState<Service | undefined>()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [servicesList] = useState<Service[]>([]) // TODO: Will be used when implementing API calls
-  const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null)
-  const [isDeleteLoading, setIsDeleteLoading] = useState(false)
-
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Memoized calculations for performance
-  const filteredServices = useMemo(() =>
-    filterServices(services, filters),
-    [services, filters]
-  )
-
-  const stats = useMemo(() => {
-    const { total, active, inactive } = calculateStats(servicesList)
-    const mostRequestedServiceName = 'N/A'
-    return { total, active, inactive, mostRequestedServiceName }
-  }, [servicesList])
-
-  const clearFilters = () => {
-    setFilters({ type: undefined, isActive: undefined, search: '' })
-  }
-
-  const openCreateModal = () => {
-    setSelectedService(undefined)
-    setIsModalOpen(true)
-  }
-
-  const handleEdit = (service: Service) => {
-    setSelectedService(service)
-    setIsModalOpen(true)
-  }
-
-  const handleCreateOrUpdate = async (data: ServiceFormData) => {
-    setIsSubmitting(true)
-    try {
-      // TODO: Implement API call to create/update service
-      console.log('Creating/updating service:', data)
-      // TODO: Add real API call here
-      // TODO: Refresh services list after successful submission
-      setIsModalOpen(false)
-      setSelectedService(undefined)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleDelete = (service: Service) => {
-    setServiceToDelete(service)
-  }
-
-  const confirmDelete = async () => {
-    if (!serviceToDelete) return
-    setIsDeleteLoading(true)
-    try {
-      // TODO: Implement API call to delete service
-      console.log('Deleting service:', serviceToDelete.id)
-      // TODO: Add real API call here
-      // TODO: Refresh services list after successful deletion
-      setIsDeleteLoading(false)
-      setServiceToDelete(null)
-    } finally {
-      setIsDeleteLoading(false)
-    }
-  }
-
-  const cancelDelete = () => {
-    setServiceToDelete(null)
-  }
-
-  if (isLoading) {
+  if (!servicesResult.success) {
     return (
-      <PageTransition>
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Skeleton variant="text" width="40%" height="32px" />
-            <Skeleton variant="text" width="50%" />
-          </div>
-          <StatsSkeleton />
-          <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} height="76px" />
-            ))}
-          </div>
+      <DashboardSectionLayout
+        icon={<Package className="w-8 h-8 text-blue-600" />}
+        title="Catálogo de Servicios"
+        description="Administra los servicios que ofrece tu spa. Agrega, edita o elimina servicios del catálogo."
+        stats={null}
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+          <h2 className="text-lg font-bold mb-2">Error al cargar los servicios</h2>
+          <p className="text-gray-500 dark:text-gray-400">{servicesResult.message}</p>
         </div>
-      </PageTransition>
+      </DashboardSectionLayout>
     )
   }
 
+  const services = servicesResult.data || []
+  const stats = statsResult.success
+    ? { totalRevenue: 0, ...statsResult.data }
+    : {
+        total: 0,
+        active: 0,
+        inactive: 0,
+        mostRequestedServiceName: "N/A",
+        totalRevenue: 0,
+      };
+
   return (
-    <PageTransition className="h-full">
-      <div className="flex h-full flex-col">
-        {/* Fixed Header, Stats, and Filters */}
-        <div className="flex-shrink-0">
-          <FadeIn>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                  Catálogo de Servicios
-                </h1>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Administra los servicios que ofrece tu spa. Agrega, edita o elimina servicios del catálogo.
-                </p>
-              </div>
-              <Button onClick={openCreateModal} variant="primary" className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Nuevo Servicio
-              </Button>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={200}>
-            <ServiceStatsCards
-              total={stats.total}
-              active={stats.active}
-              inactive={stats.inactive}
-              mostRequestedServiceName={stats.mostRequestedServiceName}
-            />
-          </FadeIn>
-
-          {(services.length > 0 || isLoading) && (
-            <FadeIn delay={400}>
-              <ServiceFiltersPanel
-                filters={filters}
-                onFiltersChange={setFilters}
-                resultsCount={filteredServices.length}
-              />
-            </FadeIn>
-          )}
-        </div>
-
-        {/* Scrollable List */}
-        <div className="mt-6 flex-grow overflow-y-auto pr-2 min-h-0">
-          <FadeIn delay={600}>
-            {servicesList.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm h-full">
-                <EmptyServices />
-              </div>
-            ) : filteredServices.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
-                {filteredServices.map((service, index) => (
-                  <FadeIn key={service.id} delay={index * 100}>
-                    <ServiceItem service={service} onEdit={() => handleEdit(service)} onDelete={() => handleDelete(service)} />
-                  </FadeIn>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm h-full">
-                <EmptyState onClearFilters={clearFilters} />
-              </div>
-            )}
-          </FadeIn>
-        </div>
-      </div>
-      <ServiceModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setSelectedService(undefined)
-        }}
-        onSubmit={handleCreateOrUpdate}
-        service={selectedService}
-        isSubmitting={isSubmitting}
-      />
-      <ConfirmDialog
-        open={!!serviceToDelete}
-        title="Eliminar servicio"
-        description={serviceToDelete ? `¿Estás seguro de que deseas eliminar el servicio "${serviceToDelete.name}"? Esta acción no se puede deshacer.` : ''}
-        onCancel={cancelDelete}
-        onConfirm={confirmDelete}
-        isLoading={isDeleteLoading}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-      />
-    </PageTransition>
+    <ServicesClientPage
+      services={services}
+      stats={stats}
+    />
   )
 }

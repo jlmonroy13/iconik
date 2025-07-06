@@ -1,194 +1,43 @@
-'use client'
+import { getClients, getClientStats } from './actions'
+import { DashboardSectionLayout } from '../components/DashboardSectionLayout'
+import { Users } from 'lucide-react'
+import { ClientsClientPage } from './components'
+import type { Client } from './types'
 
-import { useState, useEffect, useCallback } from 'react'
-import { ClientStats } from './components/ClientStats'
-import { ClientFilters } from './components/ClientFilters'
-import { ClientList } from './components/ClientList'
-import { ClientModal } from './components/ClientModal'
-import { StatsSkeleton, EmptyClients, EmptyState, PageTransition, FadeIn, Skeleton, Button } from '@/components/ui'
-import type { Client, ClientFilters as ClientFiltersType } from './types'
-import { SearchX, Plus } from 'lucide-react'
-import type { ClientFormData } from './schemas'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+export default async function ClientsPage() {
+  const clientsResult = await getClients()
+  const statsResult = await getClientStats()
+  console.log('clientsResult', clientsResult)
 
-export default function ClientsPage() {
-  const [filters, setFilters] = useState<ClientFiltersType>({})
-  const [isLoading, setIsLoading] = useState(true)
-  const [clients] = useState<Client[]>([]) // TODO: Will be used when implementing API calls
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<Client | undefined>()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
-  const [isDeleteLoading, setIsDeleteLoading] = useState(false)
-
-  const openCreateModal = useCallback(() => {
-    setSelectedClient(undefined)
-    setIsModalOpen(true)
-  }, [])
-
-  const handleEdit = useCallback((client: Client) => {
-    setSelectedClient(client)
-    setIsModalOpen(true)
-  }, [])
-
-  const handleDelete = useCallback((client: Client) => {
-    setClientToDelete(client)
-  }, [])
-
-  const handleCreateOrUpdate = async (data: ClientFormData) => {
-    setIsSubmitting(true)
-    try {
-      // TODO: Implement API call to create/update client
-      console.log('Creating/updating client:', data)
-      // TODO: Add real API call here
-      // TODO: Refresh clients list after successful submission
-      setIsModalOpen(false)
-      setSelectedClient(undefined)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const confirmDelete = async () => {
-    if (!clientToDelete) return
-    setIsDeleteLoading(true)
-    try {
-      // TODO: Implement API call to delete client
-      console.log('Deleting client:', clientToDelete.id)
-      // TODO: Add real API call here
-      // TODO: Refresh clients list after successful deletion
-      setIsDeleteLoading(false)
-      setClientToDelete(null)
-    } finally {
-      setIsDeleteLoading(false)
-    }
-  }
-
-  const cancelDelete = () => {
-    setClientToDelete(null)
-  }
-
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1500)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Filter clients based on filters
-  const filteredClients = clients.filter(client => {
-    if (filters.search && !client.name.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false
-    }
-    return true
-  })
-
-  if (isLoading) {
+  if (!clientsResult.success) {
     return (
-      <PageTransition>
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Skeleton variant="text" width="40%" height="32px" />
-            <Skeleton variant="text" width="50%" />
-          </div>
-          <StatsSkeleton />
-          <div className="space-y-4">
-            <Skeleton height="68px" /> {/* Filters skeleton */}
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} height="60px" />
-            ))}
-          </div>
+      <DashboardSectionLayout
+        icon={<Users className="w-8 h-8 text-blue-600" />}
+        title="Clientes"
+        description="Administra la base de datos de tus clientes y su historial."
+        stats={null}
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+          <h2 className="text-lg font-bold mb-2">Error al cargar los clientes</h2>
+          <p className="text-gray-500 dark:text-gray-400">{clientsResult.message}</p>
         </div>
-      </PageTransition>
+      </DashboardSectionLayout>
     )
   }
 
+  const clients = (clientsResult.data || []) as Client[]
+  const stats = statsResult.success && statsResult.data
+    ? statsResult.data
+    : {
+        total: 0,
+        recent: 0,
+      };
+
   return (
-    <PageTransition className="h-full">
-      <div className="flex h-full flex-col">
-        {/* Fixed Header, Stats, and Filters */}
-        <div className="flex-shrink-0">
-          <FadeIn>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                  Clientes
-                </h1>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Administra la base de datos de tus clientes y su historial.
-                </p>
-              </div>
-              <Button onClick={openCreateModal} variant="primary" className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Nuevo Cliente
-              </Button>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={200}>
-            <ClientStats clients={clients} />
-          </FadeIn>
-
-          {clients.length > 0 && (
-            <FadeIn delay={400}>
-              <ClientFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                resultsCount={filteredClients.length}
-              />
-            </FadeIn>
-          )}
-        </div>
-
-        {/* Scrollable List */}
-        <div className="mt-6 flex-grow overflow-y-auto pr-2 min-h-0">
-          <FadeIn delay={600}>
-            {clients.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-full">
-                <EmptyClients />
-              </div>
-            ) : filteredClients.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-full">
-                <EmptyState
-                  title="No se encontraron clientes"
-                  description="Intenta ajustar los filtros de búsqueda para encontrar lo que buscas."
-                  icon={<SearchX className="w-12 h-12 mx-auto text-gray-400" />}
-                />
-              </div>
-            ) : (
-              <ClientList
-                clients={filteredClients}
-                filters={filters}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            )}
-          </FadeIn>
-        </div>
-      </div>
-      <ClientModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setSelectedClient(undefined)
-        }}
-        onSubmit={handleCreateOrUpdate}
-        client={selectedClient}
-        isSubmitting={isSubmitting}
-      />
-      <ConfirmDialog
-        open={!!clientToDelete}
-        title="Eliminar cliente"
-        description={clientToDelete ? `¿Estás seguro de que deseas eliminar a ${clientToDelete.name}? Esta acción no se puede deshacer.` : ''}
-        onCancel={cancelDelete}
-        onConfirm={confirmDelete}
-        isLoading={isDeleteLoading}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-      />
-    </PageTransition>
+    <ClientsClientPage
+      clients={clients}
+      stats={stats}
+    />
   )
 }
 

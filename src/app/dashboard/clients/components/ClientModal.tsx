@@ -1,6 +1,7 @@
 'use client'
 
-import { Modal, FadeIn } from '@/components/ui'
+import { Modal } from '@/components/ui/Modal'
+import { FadeIn } from '@/components/ui/PageTransition'
 import { ClientForm } from './ClientForm'
 import type { ClientFormData } from '../schemas'
 import type { Client } from '../types'

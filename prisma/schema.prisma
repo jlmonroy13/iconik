@@ -186,6 +186,8 @@ model Authenticator {
 model Client {
   id        String    @id @default(cuid())
   name      String
+  documentType   String // Ej: 'CC', 'TI', 'CE', 'PA', 'NIT'
+  documentNumber String
   phone     String?
   email     String?
   birthday  DateTime?
@@ -252,7 +254,6 @@ model Manicurist {
   name       String
   phone      String?
   email      String?
-  specialty  String? // "manicure", "pedicure", "nail art", etc.
   commission Float    @default(0.5) // Commission percentage (0.0 to 1.0)
   isActive   Boolean  @default(true)
   spaId      String
