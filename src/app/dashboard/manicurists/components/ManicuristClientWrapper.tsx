@@ -4,7 +4,7 @@ import { ManicuristFilters } from './ManicuristFilters'
 import { ManicuristCard } from './ManicuristCard'
 import { ManicuristModal } from './ManicuristModal'
 import { PageTransition } from '@/components/ui/PageTransition'
-import type { Manicurist } from '../types'
+import type { Manicurist, ManicuristFilters as ManicuristFiltersType } from '../types'
 import type { ManicuristFormData } from '../schemas'
 import { createManicurist, updateManicurist, deleteManicurist, getServicesForManicuristForm, getManicuristServices } from '../actions'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -30,7 +30,7 @@ export function ManicuristClientWrapper({
   selectedManicurist,
   setSelectedManicurist,
 }: ManicuristClientWrapperProps) {
-  const [filters, setFilters] = useState({})
+  const [filters, setFilters] = useState<ManicuristFiltersType>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [manicuristToDelete, setManicuristToDelete] = useState<Manicurist | null>(null)
   const [isDeleteLoading, setIsDeleteLoading] = useState(false)
@@ -110,7 +110,28 @@ export function ManicuristClientWrapper({
   }
 
   // Aquí podrías agregar lógica de filtrado si lo deseas
-  const filteredManicurists = manicurists // TODO: aplicar filtros si es necesario
+  const filteredManicurists = manicurists.filter(manicurist => {
+    // Filter by search term
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase()
+      const nameMatch = manicurist.name.toLowerCase().includes(searchTerm)
+      const emailMatch = manicurist.email?.toLowerCase().includes(searchTerm) || false
+      const phoneMatch = manicurist.phone?.toLowerCase().includes(searchTerm) || false
+
+      if (!nameMatch && !emailMatch && !phoneMatch) {
+        return false
+      }
+    }
+
+    // Filter by active status
+    if (filters.isActive !== undefined) {
+      if (manicurist.isActive !== filters.isActive) {
+        return false
+      }
+    }
+
+    return true
+  })
 
   return (
     <PageTransition className="h-full">

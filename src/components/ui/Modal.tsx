@@ -4,6 +4,22 @@ import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Button } from './Button'
+
+// Helper component for footer buttons that need to submit forms
+interface ModalFooterButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  formId?: string
+}
+
+export function ModalFooterButton({ formId, ...props }: ModalFooterButtonProps) {
+  return (
+    <Button
+      {...props}
+      form={formId}
+      type={props.type || 'submit'}
+    />
+  )
+}
 
 interface ModalProps {
   isOpen: boolean
@@ -12,6 +28,8 @@ interface ModalProps {
   description?: string
   children: React.ReactNode
   className?: string
+  footer?: React.ReactNode
+  formId?: string
 }
 
 export function Modal({
@@ -20,7 +38,9 @@ export function Modal({
   title,
   description,
   children,
-  className
+  className,
+  footer,
+  formId
 }: ModalProps) {
   const [isClient, setIsClient] = React.useState(false)
 
@@ -60,13 +80,13 @@ export function Modal({
       {/* Modal */}
       <div
         className={cn(
-          "relative z-50 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800 max-h-[90vh] overflow-y-auto",
+          "relative z-50 w-full max-w-lg rounded-lg bg-white shadow-lg dark:bg-gray-800 max-h-[90vh] flex flex-col",
           "animate-in fade-in-0 zoom-in-95",
           className
         )}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
+        {/* Fixed Header */}
+        <div className="flex items-start justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {title}
@@ -85,8 +105,23 @@ export function Modal({
           </button>
         </div>
 
-        {/* Content */}
-        {children}
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
+          {children}
+        </div>
+
+        {/* Fixed Footer */}
+        {footer && (
+          <div className="flex-shrink-0 p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            {formId ? (
+              <div data-form-id={formId}>
+                {footer}
+              </div>
+            ) : (
+              footer
+            )}
+          </div>
+        )}
       </div>
     </div>,
     document.body

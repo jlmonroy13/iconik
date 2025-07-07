@@ -115,21 +115,18 @@ export function InputExamples() {
           <Input
             label="Service Price (COP)"
             type="number"
-            currency="COP"
             placeholder="Enter price"
             defaultValue={25000}
           />
           <Input
             label="Kit Cost (COP)"
             type="number"
-            currency="COP"
             placeholder="Enter kit cost"
             defaultValue={5000}
           />
           <Input
             label="Price (USD)"
             type="number"
-            currency="USD"
             placeholder="Enter price in USD"
             defaultValue={50}
           />
@@ -183,14 +180,12 @@ export const currencyInputExample = `
 <Input
   label="Service Price"
   type="number"
-  currency="COP"
   {...register('price', { valueAsNumber: true })}
   error={errors.price?.message}
 />
 
 // Features:
-// - Displays as "$ 25,000" for Colombian Peso
+// - Displays as numeric input
 // - Maintains numeric value for form handling
-// - Only formats when value is a number and not zero
-// - Supports different currencies (COP, USD, EUR, etc.)
+// - Supports different currencies through labels
 `

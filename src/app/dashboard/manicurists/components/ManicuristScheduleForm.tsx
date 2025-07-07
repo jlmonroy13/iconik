@@ -52,7 +52,7 @@ export function ManicuristScheduleForm() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b pb-2">
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-gray-600" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -83,11 +83,16 @@ export function ManicuristScheduleForm() {
 
       <div className="space-y-3">
         {fields.map((field, index) => {
-          const currentDay = schedules[index]?.dayOfWeek
-          const currentDayLabel = DAYS_OF_WEEK.find(day => day.value === currentDay)?.label
+          const currentDay = schedules[index]?.dayOfWeek;
+          const currentDayLabel = DAYS_OF_WEEK.find(
+            (day) => day.value === currentDay
+          )?.label;
 
           return (
-            <div key={field.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div
+              key={field.id}
+              className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+            >
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-gray-900 dark:text-white">
                   {currentDayLabel}
@@ -108,12 +113,12 @@ export function ManicuristScheduleForm() {
                   label="Día de la semana"
                   value={currentDay}
                   onChange={(e) => {
-                    const newValue = parseInt(e.target.value)
-                    updateScheduleField(index, 'dayOfWeek', newValue)
+                    const newValue = parseInt(e.target.value);
+                    updateScheduleField(index, "dayOfWeek", newValue);
                   }}
-                  error={getFieldError(index, 'dayOfWeek')}
+                  error={getFieldError(index, "dayOfWeek")}
                 >
-                  {DAYS_OF_WEEK.map(day => (
+                  {DAYS_OF_WEEK.map((day) => (
                     <option key={day.value} value={day.value}>
                       {day.label}
                     </option>
@@ -123,21 +128,21 @@ export function ManicuristScheduleForm() {
                 <Input
                   label="Hora de inicio"
                   type="time"
-                  value={schedules[index]?.startTime || ''}
+                  value={schedules[index]?.startTime || ""}
                   onChange={(e) => {
-                    updateScheduleField(index, 'startTime', e.target.value)
+                    updateScheduleField(index, "startTime", e.target.value);
                   }}
-                  error={getFieldError(index, 'startTime')}
+                  error={getFieldError(index, "startTime")}
                 />
 
                 <Input
                   label="Hora de fin"
                   type="time"
-                  value={schedules[index]?.endTime || ''}
+                  value={schedules[index]?.endTime || ""}
                   onChange={(e) => {
-                    updateScheduleField(index, 'endTime', e.target.value)
+                    updateScheduleField(index, "endTime", e.target.value);
                   }}
-                  error={getFieldError(index, 'endTime')}
+                  error={getFieldError(index, "endTime")}
                 />
               </div>
 
@@ -147,7 +152,7 @@ export function ManicuristScheduleForm() {
                     type="checkbox"
                     checked={schedules[index]?.isActive ?? true}
                     onChange={(e) => {
-                      updateScheduleField(index, 'isActive', e.target.checked)
+                      updateScheduleField(index, "isActive", e.target.checked);
                     }}
                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                   />
@@ -157,7 +162,7 @@ export function ManicuristScheduleForm() {
                 </label>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -167,5 +172,5 @@ export function ManicuristScheduleForm() {
         </p>
       )}
     </div>
-  )
+  );
 }

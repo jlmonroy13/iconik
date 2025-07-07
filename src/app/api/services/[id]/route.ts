@@ -31,9 +31,10 @@ function getSpaIdFromRequest(request: NextRequest) {
 // GET /api/services/[id] - Get a specific service
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -50,8 +51,6 @@ export async function GET(
         _count: {
           select: {
             appointmentServices: true,
-            clientServiceHistory: true,
-            serviceDurations: true,
           }
         }
       }
@@ -66,10 +65,11 @@ export async function GET(
 
     return NextResponse.json(service)
   } catch (error) {
-    if (error.message === 'UNAUTHORIZED') {
+    const err = error as Error;
+    if (err.message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    if (error.message === 'FORBIDDEN') {
+    if (err.message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
     console.error('Error fetching service:', error)
@@ -83,9 +83,10 @@ export async function GET(
 // PUT /api/services/[id] - Update a service
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -106,8 +107,6 @@ export async function PUT(
         _count: {
           select: {
             appointmentServices: true,
-            clientServiceHistory: true,
-            serviceDurations: true,
           }
         }
       }
@@ -121,13 +120,14 @@ export async function PUT(
         { status: 400 }
       )
     }
-    if (error.message === 'UNAUTHORIZED') {
+    const err = error as Error;
+    if (err.message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    if (error.message === 'FORBIDDEN') {
+    if (err.message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
-    if (error instanceof Error && error.message.includes('Record to update not found')) {
+    if (err instanceof Error && err.message.includes('Record to update not found')) {
       return NextResponse.json(
         { error: 'Service not found' },
         { status: 404 }
@@ -144,9 +144,10 @@ export async function PUT(
 // DELETE /api/services/[id] - Delete a service
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -157,10 +158,6 @@ export async function DELETE(
         _count: {
           select: {
             appointmentServices: true,
-            clientServiceHistory: true,
-            serviceDurations: true,
-            salesGoals: true,
-            bookingLinkServices: true,
           }
         }
       }
@@ -174,18 +171,12 @@ export async function DELETE(
     }
 
     // Check if service has related data
-    const hasRelatedData = Object.values(serviceWithCounts._count).some(count => count > 0)
-
-    if (hasRelatedData) {
+    if (serviceWithCounts._count.appointmentServices > 0) {
       return NextResponse.json(
         {
           error: 'Cannot delete service with related data',
           details: {
             appointmentServices: serviceWithCounts._count.appointmentServices,
-            clientServiceHistory: serviceWithCounts._count.clientServiceHistory,
-            serviceDurations: serviceWithCounts._count.serviceDurations,
-            salesGoals: serviceWithCounts._count.salesGoals,
-            bookingLinkServices: serviceWithCounts._count.bookingLinkServices,
           }
         },
         { status: 400 }
@@ -198,10 +189,11 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Service deleted successfully' })
   } catch (error) {
-    if (error.message === 'UNAUTHORIZED') {
+    const err = error as Error;
+    if (err.message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    if (error.message === 'FORBIDDEN') {
+    if (err.message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
     console.error('Error deleting service:', error)

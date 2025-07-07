@@ -1,6 +1,6 @@
 import { ManicuristFilters as ManicuristFiltersType } from '../types'
 import { Input } from '@/components/ui/Input'
-import { Badge, Button } from '@/components/ui'
+import { Badge, Button, Select } from '@/components/ui'
 
 interface ManicuristFiltersProps {
   filters: ManicuristFiltersType
@@ -66,6 +66,23 @@ export function ManicuristFilters({
           active={!!filters.search}
           label="Buscar"
         />
+        <Select
+          name="isActive"
+          value={filters.isActive?.toString() || ''}
+          onChange={(e) => {
+            const value = e.target.value
+            onFiltersChange({
+              ...filters,
+              isActive: value === '' ? undefined : value === 'true'
+            })
+          }}
+          active={filters.isActive !== undefined}
+          label="Estado"
+        >
+          <option value="">Todos</option>
+          <option value="true">Activo</option>
+          <option value="false">Inactivo</option>
+        </Select>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { Calendar, Clock } from 'lucide-react'
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   active?: boolean
@@ -10,7 +11,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type = 'text', active = false, value, onChange, disabled, label, labelAdornment, id, error, ...props }, ref) => {
-    const isDate = type === 'date'
+    const isDate = ['date', 'datetime-local', 'time'].includes(type)
     const isEmpty = !value || value === ''
     const showClear = isDate && !isEmpty && !disabled && typeof onChange === 'function'
     const reactId = React.useId()
@@ -58,12 +59,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {/* Custom white calendar icon overlay for date and datetime-local */}
-        {(type === 'date' || type === 'datetime-local') && (
-          <span className="pointer-events-none flex items-center absolute right-3 top-1/2">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.5">
-              <rect x="3" y="5" width="18" height="16" rx="2" stroke="white" strokeWidth="1.5" />
-              <path d="M16 3v4M8 3v4M3 9h18" stroke="white" strokeWidth="1.5" />
-            </svg>
+        {(type === 'date' || type === 'datetime-local' || type === 'time') && (
+          <span className="pointer-events-none flex items-center absolute right-3 bottom-3">
+            {type === 'time' ? (
+              <Clock className="h-4 w-4 text-white" />
+            ) : (
+              <Calendar className="h-4 w-4 text-white" />
+            )}
           </span>
         )}
         {error && (
@@ -75,7 +77,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <button
             type="button"
             tabIndex={-1}
-            className="absolute right-8 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            className="absolute right-8 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors bottom-2"
             onClick={handleClear}
             aria-label="Limpiar fecha"
           >

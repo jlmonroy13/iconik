@@ -1,4 +1,5 @@
 import { Avatar } from '@/components/ui'
+import { Pencil, Trash2 } from 'lucide-react'
 import type { Manicurist } from '../types'
 
 interface ManicuristCardProps {
@@ -13,9 +14,7 @@ export function ManicuristCard({ manicurist, onEdit, onDelete }: ManicuristCardP
       <div className="flex items-start gap-4">
         {/* Avatar and basic info */}
         <div className="flex items-center gap-4">
-          <Avatar
-            fallback={manicurist.name.charAt(0)}
-          />
+          <Avatar fallback={manicurist.name.charAt(0)} />
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-900 dark:text-white">
@@ -43,7 +42,7 @@ export function ManicuristCard({ manicurist, onEdit, onDelete }: ManicuristCardP
           </div>
         </div>
         {/* Action buttons */}
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1 self-center">
           {onEdit && (
             <button
               onClick={onEdit}
@@ -51,7 +50,7 @@ export function ManicuristCard({ manicurist, onEdit, onDelete }: ManicuristCardP
               title="Editar"
             >
               <span className="sr-only">Editar</span>
-              ✏️
+              <Pencil className="w-4 h-4" />
             </button>
           )}
           {onDelete && (
@@ -61,11 +60,11 @@ export function ManicuristCard({ manicurist, onEdit, onDelete }: ManicuristCardP
               title="Eliminar"
             >
               <span className="sr-only">Eliminar</span>
-              🗑️
+              <Trash2 className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

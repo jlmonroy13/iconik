@@ -27,9 +27,10 @@ function getSpaIdFromRequest(request: NextRequest) {
 // GET /api/clients/[id] - Get a specific client
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -79,9 +80,10 @@ export async function GET(
 // PUT /api/clients/[id] - Update a client
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -146,9 +148,10 @@ export async function PUT(
 // DELETE /api/clients/[id] - Delete a client
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)

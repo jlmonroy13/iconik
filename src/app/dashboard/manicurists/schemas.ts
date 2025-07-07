@@ -9,11 +9,28 @@ export const manicuristScheduleSchema = z.object({
 
 export const manicuristAvailabilitySchema = z.object({
   date: z.date(),
-  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido (HH:MM)').optional(),
-  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido (HH:MM)').optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
   isAvailable: z.boolean(),
   reason: z.string().optional(),
-})
+}).superRefine((data, ctx) => {
+  if (data.isAvailable) {
+    if (!data.startTime || !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(data.startTime)) {
+      ctx.addIssue({
+        path: ['startTime'],
+        code: z.ZodIssueCode.custom,
+        message: 'Formato de hora inválido (HH:MM)'
+      });
+    }
+    if (!data.endTime || !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(data.endTime)) {
+      ctx.addIssue({
+        path: ['endTime'],
+        code: z.ZodIssueCode.custom,
+        message: 'Formato de hora inválido (HH:MM)'
+      });
+    }
+  }
+});
 
 export const manicuristFormSchema = z.object({
   name: z.string()

@@ -72,12 +72,20 @@ export function ClientsSection({ clients }: ClientsSectionProps) {
     return true
   })
 
+  // Calculate recent clients (this month)
+  const currentMonth = new Date().getMonth()
+  const currentYear = new Date().getFullYear()
+  const recentClients = clients.filter(client => {
+    const clientDate = new Date(client.createdAt)
+    return clientDate.getMonth() === currentMonth && clientDate.getFullYear() === currentYear
+  }).length
+
   return (
     <DashboardSectionLayout
       icon={<Users className="w-8 h-8 text-blue-600" />}
       title="Clientes"
       description="Administra la base de datos de tus clientes y su historial."
-      stats={<ClientStats total={clients.length} />}
+      stats={<ClientStats total={clients.length} recent={recentClients} />}
       actionButton={
         <Button onClick={openCreateModal} variant="primary" className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />

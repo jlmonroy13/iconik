@@ -437,7 +437,6 @@ export interface ServiceStats {
 export interface AppointmentStats {
   total: number
   scheduled: number
-  confirmed: number
   inProgress: number
   completed: number
   cancelled: number

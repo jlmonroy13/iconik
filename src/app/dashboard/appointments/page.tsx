@@ -158,7 +158,6 @@ async function getAppointmentsData() {
   const stats = {
     total: cleanedAppointments.length,
     scheduled: cleanedAppointments.filter(a => a.status === 'SCHEDULED').length,
-    confirmed: cleanedAppointments.filter(a => a.status === 'CONFIRMED').length,
     inProgress: cleanedAppointments.filter(a => a.status === 'IN_PROGRESS').length,
     completed: cleanedAppointments.filter(a => a.status === 'COMPLETED').length,
     cancelled: cleanedAppointments.filter(a => a.status === 'CANCELLED').length,

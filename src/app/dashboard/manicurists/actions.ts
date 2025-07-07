@@ -20,6 +20,10 @@ export async function getManicurists() {
     const spaId = await getSpaId()
     const manicurists = await prisma.manicurist.findMany({
       where: { spaId },
+      include: {
+        schedules: true,
+        availability: true,
+      },
       orderBy: [
         { isActive: 'desc' },
         { name: 'asc' }

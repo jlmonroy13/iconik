@@ -63,6 +63,7 @@ html.dark input[type="datetime-local"] {
 
 /* Hide the native calendar icon for date inputs */
 input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
   opacity: 0 !important;
 }

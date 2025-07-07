@@ -25,9 +25,10 @@ function getSpaIdFromRequest(request: NextRequest) {
 // GET /api/manicurists/[id] - Get a specific manicurist
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -41,16 +42,12 @@ export async function GET(
             slug: true,
           }
         },
+        schedules: true,
+        availability: true,
         _count: {
           select: {
-            appointments: true,
             appointmentServices: true,
             commissions: true,
-            schedules: true,
-            availability: true,
-            timeSlots: true,
-            serviceDurations: true,
-            salesGoals: true,
           }
         }
       }
@@ -83,9 +80,10 @@ export async function GET(
 // PUT /api/manicurists/[id] - Update a manicurist
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -103,16 +101,12 @@ export async function PUT(
             slug: true,
           }
         },
+        schedules: true,
+        availability: true,
         _count: {
           select: {
-            appointments: true,
             appointmentServices: true,
             commissions: true,
-            schedules: true,
-            availability: true,
-            timeSlots: true,
-            serviceDurations: true,
-            salesGoals: true,
           }
         }
       }
@@ -150,9 +144,10 @@ export async function PUT(
 // DELETE /api/manicurists/[id] - Delete a manicurist
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -162,14 +157,8 @@ export async function DELETE(
       include: {
         _count: {
           select: {
-            appointments: true,
             appointmentServices: true,
             commissions: true,
-            schedules: true,
-            availability: true,
-            timeSlots: true,
-            serviceDurations: true,
-            salesGoals: true,
           }
         }
       }
@@ -190,14 +179,8 @@ export async function DELETE(
         {
           error: 'Cannot delete manicurist with related data',
           details: {
-            appointments: manicuristWithCounts._count.appointments,
             appointmentServices: manicuristWithCounts._count.appointmentServices,
             commissions: manicuristWithCounts._count.commissions,
-            schedules: manicuristWithCounts._count.schedules,
-            availability: manicuristWithCounts._count.availability,
-            timeSlots: manicuristWithCounts._count.timeSlots,
-            serviceDurations: manicuristWithCounts._count.serviceDurations,
-            salesGoals: manicuristWithCounts._count.salesGoals,
           }
         },
         { status: 400 }

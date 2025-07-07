@@ -31,9 +31,10 @@ function getSpaIdFromRequest(request: NextRequest) {
 // GET /api/spas/[id] - Get a specific spa
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -42,9 +43,9 @@ export async function GET(
       include: {
         _count: {
           select: {
-            services: true,
-            manicurists: true,
             clients: true,
+            manicurists: true,
+            services: true,
             appointments: true,
           }
         }
@@ -78,9 +79,10 @@ export async function GET(
 // PUT /api/spas/[id] - Update a spa
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -93,9 +95,9 @@ export async function PUT(
       include: {
         _count: {
           select: {
-            services: true,
-            manicurists: true,
             clients: true,
+            manicurists: true,
+            services: true,
             appointments: true,
           }
         }
@@ -134,9 +136,10 @@ export async function PUT(
 // DELETE /api/spas/[id] - Delete a spa
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const spaId = getSpaIdFromRequest(request)
     const userId = await getUserIdFromRequest()
     await assertUserSpaAccess(userId, spaId)
@@ -146,9 +149,9 @@ export async function DELETE(
       include: {
         _count: {
           select: {
-            services: true,
-            manicurists: true,
             clients: true,
+            manicurists: true,
+            services: true,
             appointments: true,
           }
         }
@@ -170,9 +173,9 @@ export async function DELETE(
         {
           error: 'Cannot delete spa with related data',
           details: {
-            services: spaWithCounts._count.services,
-            manicurists: spaWithCounts._count.manicurists,
             clients: spaWithCounts._count.clients,
+            manicurists: spaWithCounts._count.manicurists,
+            services: spaWithCounts._count.services,
             appointments: spaWithCounts._count.appointments,
           }
         },
