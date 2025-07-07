@@ -49,8 +49,8 @@
             "dependencies": [
               3
             ],
-            "details": "Configure GitHub Actions or another CI/CD tool to run tests, lint checks, and deploy the application automatically on code changes or pull requests.",
-            "status": "pending",
+            "details": "Configure GitHub Actions or another CI/CD tool to run tests, lint checks, and deploy the application automatically on code changes or pull requests.\n<info added on 2025-07-07T18:14:58.869Z>\nImplementation plan for CI/CD Pipelines:\n\n- Use GitHub Actions for CI/CD.\n- Create a workflow file at .github/workflows/ci-cd.yml.\n- Steps:\n  1. Checkout code\n  2. Set up Node.js (version from .nvmrc or package.json)\n  3. Install dependencies with npm ci\n  4. Run lint checks (npm run lint)\n  5. Run tests (npm test or equivalent)\n  6. Build the application (npm run build)\n  7. (Optional) Deploy to Vercel or other platform if secrets are configured\n- Trigger on push and pull_request to main branches.\n- Add status badge to README if desired.\n- Ensure pipeline fails on errors and passes on success.\n- Document the workflow in README if needed.\n</info added on 2025-07-07T18:14:58.869Z>",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -600,11 +600,506 @@
             "testStrategy": ""
           }
         ]
+      },
+      {
+        "id": 11,
+        "title": "Scaffold Payment Methods Folder Structure",
+        "description": "Create the required folder and file structure for payment methods management in the Next.js app directory, mirroring existing modules.",
+        "details": "Create `src/app/dashboard/payment-methods/` with subfolders and files: `actions.ts`, `layout.tsx`, `page.tsx`, `[id]/edit.tsx`, `create.tsx`, `schemas.ts`, `types.ts`. Optionally, create API route at `src/app/api/payment-methods/route.ts` if not using server actions exclusively.",
+        "testStrategy": "Verify folder and file structure matches the specification. Check that all required files exist and are correctly placed.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Folder Structure",
+            "description": "Design and create a folder structure that aligns with project requirements and best practices.",
+            "dependencies": [],
+            "details": "Ensure the structure includes main folders for code, data, and documentation.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Verify File Placement",
+            "description": "Check that all files are correctly placed within the newly created folder structure.",
+            "dependencies": [
+              1
+            ],
+            "details": "Confirm that files are organized according to project parameters and requirements.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Define Payment Method Database Model",
+        "description": "Ensure the Prisma schema includes a PaymentMethod model with required fields for multi-tenancy and integration.",
+        "details": "Update `prisma/schema.prisma` to include: `id`, `name`, `type`, `spaId`, `createdAt`, `updatedAt`, and optional integration fields (e.g., Stripe ID). Example:\n```prisma\nmodel PaymentMethod {\n  id        String   @id @default(uuid())\n  name      String\n  type      String\n  spaId     String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  // ...other fields\n}\n```",
+        "testStrategy": "Run Prisma migration and verify the model is created in the database. Check that all fields are present and correctly typed.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update the Prisma schema",
+            "description": "Modify the Prisma schema file (schema.prisma) to define or update the required database models, fields, and constraints as needed for the project.",
+            "dependencies": [],
+            "details": "Ensure all necessary fields, data types, and relationships are accurately represented in the schema. Double-check for required fields and constraints to match the application's requirements.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Run and verify the migration",
+            "description": "Use Prisma Migrate to generate and apply the migration, then verify that the database schema matches the updated Prisma schema and functions as expected.",
+            "dependencies": [
+              1
+            ],
+            "details": "Run `prisma migrate dev --name <migration_name>` to create and apply the migration. Inspect the database to confirm the changes were applied correctly. Test application functionality to ensure the migration did not introduce issues.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Implement Server Actions for CRUD Operations",
+        "description": "Create server actions for listing, creating, editing, and deleting payment methods, with RBAC and spaId checks.",
+        "details": "Implement in `actions.ts`: `listPaymentMethods`, `createPaymentMethod`, `editPaymentMethod`, `deletePaymentMethod`. Use `getSpaIdFromSession` for multi-tenancy. Validate input with Zod schemas. Enforce RBAC: only admins can mutate. Example:\n```typescript\n// src/app/dashboard/payment-methods/actions.ts\nimport { prisma } from '@/lib/prisma';\nimport { getSpaIdFromSession } from '@/lib/authz';\nimport { PaymentMethodSchema } from './schemas';\n\nexport async function listPaymentMethods(user) {\n  const spaId = getSpaIdFromSession(user);\n  return prisma.paymentMethod.findMany({ where: { spaId } });\n}\n// ...create, edit, delete similarly\n```",
+        "testStrategy": "Unit test each action. Verify RBAC and spaId filtering. Test validation and error handling.",
+        "priority": "high",
+        "dependencies": [
+          11,
+          12
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design RBAC and spaId Validation Logic",
+            "description": "Define user roles, permissions for each CRUD action, and the logic for spaId (multi-tenancy) checks. Document the access matrix and validation requirements for each action.",
+            "dependencies": [],
+            "details": "Identify all roles (e.g., Admin, Editor, Viewer) and map which actions (list, create, edit, delete) each can perform. Specify how spaId will be checked to ensure users only access resources belonging to their tenant.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement List Action with RBAC and spaId Checks",
+            "description": "Develop the 'list' endpoint or function, ensuring it enforces RBAC permissions and filters results by spaId.",
+            "dependencies": [
+              1
+            ],
+            "details": "Ensure only users with the appropriate role can list resources, and that only resources matching the user's spaId are returned.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Create, Edit, and Delete Actions with RBAC and spaId Checks",
+            "description": "Develop the create, edit, and delete endpoints or functions, enforcing both RBAC and spaId validation for each operation.",
+            "dependencies": [
+              1
+            ],
+            "details": "For each action, check that the user has the required role and that the operation is performed only on resources belonging to the user's spaId.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Test and Validate Security Enforcement",
+            "description": "Write and execute tests to verify that RBAC and spaId checks are correctly enforced for all CRUD actions.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Create test cases for each role and action, including attempts to access or modify resources outside the user's spaId. Validate that unauthorized actions are blocked and authorized actions succeed.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Build Main Payment Methods List Page",
+        "description": "Develop the main UI page for viewing and managing payment methods.",
+        "details": "Create `page.tsx` in `payment-methods/`. Display payment methods in a table/grid. Include actions: Edit, Delete, Create New. Use existing UI components (Card, Button, Modal). Example:\n```tsx\n// src/app/dashboard/payment-methods/page.tsx\nimport { listPaymentMethods } from './actions';\nimport { Button, Card, ConfirmDialog } from '@/components/ui';\n\nexport default function PaymentMethodsPage() {\n  const paymentMethods = usePaymentMethods(); // Custom hook or SWR\n  return (\n    <Card>\n      <h2>Payment Methods</h2>\n      <Button href='/dashboard/payment-methods/create'>Add New</Button>\n      <table>{/* Render payment methods */}</table>\n    </Card>\n  );\n}\n```",
+        "testStrategy": "Manual and automated UI tests. Verify list renders, actions are present, and RBAC is enforced.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          13
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design and Implement List UI Layout",
+            "description": "Create a user interface layout for displaying a list of items, ensuring usability and visual clarity. Apply best practices such as appropriate spacing, hierarchy, and responsive design for both web and mobile contexts.",
+            "dependencies": [],
+            "details": "Use card or image lists for web, and single/two-line expandable lists for mobile. Incorporate filters, sorting, and clear item separation. Ensure the layout supports interactive elements for actions like edit, delete, and create.[1][3]",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Integrate Data Fetching and Synchronization",
+            "description": "Implement data fetching logic to retrieve and display list items from the backend or data source. Ensure the UI updates in response to data changes and supports loading, error, and empty states.",
+            "dependencies": [
+              1
+            ],
+            "details": "Connect the UI to the data layer using appropriate APIs or data stores. Handle asynchronous data loading, error handling, and real-time updates if necessary. Ensure IDs and data types are correctly managed for integration reliability.[2][3]",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Action Handling (Edit, Delete, Create)",
+            "description": "Enable user actions for editing, deleting, and creating list items. Ensure these actions are reflected in both the UI and the underlying data source, with appropriate feedback and error handling.",
+            "dependencies": [
+              2
+            ],
+            "details": "Wire up UI controls (buttons, forms, etc.) to trigger edit, delete, and create operations. Update the list in real time after actions complete. Provide user feedback for success or failure, and handle edge cases such as invalid input or failed operations.[3]",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Develop Create Payment Method Form",
+        "description": "Implement the form for creating new payment methods with validation.",
+        "details": "Create `create.tsx` in `payment-methods/`. Use React Hook Form + Zod for validation. Fields: Name, Type (dropdown), integration fields (if any). Submit to server action. Example:\n```tsx\n// src/app/dashboard/payment-methods/create.tsx\nimport { useForm } from 'react-hook-form';\nimport { zodResolver } from '@hookform/resolvers/zod';\nimport { PaymentMethodSchema } from './schemas';\nimport { createPaymentMethod } from './actions';\n\nexport default function CreatePaymentMethod() {\n  const form = useForm({ resolver: zodResolver(PaymentMethodSchema) });\n  const onSubmit = async (data) => {\n    await createPaymentMethod(data);\n    // Redirect or show success\n  };\n  return (\n    <form onSubmit={form.handleSubmit(onSubmit)}>\n      {/* Fields: name, type, etc. */}\n      <button type='submit'>Create</button>\n    </form>\n  );\n}\n```",
+        "testStrategy": "Test form validation, submission, and error handling. Verify RBAC and spaId context.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          13
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Form UI",
+            "description": "Design and build the user interface for the form, ensuring clear labels, logical grouping, and accessibility. Follow best practices such as using a single-column layout, placing labels above fields, and minimizing the number of input fields.",
+            "dependencies": [],
+            "details": "Use appropriate input types, group related fields, and provide clear instructions. Visually differentiate form fields from other UI elements and ensure the submit button clearly describes its action.[1][3][4]",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Develop Validation Logic",
+            "description": "Implement real-time (inline) validation for form fields to provide immediate feedback to users and prevent submission of incorrect data.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add inline validation that checks user input as they fill out each field, displaying helpful error messages and visual cues for valid or invalid entries. Ensure validation rules are clear and user-friendly.[2][4][5]",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Handle Form Submission",
+            "description": "Integrate form submission logic, including sending data to the server and providing clear feedback to the user upon success or failure.",
+            "dependencies": [
+              2
+            ],
+            "details": "Ensure the form only submits when all validations pass. Display confirmation messages on successful submission and clear, actionable error messages if submission fails. Consider using autofill and predictive text to streamline the process.[2][4]",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Develop Edit Payment Method Form",
+        "description": "Implement the form for editing existing payment methods with validation.",
+        "details": "Create `[id]/edit.tsx` in `payment-methods/`. Use React Hook Form + Zod for validation. Pre-fill form with existing data. Fields: Name, Type, integration fields (if any). Submit to server action. Example similar to create form, but with pre-filled data and edit action.",
+        "testStrategy": "Test form pre-fill, validation, submission, and error handling. Verify RBAC and spaId context.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          13
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Pre-filling of Form Data",
+            "description": "Develop functionality to pre-fill form fields with existing data, using sources such as previous submissions or external data files. Ensure mapping between stored data and form fields is accurate and supports dynamic updates.",
+            "dependencies": [],
+            "details": "Consider methods like mapping fields from previous submissions, using query strings, or linking dropdowns to external data sources. Support both static and dynamic pre-filling approaches.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Validate Pre-filled and User-entered Data",
+            "description": "Implement validation logic to ensure all pre-filled and user-modified form data meets required formats, constraints, and business rules before submission.",
+            "dependencies": [
+              1
+            ],
+            "details": "Include checks for required fields, correct data types, and any custom validation rules. Handle edge cases where pre-filled data may be outdated or incomplete.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Handle Update Submission",
+            "description": "Develop the process for submitting updated form data, ensuring changes are correctly captured and persisted. Manage both successful updates and error handling.",
+            "dependencies": [
+              2
+            ],
+            "details": "Ensure that only changed fields are updated if necessary, and provide user feedback on submission status. Support rollback or correction in case of validation or submission errors.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "title": "Implement Delete Payment Method Flow",
+        "description": "Add functionality to delete payment methods with confirmation and validation.",
+        "details": "Add delete action in `actions.ts`. Use a modal dialog (`ConfirmDialog.tsx`) for confirmation. Prevent deletion if referenced by payments. Example: Add delete button in list page, open modal, confirm, call delete action.",
+        "testStrategy": "Test delete flow, confirmation, and error handling. Verify RBAC and spaId context. Test prevention of deletion if referenced.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Delete Action Logic",
+            "description": "Develop the backend and frontend logic to perform the delete operation for the target entity, ensuring modularity and maintainability according to best practices.",
+            "dependencies": [],
+            "details": "This includes creating the necessary API endpoints, handling the removal of the entity from the database, and ensuring the code structure allows for easy removal or modification in the future.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Add Confirmation Dialog for Delete Action",
+            "description": "Integrate a user confirmation dialog that appears before the delete action is executed to prevent accidental data loss.",
+            "dependencies": [
+              1
+            ],
+            "details": "The dialog should clearly communicate the consequences of deletion and require explicit user confirmation before proceeding. Consider including options such as 'Cancel' and 'Confirm Delete', and possibly an 'Undo' prompt after deletion for additional safety.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Dependency Checks Before Deletion",
+            "description": "Ensure that the delete action is only allowed if the entity is not referenced by other records or dependencies, preventing data integrity issues.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Before executing the delete, check for any existing references or dependencies (e.g., foreign key constraints, linked records). If dependencies exist, block the deletion and inform the user with a clear message explaining why the action cannot be completed.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "title": "Integrate RBAC and Multi-Tenancy",
+        "description": "Ensure all operations are scoped to the current spaId and only authorized roles can perform actions.",
+        "details": "Use RBAC logic to conditionally render actions (e.g., only show Add New/Delete for admins). All backend queries must filter by spaId. On frontend, ensure spa context is loaded (context/provider or hook).",
+        "testStrategy": "Test with different user roles. Verify actions are only available to authorized roles. Check spaId filtering in all queries.",
+        "priority": "high",
+        "dependencies": [
+          11,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Backend RBAC Enforcement",
+            "description": "Implement robust Role-Based Access Control (RBAC) on the backend to ensure all API endpoints and operations are properly scoped and authorized based on user roles and permissions.",
+            "dependencies": [],
+            "details": "Define user roles and permissions, integrate RBAC middleware or policy checks in API route handlers, and ensure unauthorized access is handled securely. Test endpoints for correct enforcement of permissions.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Frontend Conditional Rendering",
+            "description": "Develop frontend logic to conditionally render UI components and actions based on the user's roles and permissions as determined by backend RBAC.",
+            "dependencies": [
+              1
+            ],
+            "details": "Consume role and permission data from backend (e.g., via access token or user context), and ensure only authorized UI elements are visible or interactive for each user role.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "spaId Context Management",
+            "description": "Implement and manage the spaId context throughout the application to ensure all operations and data access are correctly scoped to the appropriate spaId.",
+            "dependencies": [
+              1
+            ],
+            "details": "Maintain spaId in application state (e.g., context provider or global store), propagate it to backend requests, and enforce spaId scoping in both backend and frontend logic.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Integration Testing for RBAC and spaId Scoping",
+            "description": "Design and execute integration tests to verify that RBAC enforcement, frontend conditional rendering, and spaId context management work together correctly and securely.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Test end-to-end scenarios for different user roles and spaId values, ensuring unauthorized actions are blocked and UI reflects correct permissions and scoping.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "title": "Implement Payment Integration Fields",
+        "description": "Add support for external payment provider integration (e.g., Stripe) if required.",
+        "details": "Add fields to model and forms for external IDs (e.g., Stripe payment method ID). On create/edit, optionally sync with provider. On delete, ensure method is not in use or archive instead of hard delete.",
+        "testStrategy": "Test integration field handling, provider sync, and deletion logic. Verify data consistency.",
+        "priority": "low",
+        "dependencies": [
+          12,
+          13,
+          15,
+          16
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update Data Model for Integration Fields",
+            "description": "Modify the existing data model to include new fields required for integration with external providers. Ensure that the model supports tracking of provider-specific metadata and any additional attributes needed for synchronization.",
+            "dependencies": [],
+            "details": "This includes schema changes, migration scripts, and updates to validation logic. Consider how new fields will interact with existing data and ensure backward compatibility where necessary.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Provider Sync Logic",
+            "description": "Develop the logic to synchronize data between the internal system and external providers. Handle data consistency, error handling, and ensure that changes in either system are reflected accurately.",
+            "dependencies": [
+              1
+            ],
+            "details": "This involves implementing mechanisms for tracking change history, managing per-client state, and resolving conflicts. Consider strategies for soft deletes and how to efficiently handle large volumes of changes without overwhelming the system.[3]",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Handle Deletion and Archival Processes",
+            "description": "Design and implement processes for deleting or archiving records, ensuring that deletions are handled consistently across both the internal system and external providers.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Decide between hard and soft deletes based on sync requirements. Implement archival logic if full deletion is not feasible due to sync or audit constraints. Ensure that deletion/archival actions are propagated to external providers and that data integrity is maintained.[3][4]",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "title": "Write Unit, Integration, and E2E Tests",
+        "description": "Develop comprehensive test coverage for all payment methods management features.",
+        "details": "Write unit tests for server actions (CRUD). Write integration tests for API endpoints. Write E2E tests for UI flows (create, edit, delete, list). Write RBAC tests to ensure only authorized roles can mutate.",
+        "testStrategy": "Run all tests and verify coverage. Ensure all edge cases (RBAC, spaId, validation, deletion prevention) are tested.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Unit Test Coverage",
+            "description": "Create and implement unit tests to ensure all critical code paths and logic branches are covered, leveraging code coverage metrics and complexity analysis.",
+            "dependencies": [],
+            "details": "Focus on achieving high coverage for individual functions and modules, using cyclomatic complexity to identify areas needing additional tests. Ensure tests are automated and integrated into the CI pipeline.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Define Integration Test Scenarios",
+            "description": "Design and execute integration tests to validate interactions between modules and services, ensuring correct data flow and interface contracts.",
+            "dependencies": [
+              1
+            ],
+            "details": "Identify key integration points and create test cases that simulate real-world data and workflows. Use structured testing techniques to cover integration complexity and edge cases.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement E2E UI Flow Tests",
+            "description": "Develop end-to-end UI tests to verify that user-facing workflows function as expected from the frontend through to backend systems.",
+            "dependencies": [
+              2
+            ],
+            "details": "Automate UI flows covering major user journeys, including positive and negative scenarios. Ensure tests are robust against UI changes and validate system behavior across layers.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create RBAC and Multi-Tenancy Test Cases",
+            "description": "Design and execute test cases for role-based access control (RBAC) and multi-tenancy, focusing on authorization, isolation, and cross-tenant edge cases.",
+            "dependencies": [
+              3
+            ],
+            "details": "Test various user roles and tenant boundaries, including attempts to access unauthorized resources. Validate compliance with security and policy requirements.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Compile Test Documentation",
+            "description": "Document all test strategies, scenarios, coverage metrics, and results for unit, integration, E2E, and RBAC/multi-tenancy tests.",
+            "dependencies": [
+              4
+            ],
+            "details": "Ensure documentation is clear, comprehensive, and accessible for future maintenance and audits. Include complexity analysis reasoning and test coverage reports.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-07-07T15:40:58.246Z",
-      "updated": "2025-07-07T15:40:58.246Z",
+      "updated": "2025-07-07T18:32:59.791Z",
       "description": "Tasks for master context"
     }
   }

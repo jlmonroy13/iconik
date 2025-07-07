@@ -1,5 +1,7 @@
 # 📌 Iconik - SaaS para Gestión de Spas de Uñas
 
+[![CI/CD Status](https://github.com/jlmonroy13/iconik/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/jlmonroy13/iconik/actions/workflows/ci-cd.yml)
+
 ## 🎯 Objetivo
 
 Iconik es una plataforma SaaS que permite a múltiples spas de uñas gestionar sus operaciones diarias: agendamiento de citas, ventas de servicios, control de inventario, evaluación de manicuristas y comunicación con clientes vía WhatsApp.
@@ -115,3 +117,20 @@ Iconik es una plataforma SaaS que permite a múltiples spas de uñas gestionar s
 - Arquitectura multi-tenant: todo recurso asociado a un `spaId`
 - Escalable como SaaS con múltiples clientes (spas)
 - Backoffice privado para administración central
+
+---
+
+## 🚦 Integración Continua y Despliegue (CI/CD)
+
+Este proyecto utiliza **GitHub Actions** para automatizar la integración continua y el despliegue (CI/CD).
+
+- El pipeline se ejecuta automáticamente en cada push y pull request a la rama `main`.
+- Las tareas automatizadas incluyen:
+  - Instalación de dependencias (`npm ci`)
+  - Linting del código (`npm run lint`)
+  - Ejecución de tests (`npm test`)
+  - Build de la aplicación (`npm run build`)
+- Si alguna de estas tareas falla, el pipeline se detiene y marca el commit como fallido.
+- Puedes ver el estado actual del pipeline en el badge al inicio de este README o en la pestaña [Actions de GitHub](https://github.com/jlmonroy13/iconik/actions).
+
+El archivo de configuración del workflow se encuentra en `.github/workflows/ci-cd.yml`.

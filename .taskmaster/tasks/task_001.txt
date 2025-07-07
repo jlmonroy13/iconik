@@ -29,9 +29,27 @@ Use the Next.js CLI (e.g., 'npx create-next-app@latest') to scaffold the project
 ### Details:
 Install ESLint and TypeScript packages. Set up configuration files (e.g., .eslintrc, tsconfig.json) to enforce code quality and enable TypeScript support in the project.
 
-## 4. Establish CI/CD Pipelines [pending]
+## 4. Establish CI/CD Pipelines [done]
 ### Dependencies: 1.3
 ### Description: Set up Continuous Integration and Continuous Deployment pipelines to automate testing and deployment.
 ### Details:
 Configure GitHub Actions or another CI/CD tool to run tests, lint checks, and deploy the application automatically on code changes or pull requests.
+<info added on 2025-07-07T18:14:58.869Z>
+Implementation plan for CI/CD Pipelines:
+
+- Use GitHub Actions for CI/CD.
+- Create a workflow file at .github/workflows/ci-cd.yml.
+- Steps:
+  1. Checkout code
+  2. Set up Node.js (version from .nvmrc or package.json)
+  3. Install dependencies with npm ci
+  4. Run lint checks (npm run lint)
+  5. Run tests (npm test or equivalent)
+  6. Build the application (npm run build)
+  7. (Optional) Deploy to Vercel or other platform if secrets are configured
+- Trigger on push and pull_request to main branches.
+- Add status badge to README if desired.
+- Ensure pipeline fails on errors and passes on success.
+- Document the workflow in README if needed.
+</info added on 2025-07-07T18:14:58.869Z>
 

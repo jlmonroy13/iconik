@@ -1,0 +1,31 @@
+# Task ID: 17
+# Title: Implement Delete Payment Method Flow
+# Status: pending
+# Dependencies: 11, 13, 14
+# Priority: medium
+# Description: Add functionality to delete payment methods with confirmation and validation.
+# Details:
+Add delete action in `actions.ts`. Use a modal dialog (`ConfirmDialog.tsx`) for confirmation. Prevent deletion if referenced by payments. Example: Add delete button in list page, open modal, confirm, call delete action.
+
+# Test Strategy:
+Test delete flow, confirmation, and error handling. Verify RBAC and spaId context. Test prevention of deletion if referenced.
+
+# Subtasks:
+## 1. Implement Delete Action Logic [pending]
+### Dependencies: None
+### Description: Develop the backend and frontend logic to perform the delete operation for the target entity, ensuring modularity and maintainability according to best practices.
+### Details:
+This includes creating the necessary API endpoints, handling the removal of the entity from the database, and ensuring the code structure allows for easy removal or modification in the future.
+
+## 2. Add Confirmation Dialog for Delete Action [pending]
+### Dependencies: 17.1
+### Description: Integrate a user confirmation dialog that appears before the delete action is executed to prevent accidental data loss.
+### Details:
+The dialog should clearly communicate the consequences of deletion and require explicit user confirmation before proceeding. Consider including options such as 'Cancel' and 'Confirm Delete', and possibly an 'Undo' prompt after deletion for additional safety.
+
+## 3. Implement Dependency Checks Before Deletion [pending]
+### Dependencies: 17.1, 17.2
+### Description: Ensure that the delete action is only allowed if the entity is not referenced by other records or dependencies, preventing data integrity issues.
+### Details:
+Before executing the delete, check for any existing references or dependencies (e.g., foreign key constraints, linked records). If dependencies exist, block the deletion and inform the user with a clear message explaining why the action cannot be completed.
+

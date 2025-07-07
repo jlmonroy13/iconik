@@ -1,0 +1,49 @@
+# Task ID: 13
+# Title: Implement Server Actions for CRUD Operations
+# Status: pending
+# Dependencies: 11, 12
+# Priority: high
+# Description: Create server actions for listing, creating, editing, and deleting payment methods, with RBAC and spaId checks.
+# Details:
+Implement in `actions.ts`: `listPaymentMethods`, `createPaymentMethod`, `editPaymentMethod`, `deletePaymentMethod`. Use `getSpaIdFromSession` for multi-tenancy. Validate input with Zod schemas. Enforce RBAC: only admins can mutate. Example:
+```typescript
+// src/app/dashboard/payment-methods/actions.ts
+import { prisma } from '@/lib/prisma';
+import { getSpaIdFromSession } from '@/lib/authz';
+import { PaymentMethodSchema } from './schemas';
+
+export async function listPaymentMethods(user) {
+  const spaId = getSpaIdFromSession(user);
+  return prisma.paymentMethod.findMany({ where: { spaId } });
+}
+// ...create, edit, delete similarly
+```
+
+# Test Strategy:
+Unit test each action. Verify RBAC and spaId filtering. Test validation and error handling.
+
+# Subtasks:
+## 1. Design RBAC and spaId Validation Logic [pending]
+### Dependencies: None
+### Description: Define user roles, permissions for each CRUD action, and the logic for spaId (multi-tenancy) checks. Document the access matrix and validation requirements for each action.
+### Details:
+Identify all roles (e.g., Admin, Editor, Viewer) and map which actions (list, create, edit, delete) each can perform. Specify how spaId will be checked to ensure users only access resources belonging to their tenant.
+
+## 2. Implement List Action with RBAC and spaId Checks [pending]
+### Dependencies: 13.1
+### Description: Develop the 'list' endpoint or function, ensuring it enforces RBAC permissions and filters results by spaId.
+### Details:
+Ensure only users with the appropriate role can list resources, and that only resources matching the user's spaId are returned.
+
+## 3. Implement Create, Edit, and Delete Actions with RBAC and spaId Checks [pending]
+### Dependencies: 13.1
+### Description: Develop the create, edit, and delete endpoints or functions, enforcing both RBAC and spaId validation for each operation.
+### Details:
+For each action, check that the user has the required role and that the operation is performed only on resources belonging to the user's spaId.
+
+## 4. Test and Validate Security Enforcement [pending]
+### Dependencies: 13.2, 13.3
+### Description: Write and execute tests to verify that RBAC and spaId checks are correctly enforced for all CRUD actions.
+### Details:
+Create test cases for each role and action, including attempts to access or modify resources outside the user's spaId. Validate that unauthorized actions are blocked and authorized actions succeed.
+

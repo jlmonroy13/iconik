@@ -1,0 +1,36 @@
+# Task ID: 12
+# Title: Define Payment Method Database Model
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Ensure the Prisma schema includes a PaymentMethod model with required fields for multi-tenancy and integration.
+# Details:
+Update `prisma/schema.prisma` to include: `id`, `name`, `type`, `spaId`, `createdAt`, `updatedAt`, and optional integration fields (e.g., Stripe ID). Example:
+```prisma
+model PaymentMethod {
+  id        String   @id @default(uuid())
+  name      String
+  type      String
+  spaId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // ...other fields
+}
+```
+
+# Test Strategy:
+Run Prisma migration and verify the model is created in the database. Check that all fields are present and correctly typed.
+
+# Subtasks:
+## 1. Update the Prisma schema [pending]
+### Dependencies: None
+### Description: Modify the Prisma schema file (schema.prisma) to define or update the required database models, fields, and constraints as needed for the project.
+### Details:
+Ensure all necessary fields, data types, and relationships are accurately represented in the schema. Double-check for required fields and constraints to match the application's requirements.
+
+## 2. Run and verify the migration [pending]
+### Dependencies: 12.1
+### Description: Use Prisma Migrate to generate and apply the migration, then verify that the database schema matches the updated Prisma schema and functions as expected.
+### Details:
+Run `prisma migrate dev --name <migration_name>` to create and apply the migration. Inspect the database to confirm the changes were applied correctly. Test application functionality to ensure the migration did not introduce issues.
+

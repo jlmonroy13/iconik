@@ -1,0 +1,37 @@
+# Task ID: 18
+# Title: Integrate RBAC and Multi-Tenancy
+# Status: pending
+# Dependencies: 11, 13, 14, 15, 16, 17
+# Priority: high
+# Description: Ensure all operations are scoped to the current spaId and only authorized roles can perform actions.
+# Details:
+Use RBAC logic to conditionally render actions (e.g., only show Add New/Delete for admins). All backend queries must filter by spaId. On frontend, ensure spa context is loaded (context/provider or hook).
+
+# Test Strategy:
+Test with different user roles. Verify actions are only available to authorized roles. Check spaId filtering in all queries.
+
+# Subtasks:
+## 1. Backend RBAC Enforcement [pending]
+### Dependencies: None
+### Description: Implement robust Role-Based Access Control (RBAC) on the backend to ensure all API endpoints and operations are properly scoped and authorized based on user roles and permissions.
+### Details:
+Define user roles and permissions, integrate RBAC middleware or policy checks in API route handlers, and ensure unauthorized access is handled securely. Test endpoints for correct enforcement of permissions.
+
+## 2. Frontend Conditional Rendering [pending]
+### Dependencies: 18.1
+### Description: Develop frontend logic to conditionally render UI components and actions based on the user's roles and permissions as determined by backend RBAC.
+### Details:
+Consume role and permission data from backend (e.g., via access token or user context), and ensure only authorized UI elements are visible or interactive for each user role.
+
+## 3. spaId Context Management [pending]
+### Dependencies: 18.1
+### Description: Implement and manage the spaId context throughout the application to ensure all operations and data access are correctly scoped to the appropriate spaId.
+### Details:
+Maintain spaId in application state (e.g., context provider or global store), propagate it to backend requests, and enforce spaId scoping in both backend and frontend logic.
+
+## 4. Integration Testing for RBAC and spaId Scoping [pending]
+### Dependencies: 18.1, 18.2, 18.3
+### Description: Design and execute integration tests to verify that RBAC enforcement, frontend conditional rendering, and spaId context management work together correctly and securely.
+### Details:
+Test end-to-end scenarios for different user roles and spaId values, ensuring unauthorized actions are blocked and UI reflects correct permissions and scoping.
+
