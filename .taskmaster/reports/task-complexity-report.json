@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2025-07-07T15:51:30.115Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Setup Project Repository",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the task into initializing the Git repository, setting up Next.js, React, and Tailwind CSS, configuring ESLint and TypeScript, and establishing CI/CD pipelines.",
+			"reasoning": "The task involves multiple technologies and configurations that require careful setup to ensure compatibility and functionality."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Implement Multi-Tenancy and Data Isolation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Divide the task into designing the multi-tenancy architecture, implementing data isolation with Prisma ORM, creating middleware for spaId checks, and writing integration tests.",
+			"reasoning": "Multi-tenancy requires a robust architecture to ensure data isolation and security, involving complex database and middleware configurations."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Develop Role-Based Access Control (RBAC)",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Split the task into defining roles and permissions, integrating role checks in API routes, ensuring UI compliance with roles, and creating tests for role permissions.",
+			"reasoning": "RBAC involves defining a clear permission structure and ensuring it is consistently applied across the application, requiring both backend and frontend work."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Build Appointment Management System",
+			"complexityScore": 9,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the task into developing frontend booking components, implementing backend logic for appointments, integrating React Hook Form, and conducting end-to-end tests.",
+			"reasoning": "The task involves complex interactions between frontend and backend components, requiring comprehensive testing to ensure a seamless user experience."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Implement Service Tracking and Payment Processing",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Divide the task into creating interfaces for service tracking, implementing payment processing logic, handling discounts and split payments, and performing integration tests.",
+			"reasoning": "Payment processing involves handling sensitive data securely and implementing complex business logic for discounts and payments."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Develop Staff Scheduling and Reporting Tools",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Split the task into building scheduling interfaces, implementing reporting features, and testing scheduling and reporting functionalities.",
+			"reasoning": "The task requires developing user-friendly interfaces and ensuring accurate data handling for scheduling and reporting."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement Client Communication Features",
+			"complexityScore": 6,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down the task into setting up email and SMS notifications, ensuring UI components are in Spanish, and preparing for i18n support.",
+			"reasoning": "The task involves integrating communication systems and ensuring language support, which requires careful planning and testing."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Establish Audit Logging and Security Measures",
+			"complexityScore": 9,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Divide the task into implementing audit logging, enforcing data encryption, ensuring GDPR compliance, and conducting security audits.",
+			"reasoning": "Security measures and compliance require thorough implementation and testing to ensure data protection and legal adherence."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Design User Onboarding and Accessibility Features",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Split the task into developing onboarding tooltips, ensuring UI accessibility compliance, and performing usability and accessibility testing.",
+			"reasoning": "The task involves designing user-friendly onboarding experiences and ensuring compliance with accessibility standards."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Setup Monitoring and Analytics",
+			"complexityScore": 6,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down the task into implementing Vercel Analytics and Sentry, setting up feature usage analytics, and verifying monitoring through tests.",
+			"reasoning": "The task involves setting up monitoring tools and ensuring accurate data collection for system performance and feature usage."
+		}
+	]
+}

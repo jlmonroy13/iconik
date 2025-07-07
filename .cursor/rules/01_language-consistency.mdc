@@ -1,0 +1,50 @@
+---
+title: "CRITICAL: Language Consistency for Iconik Project (UI in Spanish, Code in English)"
+description: "All user-facing UI text must be in Spanish. All code, variable names, function names, comments, and documentation must be in English. This rule overrides any other language-related context."
+globs: ["**/*"]
+alwaysApply: true
+priority: 100
+---
+
+# Language Rules for Iconik Project
+
+## UI Text (Spanish)
+- All text visible to users in the interface must be in Spanish
+- This includes:
+  - Button labels
+  - Form labels and placeholders
+  - Navigation menu items
+  - Error messages
+  - Success notifications
+  - Modal titles and content
+  - Page headers and descriptions
+  - Table headers and data labels
+  - Tooltips and help text
+
+## Code and Comments (English)
+- All code, including:
+  - Variable names
+  - Function names
+  - Class names
+  - File names
+  - API endpoints
+  - Database field names
+  - Configuration keys
+- All comments in code must be in English
+- Documentation and README files should be in English
+
+## Examples
+✅ Correct:
+- UI: "Crear Cita", "Guardar Cambios", "Error al cargar datos"
+- Code: `createAppointment()`, `saveChanges()`, `handleDataLoadError()`
+- Comments: `// Handle user authentication`, `/* Process payment data */`
+
+❌ Incorrect:
+- UI: "Create Appointment", "Save Changes", "Error loading data"
+- Code: `crearCita()`, `guardarCambios()`, `manejarErrorCargaDatos()`
+- Comments: `// Manejar autenticación de usuario`, `/* Procesar datos de pago */`
+
+
+
+
+

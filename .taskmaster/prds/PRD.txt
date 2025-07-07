@@ -1,0 +1,112 @@
+<context>
+# Overview
+Iconik is a multi-tenant SaaS platform for nail spas, providing tools for managing appointments, services, staff, inventory, sales, and client communications. The platform is designed for scalability, security, and ease of use, supporting multiple spas with strict data isolation.
+
+# Core Features
+- Authentication & Authorization (magic link, role-based) — **Implemented**
+- Multi-tenancy (spaId isolation) — **Implemented**
+- CRUD for services, appointments, clients, manicurists — **Implemented**
+- Appointment calendar and dashboard views — **Implemented**
+- Manicurist availability management — **Implemented**
+- Statistics dashboard (appointments, sales, top services) — **Implemented**
+- Export reports to Excel — **Implemented**
+- All forms use React Hook Form and custom UI components — **Implemented**
+- All UI text in Spanish — **Implemented**
+
+# Features to Implement / Complete
+
+1. **Split Payments by Method**
+   - Allow clients to pay for a service/appointment using multiple payment methods in a single transaction (e.g., 20% cash, 80% card).
+   - All payments must be completed at the time of service; deferred payments over time are not supported.
+   - The UI should allow admins to enter multiple payment methods and amounts so that the sum matches the total due.
+   - The backend should validate that the sum of all payments equals the total service/appointment price.
+
+2. **Booking URLs for Clients**
+   - Generate and send unique URLs to clients for self-booking appointments.
+   - Use the BookingLink and BookingLinkService models.
+   - Implement UI and notification flow for this feature.
+
+3. **Manicurist Service Dashboard & Digital Service Order**
+   - Manicurists have a dedicated page to view all their assigned services for the day.
+   - For scheduled appointments, services are preloaded; manicurists can add, remove, or modify services if the client changes their mind.
+   - For walk-in clients, manicurists can create a new service order from scratch.
+   - Manicurists can mark when a service starts and ends (timestamps).
+   - Manicurists can start a new service instantly with a single click, recording only themselves and the start time (quick start). No client or service details are required at the beginning. At the end, the manicurist completes all required information (services performed, duration, notes). Client info is optional at this stage.
+   - The finalized service is then sent to the administrator for payment processing. The system must prevent sending incomplete service orders to administration (all required service fields except client must be filled).
+   - Only the assigned manicurist can edit their service; only the admin can process payments.
+   - (Optional) Notify the admin when a service is ready for payment.
+
+4. **Admin Payment Dashboard**
+   - Administrators have a dashboard to view all completed services pending payment, review details, apply discounts, and record split payments.
+   - If client info is missing, the admin can search, create, or assign a client before completing the payment.
+   - The system must validate that all required service fields (except client) are filled before allowing payment.
+
+5. **Client Feedback Links**
+   - After service completion, send a unique link to the client to evaluate both the spa and the manicurist.
+   - Use the Feedback model with unique tokens.
+   - Implement notification and feedback collection flow.
+
+6. **Client Recurrence & Follow-Up Notifications**
+   - Each service has a recommended return interval (recommendedReturnDays).
+   - When a service is completed, the system calculates the recommended return date for the client.
+   - The system notifies the administrator when a client is due to return, so the admin can contact the client and offer to schedule a new appointment.
+   - The admin can see a list of clients due for follow-up and mark when they have contacted each client.
+   - (Future) The system will automatically send WhatsApp notifications to clients when their recommended return date approaches, and the admin will have a dashboard to view all follow-up conversations and track their status.
+
+# Technical Details
+- The duration of each service must be calculated automatically by the system (start/end timestamps).
+- The duration field is not editable by users; it is always system-generated.
+- All forms must use React Hook Form and custom UI components.
+- All UI text must be in Spanish.
+- All code and comments must be in English.
+- Server/client separation per Next.js best practices.
+- All features must respect multi-tenancy and role-based access.
+
+# Implementation Status
+- Features marked as **Implemented** are already present in the codebase.
+- All other features above need to be implemented or completed.
+
+# Entity CRUD & User Management Flows
+
+- The CRUD UI for Spas must be available **only** in the Superadmin section.
+  - Only the Superadmin can create, edit, or delete spas.
+  - When creating a spa, the Superadmin assigns a primary administrator (admin user) for that spa.
+  - Spa administrators cannot create or modify spas.
+
+- Each spa administrator can create and manage users (manicurists, clients, additional admins if needed) **within their own spa**.
+  - There is **no self-registration flow** for users.
+  - The Superadmin is responsible for creating spas and their main administrators.
+  - Spa administrators are responsible for creating all other users (manicurists, clients, etc.) required for their spa's operation.
+
+- Access restrictions:
+  - Users can only view and manage entities associated with their own spa (strict multi-tenancy).
+  - The Superadmin can view and manage all spas and their administrators, but not the internal users of each spa.
+
+# Pending CRUD UI Entities (to implement or complete)
+- Spas (Superadmin only)
+- Payment Methods
+- Commissions
+- Feedback
+- Expenses
+- Booking Links
+- Cash Registers
+- Manicurist Schedules (complete CRUD)
+- Spa Schedules (complete CRUD)
+- Payments (full CRUD, not just view)
+
+# Current Tech Stack
+- **Frontend:** Next.js 15 (App Router), React 19, Tailwind CSS 4
+- **Backend:** Next.js API routes (App Router), Prisma ORM
+- **Database:** PostgreSQL (see schema.prisma)
+- **ORM:** Prisma ^6.11.0
+- **Authentication:** Auth.js (NextAuth v5, magic link with Resend)
+- **Forms:** React Hook Form ^7.58.1, Zod ^3.25.67
+- **UI Components:** Custom components, Radix UI, Lucide React
+- **Validation:** Zod
+- **Date Handling:** date-fns ^4.1.0
+- **State/Utils:** clsx, class-variance-authority, tailwind-merge
+- **Password Hashing:** bcryptjs
+- **Currency Input:** react-currency-input-field
+- **Dev Tools:** ESLint 9, TypeScript 5, Tailwind CSS 4, tsx, @hookform/resolvers
+- **Deployment:** Vercel (frontend & API), Neon (PostgreSQL)
+- **Multi-tenancy:** Enforced via spaId in schema.prisma

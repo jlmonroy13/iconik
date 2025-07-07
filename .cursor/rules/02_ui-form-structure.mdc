@@ -1,0 +1,35 @@
+---
+title: "CRITICAL: UI Components, Form Handling, and Component Structure Policy"
+description: "All forms must use the project's UI components and React Hook Form for state management and validation. Always respect the separation between server and client components as per Next.js best practices."
+globs: ["**/*"]
+alwaysApply: true
+priority: 100
+---
+
+# UI, Form, and Component Structure Rules for Iconik Project
+
+## UI Components
+- All user interfaces must use the project's custom UI components located in `src/components/ui/`.
+- Do not use raw HTML elements (e.g., `<input>`, `<button>`, `<select>`) directly in forms or UI; always use the corresponding UI component.
+
+## Form Handling
+- All forms must use React Hook Form for state management and validation.
+- Do not use uncontrolled components or alternative form libraries.
+- Integrate UI components with React Hook Form using the appropriate `Controller` or direct registration.
+
+## Server and Client Components
+- Always respect the separation between server and client components as required by Next.js.
+- Place server-only logic (e.g., data fetching, database access) in server components or API routes.
+- Place interactive UI and hooks (e.g., useState, useEffect, useForm) in client components.
+- Use `"use client"` directive at the top of files that require client-side interactivity.
+
+## Examples
+
+✅ Correct:
+- Using `<Input />` from `src/components/ui/Input.tsx` with React Hook Form in a client component.
+- Placing data fetching in a server component and passing data as props to a client component.
+
+❌ Incorrect:
+- Using `<input>` directly instead of the custom `<Input />` component.
+- Managing form state without React Hook Form.
+- Mixing server-only logic in a client component or vice versa.

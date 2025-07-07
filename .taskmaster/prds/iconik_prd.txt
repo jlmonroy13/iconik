@@ -1,0 +1,92 @@
+# Overview
+Iconik is a multi-tenant SaaS platform designed for nail spas, providing robust tools for appointment management, service tracking, staff scheduling, inventory, sales, and client communications. The platform targets spa owners, administrators, manicurists, and clients, delivering value through scalability, security, and ease of use. Iconik enables spas to efficiently manage daily operations, improve client satisfaction, and gain actionable business insights.
+
+# Core Features
+- **Multi-Tenancy & Data Isolation**: Each spa operates in a logically isolated environment, ensuring strict separation of data and permissions via spaId at all API and database layers.
+- **Role-Based Access Control**: Supports Superadmin, Spa Admin, Manicurist, and Client roles, each with tailored access and workflows.
+- **Appointment Management**: Clients can book appointments online; admins and staff manage schedules, availability, and service orders.
+- **Service Tracking**: Manicurists record service details, and admins process payments, discounts, and feedback.
+- **Staff Scheduling**: Admins manage staff availability, shifts, and performance metrics.
+- **Inventory & Sales**: Track inventory, sales, and kit costs; manage payment methods and financial reporting.
+- **Client Communications**: Automated notifications, feedback requests, and reminders (all UI in Spanish, with future i18n support).
+- **Audit Logging**: Critical actions (user management, payments, service edits) are logged for compliance and troubleshooting.
+- **Subscription & Billing (Planned)**: Support for multiple pricing tiers, per-seat/per-spa billing, and integration with payment gateways (e.g., Stripe).
+- **Monitoring & Analytics**: Centralized logging, health checks, and feature usage analytics for continuous improvement.
+
+# User Flows & Experience
+- **Booking Flow**: Client receives unique booking URL → selects service/time → confirms appointment → receives confirmation.
+- **Service Order Flow**: Manicurist starts service (quick or scheduled) → records details → submits for admin payment processing.
+- **Payment Flow**: Admin reviews completed service → applies discounts/split payments → finalizes transaction.
+- **Feedback Flow**: Client receives feedback link post-service → submits evaluation → admin reviews feedback.
+- **Recurrence Flow**: System calculates recommended return date → notifies admin (and, in future, client) → admin follows up.
+
+# User Experience
+- **User Personas**:
+  - Spa Owner/Admin: Full operational control, reporting, and user management.
+  - Manicurist: Access to schedules, service orders, and client feedback.
+  - Client: Book appointments, provide feedback, receive notifications.
+- **UI/UX Considerations**:
+  - All interface text in Spanish.
+  - Onboarding flows with tooltips and contextual help.
+  - Accessibility (WCAG 2.1 AA compliance) for all UI components.
+  - Responsive design for desktop and mobile.
+
+# Technical Architecture
+- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS 4, custom UI components, React Hook Form for all forms.
+- **Backend**: Next.js API routes, Prisma ORM, PostgreSQL (Neon), strict spaId multi-tenancy.
+- **Authentication**: Auth.js (NextAuth v5), magic link via Resend.
+- **Validation**: Zod for all form and API validation.
+- **Deployment**: Vercel (frontend & API), Neon (PostgreSQL).
+- **DevOps**: ESLint, TypeScript, CI/CD pipelines, automated deployments.
+- **Security**: Data encryption at rest and in transit, audit logs, GDPR compliance, role-based access, rate limiting.
+- **API & Integrations**: RESTful API (OpenAPI/Swagger docs), planned webhooks for booking/payment/feedback events, future outbound integrations.
+- **Monitoring**: Centralized logging (Vercel Analytics, Sentry), health endpoints, feature usage analytics.
+
+# Development Roadmap
+- **MVP Requirements**:
+  - Multi-tenancy and role-based access
+  - Appointment management and booking
+  - Service order and payment processing
+  - Staff scheduling and basic reporting
+  - Client feedback and notifications
+  - Spanish UI, onboarding flows, accessibility
+  - Core security and audit logging
+- **Future Enhancements**:
+  - Subscription tiers and SaaS billing
+  - Advanced analytics and reporting
+  - Bulk user/data management for large spas
+  - Customizable permissions and org structures
+  - Outbound webhooks and third-party integrations
+  - Internationalization (i18n) for additional languages
+  - SLA and enterprise support features
+
+# Logical Dependency Chain
+- Foundation: Multi-tenancy, authentication, role-based access, and core data models
+- Core Flows: Appointment booking, service order, payment, and feedback
+- Admin Tools: Staff scheduling, inventory, reporting, and audit logging
+- User Experience: Onboarding, notifications, accessibility, and Spanish UI
+- Security & Compliance: Data isolation, encryption, GDPR, audit logs
+- SaaS Features: Subscription management, billing, advanced analytics, integrations
+- Enterprise Readiness: Bulk management, custom permissions, SLA support
+
+# Testing & Quality Assurance
+- All critical functionalities of the application must be covered by automated tests.
+- Include unit tests, integration tests, and end-to-end (E2E) tests for features such as authentication, booking, payments, and data isolation.
+- Continuous Integration (CI) pipelines should enforce test execution on every deployment.
+- Prioritize test coverage for security, data integrity, and business-critical flows.
+
+# Risks and Mitigations
+- **Technical Challenges**: Ensuring strict data isolation and scalable multi-tenancy; mitigated by spaId enforcement and stateless API design.
+- **MVP Scope Creep**: Risk of over-engineering; mitigated by clear MVP definition and phased roadmap.
+- **Resource Constraints**: Limited dev resources for advanced features; mitigated by prioritizing MVP and leveraging CI/CD for rapid iteration.
+- **Compliance**: GDPR and audit requirements; mitigated by early implementation of audit logs and data export/deletion features.
+
+# Appendix
+- **Research Findings**: See research supplement for SaaS best practices, security, and enterprise readiness.
+- **Technical Specifications**: OpenAPI/Swagger docs for all APIs, database schema via Prisma, CI/CD pipeline configs.
+- **References**:
+  - [1] SaaS scaling and billing best practices
+  - [2] Multi-tenancy and data isolation patterns
+  - [3] User segmentation and analytics
+  - [4] Enterprise compliance and audit logging
+  - [5] Stakeholder collaboration and feedback processes
