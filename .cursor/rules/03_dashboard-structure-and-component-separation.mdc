@@ -1,0 +1,35 @@
+---
+title: "CRITICAL: Dashboard Folder Structure and Component Separation Policy"
+description: "All routes under app/dashboard must follow a consistent folder structure where page.tsx files are Server Components and any client-side logic is isolated in a 'components' folder with appropriate usage of 'use client'."
+globs: ["**/*"]
+alwaysApply: true
+priority: 100
+---
+
+- The `page.tsx` file should **never** include client-side hooks or logic (e.g., `useState`, `useEffect`, `useForm`).
+- Client-side interactivity (e.g., forms, modals, buttons with handlers) should be encapsulated in components inside the `components/` folder.
+
+## Server vs. Client Component Rules
+
+- `page.tsx` is always a **Server Component** by default (do **not** add `"use client"`).
+- Any component that uses React client hooks **must**:
+- Live inside the `components/` folder of the same route.
+- Begin with `"use client"` at the top of the file.
+
+## Matching Reference
+
+- Use the structure of `app/dashboard/clients` as the reference for all other dashboard sections like `appointments`, `services`, `manicurists`, etc.
+
+## Examples
+
+✅ **Correct**:
+- `page.tsx` performs data fetching and passes props to a client component.
+- `components/AppointmentForm.tsx` contains the form with `"use client"` and React Hook Form integration.
+
+❌ **Incorrect**:
+- Putting `useState` or event handlers directly in `page.tsx`.
+- Declaring client components in the same file as the server page.
+
+## Goal
+
+This structure improves clarity, performance, maintainability, and fully leverages the capabilities of the App Router in Next.js.
