@@ -1,0 +1,72 @@
+---
+title: "CRITICAL: Type Safety Policy – No 'any' Allowed"
+description: >
+  Type safety is a critical aspect of maintainable code. The use of `any` is strictly forbidden.
+  Developers must always rely on explicit types derived from Prisma schemas, utility types,
+  or previously defined shared types. If a new type is needed, it must be defined and named appropriately.
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: true
+priority: 100
+---
+
+## ❌ Forbidden
+
+- Never use `any` in your codebase.
+- Avoid type assertions like `value as any`.
+- Don’t bypass type inference when working with Prisma or external data.
+
+## ✅ Required Practices
+
+- Use types from Prisma schema:  
+  `Prisma.UserCreateInput`, `Prisma.AppointmentGetPayload<...>`, etc.
+
+- Use `typeof prisma.modelName` for instances when appropriate.
+
+- Define reusable types in a `types.ts` file when Prisma types are not available.
+
+- Use `Partial<Type>`, `Pick<Type, 'field'>`, or `ReturnType<typeof fn>` as needed for flexibility without sacrificing type safety.
+
+## ✅ Examples
+
+```ts
+// GOOD: Using a Prisma-generated type
+import { Prisma } from "@prisma/client"
+
+function createUser(data: Prisma.UserCreateInput) {
+  // ...
+}
+```
+
+```ts
+// GOOD: Using a custom type from a shared module
+import { ClientFormData } from "@/types/forms"
+
+function handleSubmit(data: ClientFormData) {
+  // ...
+}
+```
+
+```ts
+// GOOD: Partial type for mocking or editing
+const draft: Partial<User> = {
+  name: "John"
+}
+```
+
+## ❌ Examples to Avoid
+
+```ts
+// BAD: Using any
+function handleSubmit(data: any) {
+  // ...
+}
+```
+
+```ts
+// BAD: Asserting unknown to any
+const parsed = JSON.parse(json) as any;
+```
+
+## 🎯 Goal
+
+This policy ensures that your codebase maintains strong static typing aligned with your Prisma schema and shared domain types, improving safety, readability, and developer productivity.

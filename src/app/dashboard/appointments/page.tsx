@@ -1,194 +1,168 @@
-import { prisma } from '@/lib/prisma'
-import {
-  AppointmentsClient
-} from './components'
-import { AppointmentsSection } from './components/AppointmentsSection'
+import { getAppointments, getAppointmentStats, getAppointmentClients, getAppointmentManicurists, getAppointmentServices } from './actions'
+import AppointmentsClientPage from './components/AppointmentsClientPage'
 import type { Metadata } from 'next'
+import type {
+  AppointmentWithDetails,
+  AppointmentServiceWithDetails,
+} from '@/types'
+
+function isAppointmentServiceWithDetails(s: unknown): s is AppointmentServiceWithDetails {
+  return (
+    !!s &&
+    typeof s === 'object' &&
+    'appointment' in s && s.appointment !== undefined &&
+    'service' in s && s.service !== undefined &&
+    'manicurist' in s && s.manicurist !== undefined &&
+    Array.isArray((s as AppointmentServiceWithDetails).payments) &&
+    (s as AppointmentServiceWithDetails).payments.every(
+      (p) => p.paymentMethod !== undefined && p.paymentMethod !== null
+    )
+  );
+}
 
 export const metadata: Metadata = {
   title: 'Citas - Iconik',
   description: 'Gestiona el calendario de citas de tu spa de uñas. Programa, confirma y organiza las citas de tus clientes.',
 }
 
-async function getAppointmentsData() {
-  // Get the first spa for now (later we'll get from session)
-  const spa = await prisma.spa.findFirst()
+export default async function AppointmentsPage() {
+  const appointmentsResult = await getAppointments()
+  const statsResult = await getAppointmentStats()
+  const clientsResult = await getAppointmentClients()
+  const manicuristsResult = await getAppointmentManicurists()
+  const servicesResult = await getAppointmentServices()
 
-  if (!spa) {
-    return {
-      appointments: [],
-      clients: [],
-      manicurists: [],
-      services: [],
-      stats: {
-        total: 0,
-        scheduled: 0,
-        confirmed: 0,
-        inProgress: 0,
-        completed: 0,
-        cancelled: 0,
-        noShow: 0
-      }
-    }
+  if (!appointmentsResult.success) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+        <h2 className="text-lg font-bold mb-2">Error al cargar las citas</h2>
+        <p className="text-gray-500 dark:text-gray-400">{appointmentsResult.message}</p>
+      </div>
+    )
+  }
+  if (!clientsResult.success) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+        <h2 className="text-lg font-bold mb-2">Error al cargar los clientes</h2>
+        <p className="text-gray-500 dark:text-gray-400">{clientsResult.message}</p>
+      </div>
+    )
+  }
+  if (!manicuristsResult.success) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+        <h2 className="text-lg font-bold mb-2">Error al cargar las manicuristas</h2>
+        <p className="text-gray-500 dark:text-gray-400">{manicuristsResult.message}</p>
+      </div>
+    )
+  }
+  if (!servicesResult.success) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+        <h2 className="text-lg font-bold mb-2">Error al cargar los servicios</h2>
+        <p className="text-gray-500 dark:text-gray-400">{servicesResult.message}</p>
+      </div>
+    )
   }
 
-  const [appointments, clients, manicurists, services] = await Promise.all([
-    prisma.appointment.findMany({
-      where: { spaId: spa.id },
-      include: {
-        client: true,
-        manicurist: true,
-        services: {
-          include: {
-            service: true,
-            manicurist: true,
-            payments: {
-              include: {
-                paymentMethod: true
-              }
-            },
-            feedback: true
-          }
-        },
-        payments: {
-          include: {
-            paymentMethod: true
-          }
-        }
+  const appointmentsRaw = appointmentsResult.data || [];
+  const cleanedAppointments: AppointmentWithDetails[] = appointmentsRaw
+    .filter((a) => !!a.client && Array.isArray(a.services) && a.services.every(isAppointmentServiceWithDetails))
+    .map((a) => ({
+      ...a,
+      manicuristId: a.manicuristId ?? undefined,
+      notes: a.notes ?? undefined,
+      client: {
+        ...a.client,
+        phone: a.client.phone ?? undefined,
+        email: a.client.email ?? undefined,
+        notes: a.client.notes ?? undefined,
+        birthday: a.client.birthday ?? undefined,
       },
-      orderBy: { scheduledAt: 'asc' }
-    }),
-    prisma.client.findMany({
-      where: { spaId: spa.id },
-      select: { id: true, name: true },
-      orderBy: { name: 'asc' }
-    }),
-    prisma.manicurist.findMany({
-      where: { spaId: spa.id, isActive: true },
-      select: { id: true, name: true },
-      orderBy: { name: 'asc' }
-    }),
-    prisma.service.findMany({
-      where: { spaId: spa.id },
-      select: { id: true, type: true },
-      orderBy: { type: 'asc' }
-    })
-  ])
-
-  // Clean nulls to undefined for all appointments and their relations
-  const cleanedAppointments = appointments.map(a => ({
-    ...a,
-    manicuristId: a.manicuristId ?? undefined,
-    notes: a.notes ?? undefined,
-    client: {
-      ...a.client,
-      phone: a.client.phone ?? undefined,
-      email: a.client.email ?? undefined,
-      notes: a.client.notes ?? undefined,
-      birthday: a.client.birthday ?? undefined,
-    },
-    manicurist: a.manicurist
-      ? {
-          ...a.manicurist,
-          phone: a.manicurist.phone ?? undefined,
-          email: a.manicurist.email ?? undefined,
-        }
-      : undefined,
-    services: a.services
-      .filter(s => !!s.service && !!s.manicurist)
-      .map(s => ({
-        ...s,
-        appointment: {
-          ...a,
-          manicuristId: a.manicuristId ?? undefined,
-          notes: a.notes ?? undefined,
-        },
-        service: {
-          ...s.service,
-          description: s.service.description ?? undefined,
-          kitCost: s.service.kitCost ?? undefined,
-          taxRate: s.service.taxRate ?? undefined,
-          imageUrl: s.service.imageUrl ?? undefined,
-        },
-        startedAtByManicurist: s.startedAtByManicurist ?? undefined,
-        endedAtByManicurist: s.endedAtByManicurist ?? undefined,
-        startedAtByAdmin: s.startedAtByAdmin ?? undefined,
-        endedAtByAdmin: s.endedAtByAdmin ?? undefined,
-        durationAvg: s.durationAvg ?? undefined,
-        kitCost: s.kitCost ?? undefined,
-        taxRate: s.taxRate ?? undefined,
-        manicurist: {
-          ...s.manicurist,
-          phone: s.manicurist.phone ?? undefined,
-          email: s.manicurist.email ?? undefined,
-        },
-        payments: (s.payments ?? [])
-          .filter(p => !!p.paymentMethod)
-          .map(p => ({
+      manicurist: a.manicurist
+        ? {
+            ...a.manicurist,
+            phone: a.manicurist.phone ?? undefined,
+            email: a.manicurist.email ?? undefined,
+          }
+        : undefined,
+      services: (a.services.filter(isAppointmentServiceWithDetails) as AppointmentServiceWithDetails[])
+        .map((s) => ({
+          ...s,
+          startedAtByManicurist: s.startedAtByManicurist ?? undefined,
+          endedAtByManicurist: s.endedAtByManicurist ?? undefined,
+          startedAtByAdmin: s.startedAtByAdmin ?? undefined,
+          endedAtByAdmin: s.endedAtByAdmin ?? undefined,
+          durationAvg: s.durationAvg ?? undefined,
+          kitCost: s.kitCost ?? undefined,
+          taxRate: s.taxRate ?? undefined,
+          appointment: {
+            ...s.appointment,
+            manicuristId: s.appointment.manicuristId ?? undefined,
+            notes: s.appointment.notes ?? undefined,
+          },
+          service: {
+            ...s.service,
+            description: s.service.description ?? undefined,
+            kitCost: s.service.kitCost ?? undefined,
+            taxRate: s.service.taxRate ?? undefined,
+            imageUrl: s.service.imageUrl ?? undefined,
+          },
+          manicurist: {
+            ...s.manicurist,
+            phone: s.manicurist.phone ?? undefined,
+            email: s.manicurist.email ?? undefined,
+          },
+          payments: s.payments.map((p) => ({
             ...p,
             appointmentId: p.appointmentId ?? undefined,
             appointmentServiceId: p.appointmentServiceId ?? undefined,
             paymentMethod: {
               ...p.paymentMethod,
               type: p.paymentMethod.type ?? undefined,
-              icon: p.paymentMethod.icon ?? undefined
+              icon: p.paymentMethod.icon ?? undefined,
             },
             reference: p.reference ?? undefined,
             discountReason: p.discountReason ?? undefined,
           })),
-        feedback: s.feedback ? { ...s.feedback, comment: s.feedback.comment ?? undefined, submittedAt: s.feedback.submittedAt ?? undefined } : undefined,
-      })),
-    payments: (a.payments ?? [])
-      .filter(p => !!p.paymentMethod)
-      .map(p => ({
-        ...p,
-        appointmentId: p.appointmentId ?? undefined,
-        appointmentServiceId: p.appointmentServiceId ?? undefined,
-        paymentMethod: {
-          ...p.paymentMethod,
-          type: p.paymentMethod.type ?? undefined,
-          icon: p.paymentMethod.icon ?? undefined
-        },
-        reference: p.reference ?? undefined,
-        discountReason: p.discountReason ?? undefined,
-      })),
-  }))
+          feedback: s.feedback
+            ? {
+                ...s.feedback,
+                comment: s.feedback.comment ?? undefined,
+                submittedAt: s.feedback.submittedAt ?? undefined,
+              }
+            : undefined,
+        })),
+      payments: (a.payments ?? [])
+        .filter((p) => p.paymentMethod !== undefined && p.paymentMethod !== null)
+        .map((p) => ({
+          ...p,
+          appointmentId: p.appointmentId ?? undefined,
+          appointmentServiceId: p.appointmentServiceId ?? undefined,
+          paymentMethod: {
+            ...p.paymentMethod,
+            type: p.paymentMethod.type ?? undefined,
+            icon: p.paymentMethod.icon ?? undefined,
+          },
+          reference: p.reference ?? undefined,
+          discountReason: p.discountReason ?? undefined,
+        })),
+    }));
 
-  // Calculate stats
-  const stats = {
-    total: cleanedAppointments.length,
-    scheduled: cleanedAppointments.filter(a => a.status === 'SCHEDULED').length,
-    inProgress: cleanedAppointments.filter(a => a.status === 'IN_PROGRESS').length,
-    completed: cleanedAppointments.filter(a => a.status === 'COMPLETED').length,
-    cancelled: cleanedAppointments.filter(a => a.status === 'CANCELLED').length,
-    noShow: cleanedAppointments.filter(a => a.status === 'NO_SHOW').length
-  }
-
-  // Transform services to have name property
-  const servicesWithNames = services.map(service => ({
-    id: service.type,
-    name: service.type.replace(/_/g, ' ')
-  }))
-
-  return {
-    appointments: cleanedAppointments,
-    clients,
-    manicurists,
-    services: servicesWithNames,
-    stats
-  }
-}
-
-export default async function AppointmentsPage() {
-  const { appointments, clients, manicurists, services, stats } = await getAppointmentsData()
+  const stats = statsResult.success && statsResult.data
+    ? statsResult.data
+    : { total: 0, completed: 0, cancelled: 0 }
+  const clients = clientsResult.data || []
+  const manicurists = manicuristsResult.data || []
+  const services = servicesResult.data || []
 
   return (
-    <AppointmentsClient
+    <AppointmentsClientPage
+      appointments={cleanedAppointments}
+      stats={stats}
       clients={clients}
       manicurists={manicurists}
       services={services}
-    >
-      <AppointmentsSection appointments={appointments} stats={stats} />
-    </AppointmentsClient>
+    />
   )
 }
