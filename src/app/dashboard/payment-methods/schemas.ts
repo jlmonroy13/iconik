@@ -14,3 +14,13 @@ export const paymentMethodFormSchema = z.object({
 })
 
 export type PaymentMethodFormData = z.infer<typeof paymentMethodFormSchema>
+
+export const paymentMethodExtendedSchema = paymentMethodFormSchema.extend({
+  isActive: z.boolean(),
+  transactionFee: z
+    .number({ required_error: 'La comisión es obligatoria' })
+    .min(0, 'Debe ser 0 o mayor')
+    .max(1, 'Máximo 1 (100%)')
+})
+
+export type PaymentMethodExtendedFormData = z.infer<typeof paymentMethodExtendedSchema>

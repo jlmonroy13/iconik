@@ -21,6 +21,7 @@ export { Modal, ModalFooterButton } from './Modal'
 export { ConfirmDialog } from './ConfirmDialog'
 export { ItemActions } from './ItemActions'
 export { CurrencyInput } from './CurrencyInput'
+export { default as Switch } from './Switch'
 export {
   DropdownMenu,
   DropdownMenuTrigger,

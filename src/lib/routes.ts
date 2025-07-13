@@ -4,7 +4,8 @@ import {
   Calendar,
   Users,
   Paintbrush,
-  LineChart
+  LineChart,
+  CreditCard
 } from 'lucide-react'
 
 // Dashboard Routes - Single source of truth
@@ -18,6 +19,7 @@ export const ROUTES = {
   APPOINTMENTS: '/dashboard/appointments',
   CLIENTS: '/dashboard/clients',
   MANICURISTS: '/dashboard/manicurists',
+  PAYMENT_METHODS: '/dashboard/payment-methods',
   REPORTS: '/dashboard/reports',
   SETTINGS: '/dashboard/settings'
 } as const
@@ -48,6 +50,11 @@ export const NAVIGATION_ITEMS = [
     href: ROUTES.MANICURISTS,
     icon: Paintbrush,
     label: 'Manicuristas'
+  },
+  {
+    href: ROUTES.PAYMENT_METHODS,
+    icon: CreditCard,
+    label: 'Métodos de Pago'
   },
   {
     href: ROUTES.REPORTS,
@@ -96,6 +103,14 @@ export const HEADER_CONFIG = {
     action: {
       label: 'Nueva Manicurista',
       mobileLabel: 'Nueva'
+    }
+  },
+  [ROUTES.PAYMENT_METHODS]: {
+    title: 'Métodos de Pago',
+    subtitle: 'Administra los métodos de pago disponibles',
+    action: {
+      label: 'Nuevo Método',
+      mobileLabel: 'Nuevo'
     }
   },
   [ROUTES.REPORTS]: {
