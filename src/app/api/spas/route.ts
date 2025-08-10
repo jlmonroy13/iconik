@@ -28,21 +28,30 @@ export async function GET(request: NextRequest) {
     // Get authenticated user
     const userId = await getUserIdFromRequest()
 
-    // Get user's spa access
+    // Get user's role and spa access
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { spaId: true }
+      select: { spaId: true, role: true, isSuperAdmin: true }
     })
 
-    if (!user || !user.spaId) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'User not associated with any spa' },
-        { status: 403 }
+        { error: 'User not found' },
+        { status: 404 }
       )
     }
 
-    const where: Record<string, unknown> = {
-      id: user.spaId // Only show user's spa
+    // Super admins can see all spas, regular users only see their spa
+    const where: Record<string, unknown> = {}
+
+    if (!user.isSuperAdmin && user.role !== 'SUPER_ADMIN') {
+      if (!user.spaId) {
+        return NextResponse.json(
+          { error: 'User not associated with any spa' },
+          { status: 403 }
+        )
+      }
+      where.id = user.spaId // Only show user's spa
     }
 
     if (isActive !== null) {
@@ -67,6 +76,7 @@ export async function GET(request: NextRequest) {
             manicurists: true,
             clients: true,
             appointments: true,
+            users: true,
           }
         }
       }

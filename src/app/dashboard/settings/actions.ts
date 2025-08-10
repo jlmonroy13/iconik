@@ -2,8 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { auth } from '@/../../auth'
-import { redirect } from 'next/navigation'
+import { getCurrentSpaId } from '@/lib/utils/spa-utils'
 import {
   SpaSettingsSchema,
   OperatingHoursSchema,
@@ -17,11 +16,7 @@ import {
 
 // Helper function to get spa ID from session
 async function getSpaId() {
-  const session = await auth()
-  if (!session?.user?.spaId) {
-    redirect('/onboarding')
-  }
-  return session.user.spaId
+  return await getCurrentSpaId()
 }
 
 export async function updateSpaSettings(data: SpaSettingsFormValues) {

@@ -1,15 +1,9 @@
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/../../auth'
-import { redirect } from 'next/navigation'
+import { getCurrentSpaId } from '@/lib/utils/spa-utils'
 import type { DashboardStats } from '@/app/dashboard/types/dashboard'
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const session = await auth()
-  if (!session?.user?.spaId) {
-    redirect('/onboarding')
-  }
-
-  const spaId = session.user.spaId
+  const spaId = await getCurrentSpaId()
   const today = new Date()
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
   const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59)

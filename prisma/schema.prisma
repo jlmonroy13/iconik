@@ -841,6 +841,7 @@ model ExpensePayment {
 // =====================================================
 
 enum UserRole {
+  SUPER_ADMIN // System super administrator
   ADMIN // Spa owner/administrator
   MANICURIST // Nail technician
   CLIENT // Regular customer

@@ -1,16 +1,11 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/../../auth'
-import { redirect } from 'next/navigation'
+import { getCurrentSpaId } from '@/lib/utils/spa-utils'
 
 // Helper function to get spa ID from session
 async function getSpaId() {
-  const session = await auth()
-  if (!session?.user?.spaId) {
-    redirect('/onboarding')
-  }
-  return session.user.spaId
+  return await getCurrentSpaId()
 }
 
 export async function getAppointments() {

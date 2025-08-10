@@ -36,24 +36,48 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 
-## Prisma Studio
+## Database Management (Development Mode)
+
+This project is configured for development mode without migrations. The database schema is applied directly using `db push`.
+
+### Prisma Studio
 
 To open Prisma Studio and visually explore/modify the database:
 
 ```bash
+npm run db:studio
+# or
 npx prisma studio
 ```
 
-## Prisma Migrations & Client Generation
+### Database Operations
 
-To apply schema changes and update your database, run:
+To apply schema changes to your database:
 
 ```bash
-npm exec prisma migrate dev
+npm run db:push
+# or
+npx prisma db push
+```
+
+To reset the database and seed with initial data:
+
+```bash
+npm run db:reset
+# or
+npx prisma db push --force-reset && npm run db:seed
+```
+
+To seed the database with initial data:
+
+```bash
+npm run db:seed
+# or
+npx prisma db seed
 ```
 
 To manually regenerate the Prisma client (if needed):
 
 ```bash
-npm exec prisma generate
+npx prisma generate
 ```

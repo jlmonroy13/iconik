@@ -94,6 +94,16 @@ export default function LoginPage() {
                 Te enviaremos un enlace mágico a tu correo electrónico para iniciar sesión de forma segura.
               </p>
             </div>
+
+            {/* Super Admin Link */}
+            <div className="mt-4 text-center">
+              <a
+                href="/superadmin/login"
+                className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 underline"
+              >
+                ¿Eres Super Administrador? Accede aquí
+              </a>
+            </div>
           </CardContent>
         </Card>
 
