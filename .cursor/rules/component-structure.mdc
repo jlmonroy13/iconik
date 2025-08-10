@@ -1,0 +1,75 @@
+---
+description: Defines the structure and organization of components in the project.
+globs: ["**/*"]
+alwaysApply: true
+priority: 100
+---
+
+# Component Structure Convention
+
+## Folder-based Components with Index Files
+All components should follow the folder + index.ts pattern for better organization and maintainability.
+
+**✅ Correct Pattern:**
+```
+components/
+├── ComponentName/
+│   ├── ComponentName.tsx
+│   └── index.ts
+```
+
+**❌ Avoid:**
+```
+components/
+├── ComponentName.tsx (single file)
+```
+
+## Index.ts Convention
+The `index.ts` file should export the main component as default:
+
+```typescript
+// components/ComponentName/index.ts
+export { default } from './ComponentName';
+```
+
+## Examples of Good Structure
+- `components/Dashboard/Dashboard.tsx` + `components/Dashboard/index.ts`
+- `components/Sidebar/Sidebar.tsx` + `components/Sidebar/index.ts`
+- `components/ProductManagement/ProductManagement.tsx` + `components/ProductManagement/index.ts`
+
+## Import Convention
+Always import components using the folder path (which resolves to index.ts):
+
+```typescript
+// ✅ Correct
+import Dashboard from "../components/Dashboard";
+import Sidebar from "../components/Sidebar";
+import ProductManagement from "../components/ProductManagement";
+
+// ❌ Avoid
+import Dashboard from "../components/Dashboard/Dashboard";
+```
+
+## When to Use This Pattern
+- For any component that might have multiple related files
+- For components that are likely to grow in complexity
+- For components that might need additional utilities, types, or styles
+- For consistency across the codebase
+
+## Exceptions
+- Very simple utility components (1-2 lines) can remain as single files
+- Third-party component wrappers that are unlikely to expand
+
+## Refactoring Guidelines
+When creating new components or refactoring existing ones:
+1. Create a folder with the component name
+2. Move the component file into the folder
+3. Create an `index.ts` file that exports the component
+4. Update all imports to use the folder path
+5. Remove the old single-file component
+
+This pattern improves:
+- Code organization
+- Maintainability
+- Scalability
+- Consistency across the project

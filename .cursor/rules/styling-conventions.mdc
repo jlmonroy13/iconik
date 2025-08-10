@@ -1,0 +1,190 @@
+---
+description: Guidelines for consistent styling across the project.
+globs: ["**/*"]
+alwaysApply: true
+priority: 100
+---
+
+# Styling Conventions
+
+## Tailwind CSS Guidelines
+
+### Class Organization
+- Group related classes together
+- Use consistent ordering: layout → spacing → typography → colors → effects
+- Use Tailwind's built-in responsive prefixes
+
+```typescript
+// ✅ Good organization
+<div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+  <h2 className="text-lg font-semibold text-gray-900">Title</h2>
+  <button className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    Action
+  </button>
+</div>
+```
+
+### Conditional Styling with classnames
+- Use the `classnames` library (imported as `cn`) for conditional styling
+- Organize conditional classes using object syntax for better readability
+- Keep base classes separate from conditional classes
+- Use descriptive boolean variables for conditional logic
+
+```typescript
+// ✅ Good - Using classnames for conditional styling
+import cn from "classnames";
+
+// Base classes with conditional variants
+<div
+  className={cn(
+    "fixed lg:static inset-y-0 left-0 z-50 bg-white border-r border-gray-200",
+    "shadow-lg lg:shadow-none transition-all duration-300 ease-in-out lg:translate-x-0",
+    {
+      "translate-x-0": sidebarOpen,
+      "-translate-x-full": !sidebarOpen,
+      "w-16": sidebarCollapsed,
+      "w-64": !sidebarCollapsed,
+    }
+  )}
+>
+
+// Conditional padding based on state
+<div
+  className={cn("transition-all duration-300 py-4", {
+    "px-2": sidebarCollapsed,
+    "px-4": !sidebarCollapsed,
+  })}
+>
+
+// Complex conditional styling with multiple states
+<Link
+  href={item.href}
+  className={cn(
+    "w-full flex items-center min-h-[44px] rounded-lg text-left transition-all duration-200 h-11 select-none",
+    {
+      "justify-center px-2": sidebarCollapsed,
+      "justify-start px-3": !sidebarCollapsed,
+      "bg-amber-50 text-amber-700 border border-amber-200": isActive,
+      "text-gray-700 hover:bg-gray-50 active:bg-gray-200": !isActive,
+    }
+  )}
+>
+
+// Conditional visibility and opacity
+<span
+  className={cn(
+    "ml-3 font-medium transition-all duration-300 whitespace-nowrap",
+    {
+      "sr-only opacity-0": sidebarCollapsed,
+      "opacity-100": !sidebarCollapsed,
+    }
+  )}
+>
+
+// Conditional transforms and animations
+<ChevronLeft
+  size={20}
+  className={cn("transform transition-transform duration-300", {
+    "rotate-180": sidebarCollapsed,
+  })}
+/>
+```
+
+### When to Use classnames
+- **Conditional styling**: When classes depend on component state or props
+- **Multiple variants**: When a component has different visual states
+- **Responsive behavior**: When styling changes based on screen size or user interaction
+- **Theme variations**: When applying different themes or color schemes
+- **Accessibility states**: When styling changes based on focus, hover, or disabled states
+
+### When NOT to Use classnames
+- **Static styling**: Use regular className strings for unchanging styles
+- **Simple conditionals**: For single class toggles, consider inline conditionals
+- **Performance-critical**: Avoid complex classnames in frequently re-rendered components
+
+```typescript
+// ❌ Avoid - Over-engineering simple conditionals
+<div className={cn("base-class", { "active": isActive })}>
+
+// ✅ Better - Simple inline conditional
+<div className={`base-class ${isActive ? 'active' : ''}`}>
+
+// ✅ Good - Complex conditionals with classnames
+<div className={cn(
+  "base-class",
+  {
+    "active": isActive,
+    "disabled": isDisabled,
+    "loading": isLoading,
+    "error": hasError,
+  }
+)>
+```
+
+### Color Usage
+- Use the project's color palette consistently
+- Primary: amber-600 (brand color)
+- Secondary: gray variants
+- Success: green variants
+- Warning: yellow/orange variants
+- Error: red variants
+
+### Responsive Design
+- Mobile-first approach
+- Use responsive prefixes: `sm:`, `md:`, `lg:`, `xl:`
+- Test on multiple screen sizes
+
+### Component Styling
+- Use consistent spacing (4, 8, 12, 16, 20, 24, 32, 48, 64)
+- Maintain consistent border radius (rounded, rounded-lg, rounded-xl)
+- Use consistent shadows (shadow-sm, shadow, shadow-lg)
+
+## UI/UX Guidelines
+
+### Layout Patterns
+- Use consistent grid systems
+- Maintain proper spacing between sections
+- Use cards for content grouping
+- Implement consistent padding and margins
+
+### Interactive Elements
+- Provide hover and focus states
+- Use consistent button styles
+- Implement proper loading states
+- Add smooth transitions
+
+### Form Design
+- Use consistent form layouts
+- Provide clear validation feedback
+- Use appropriate input types
+- Implement proper error handling
+
+### Typography
+- Use consistent font sizes and weights
+- Maintain proper line heights
+- Use semantic heading hierarchy
+- Ensure good contrast ratios
+
+## Accessibility in Styling
+
+### Color Contrast
+- Ensure sufficient contrast ratios (WCAG AA compliance)
+- Don't rely solely on color for information
+- Test with color blindness simulators
+
+### Focus Indicators
+- Provide visible focus indicators
+- Use consistent focus styles
+- Ensure focus is not removed with CSS
+
+### Responsive Accessibility
+- Ensure touch targets are large enough (44px minimum)
+- Maintain proper spacing for touch interactions
+- Test with screen readers on mobile
+
+- Ensure focus is not removed with CSS
+
+### Responsive Accessibility
+- Ensure touch targets are large enough (44px minimum)
+- Maintain proper spacing for touch interactions
+- Test with screen readers on mobile

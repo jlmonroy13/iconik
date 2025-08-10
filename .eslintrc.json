@@ -1,0 +1,31 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "arrow-body-style": "off",
+    "prefer-arrow-callback": "off"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    ".next/",
+    "out/",
+    "build/",
+    "dist/",
+    "coverage/",
+    "*.generated.*",
+    "*.d.ts",
+    "next-env.d.ts",
+    "prisma/migrations/",
+    ".taskmaster/",
+    "public/",
+    ".git/",
+    ".vscode/",
+    ".github/",
+    "scripts/",
+    "*.config.*"
+  ]
+}

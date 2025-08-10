@@ -1,0 +1,244 @@
+---
+description: Enforce the use of Next.js Image component instead of native img elements for automatic optimization
+globs: src/**/*.{tsx,ts,jsx,js}
+alwaysApply: true
+---
+
+# Next.js Image Optimization Rule
+
+## Purpose
+
+Ensure all images in the application use Next.js's optimized `<Image />` component instead of native `<img>` elements to improve loading performance, reduce bandwidth usage, and provide automatic image optimization.
+
+## Rule Enforcement
+
+### ✅ REQUIRED - Use Next.js Image Component
+
+```tsx
+// ✅ Good - Using Next.js Image component
+import Image from "next/image";
+
+<Image
+  src="/path/to/image.jpg"
+  alt="Description of image"
+  width={300}
+  height={200}
+  className="object-cover rounded-lg"
+/>;
+```
+
+### ❌ FORBIDDEN - Native img Elements
+
+```tsx
+// ❌ Forbidden - Using native img element
+<img
+  src="/path/to/image.jpg"
+  alt="Description of image"
+  className="w-12 h-12 object-cover rounded-lg"
+/>
+```
+
+## Implementation Requirements
+
+### Import Statement
+
+Always import the Image component at the top of the file:
+
+```tsx
+import Image from "next/image";
+```
+
+### Required Props
+
+The `<Image />` component must include:
+
+- **src**: Image source path
+- **alt**: Descriptive alt text for accessibility
+- **width**: Explicit width in pixels
+- **height**: Explicit height in pixels
+
+### Optional Props
+
+- **className**: For styling (remove width/height classes)
+- **priority**: Set to `true` for above-the-fold images
+- **fill**: Use instead of width/height for responsive images
+- **sizes**: For responsive images with fill prop
+
+## Common Patterns
+
+### Fixed Size Images
+
+```tsx
+// ✅ Good - Fixed size product image
+<Image
+  src={product.image || "/placeholder.jpg"}
+  alt={product.name}
+  width={48}
+  height={48}
+  className="object-cover rounded-lg border border-gray-200"
+/>
+```
+
+### Responsive Images
+
+```tsx
+// ✅ Good - Responsive hero image
+<div className="relative w-full h-64">
+  <Image
+    src="/hero-image.jpg"
+    alt="Hero section"
+    fill
+    className="object-cover"
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  />
+</div>
+```
+
+### Priority Images (Above the Fold)
+
+```tsx
+// ✅ Good - Priority image for LCP optimization
+<Image
+  src="/hero-banner.jpg"
+  alt="Main banner"
+  width={1200}
+  height={400}
+  priority
+  className="w-full h-auto"
+/>
+```
+
+## Migration Guidelines
+
+### Converting from img to Image
+
+1. **Add import**: `import Image from 'next/image';`
+2. **Replace tag**: `<img>` → `<Image>`
+3. **Add dimensions**: Convert CSS width/height to props
+4. **Remove size classes**: Remove `w-* h-*` from className
+5. **Keep styling**: Maintain other classes like `object-cover`, `rounded-lg`, etc.
+
+### Size Conversion Reference
+
+```tsx
+// Tailwind to pixels conversion
+w-8 h-8   → width={32} height={32}
+w-12 h-12 → width={48} height={48}
+w-16 h-16 → width={64} height={64}
+w-20 h-20 → width={80} height={80}
+w-24 h-24 → width={96} height={96}
+w-32 h-32 → width={128} height={128}
+```
+
+## External Image Handling
+
+### External Domains
+
+For external images, configure domains in `next.config.ts`:
+
+```tsx
+// next.config.ts
+const nextConfig = {
+  images: {
+    domains: ["via.placeholder.com", "example.com"],
+  },
+};
+```
+
+### Remote Patterns (Recommended)
+
+Use remote patterns for better security:
+
+```tsx
+// next.config.ts
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
+};
+```
+
+## Performance Benefits
+
+### Automatic Optimization
+
+- **Format conversion**: Automatically serves WebP/AVIF when supported
+- **Responsive images**: Generates multiple sizes for different devices
+- **Lazy loading**: Images load only when needed
+- **Placeholder generation**: Shows blur placeholder while loading
+
+### Loading Performance
+
+- **LCP improvement**: Faster Largest Contentful Paint
+- **Bandwidth reduction**: Optimized image sizes
+- **Caching**: Better browser caching strategies
+
+## Code Review Checklist
+
+### Image Implementation Review
+
+- [ ] Uses `import Image from 'next/image'`
+- [ ] Replaces all `<img>` elements with `<Image>`
+- [ ] Includes required props: `src`, `alt`, `width`, `height`
+- [ ] Removes width/height classes from className
+- [ ] Maintains other styling classes
+- [ ] Uses `priority` for above-the-fold images
+- [ ] Uses `fill` with `sizes` for responsive images
+- [ ] External images are properly configured in next.config.ts
+
+### Migration Verification
+
+- [ ] No native `<img>` elements remain
+- [ ] All images have proper alt text
+- [ ] Dimensions are correctly converted
+- [ ] Styling is preserved
+- [ ] Performance improvements are measurable
+
+## Exceptions
+
+### SVG Icons
+
+SVG icons can use native `<svg>` elements:
+
+```tsx
+// ✅ Allowed - SVG icons
+<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+  <path d="..." />
+</svg>
+```
+
+### Dynamic SVG Content
+
+For dynamic SVG content that can't be optimized:
+
+```tsx
+// ✅ Allowed - Dynamic SVG with proper justification
+<img
+  src={`data:image/svg+xml;base64,${btoa(svgContent)}`}
+  alt="Dynamic chart"
+  className="w-full h-auto"
+/>
+```
+
+## Benefits
+
+1. **Performance**: Automatic image optimization and lazy loading
+2. **Bandwidth**: Reduced data usage through format optimization
+3. **SEO**: Better Core Web Vitals scores
+4. **User Experience**: Faster page loads and better perceived performance
+5. **Accessibility**: Built-in alt text requirements
+6. **Maintainability**: Consistent image handling across the application
+
+## Enforcement
+
+- **Code Reviews**: Check for proper Image component usage
+- **Linting**: Consider adding ESLint rules for img element detection
+- **Documentation**: Keep this rule updated with new patterns
+- **Training**: Ensure team understands Image component benefits

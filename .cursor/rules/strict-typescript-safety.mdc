@@ -1,0 +1,265 @@
+---
+description: Enforces strict type safety in TypeScript code to prevent runtime errors and ensure code reliability. Prohibits unsafe type patterns like `any`, type assertions without validation, and provides better alternatives.
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: true
+---
+
+# Strict TypeScript Type Safety
+
+## TypeScript Best Practices
+
+### Type Safety Enforcement
+- Never use `any` type - it defeats TypeScript's type system
+- Avoid type assertions using `as` without proper validation
+- Never use `@ts-ignore` or `@ts-expect-error` comments
+- Avoid non-null assertion operator (`!`) without justification
+- Prevent unsafe type casting patterns
+
+```typescript
+// ❌ FORBIDDEN - any type usage
+function processData(data: any): any {
+  return data.someProperty;
+}
+
+const user: any = getUser();
+const result = user.unknownMethod(); // No type checking!
+
+// ✅ GOOD - Proper interfaces
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+}
+
+function processData(data: UserData): string {
+  return data.name;
+}
+
+// ✅ GOOD - Use unknown for truly unknown data
+function processUnknownData(data: unknown): string {
+  if (typeof data === 'object' && data !== null && 'name' in data) {
+    return (data as { name: string }).name;
+  }
+  throw new Error('Invalid data format');
+}
+```
+
+### Type Assertions and Casting
+- Use type guards for runtime validation instead of type assertions
+- Implement proper error handling for type conversions
+- Use generics for flexible but type-safe functions
+
+```typescript
+// ❌ FORBIDDEN - Unsafe type assertions
+const element = document.getElementById('button') as HTMLButtonElement;
+const user = response.data as User;
+const value = someValue as string;
+
+// ✅ GOOD - Type guards for runtime validation
+function isHTMLButtonElement(element: Element): element is HTMLButtonElement {
+  return element instanceof HTMLButtonElement;
+}
+
+const element = document.getElementById('button');
+if (element && isHTMLButtonElement(element)) {
+  element.disabled = true;
+}
+
+// ✅ GOOD - Proper API response types
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+const response: ApiResponse<User> = await fetchUser();
+const user = response.data; // Type-safe!
+```
+
+### Null and Undefined Handling
+- Use optional chaining and nullish coalescing
+- Implement proper null checking instead of non-null assertions
+- Use proper error handling for required values
+
+```typescript
+// ❌ FORBIDDEN - Non-null assertion operator
+const element = document.getElementById('button')!;
+const user = getUser()!;
+const value = someObject.property!;
+
+// ✅ GOOD - Proper null checking
+const element = document.getElementById('button');
+if (element) {
+  element.disabled = true;
+}
+
+// ✅ GOOD - Optional chaining and nullish coalescing
+const user = getUser();
+const userName = user?.name ?? 'Unknown User';
+
+// ✅ GOOD - Proper error handling
+function getRequiredElement(id: string): HTMLElement {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error(`Element with id '${id}' not found`);
+  }
+  return element;
+}
+```
+
+### Type Guards and Validation
+- Create type guards for runtime type checking
+- Use discriminated unions for complex state management
+- Implement proper validation functions
+
+```typescript
+// ✅ GOOD - Type guards
+function isUser(obj: unknown): obj is User {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'name' in obj &&
+    'email' in obj
+  );
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function isNumber(value: unknown): value is number {
+  return typeof value === 'number' && !isNaN(value);
+}
+
+// ✅ GOOD - Discriminated unions
+type ApiResult<T> = 
+  | { status: 'success'; data: T }
+  | { status: 'error'; error: string };
+
+function handleApiResult<T>(result: ApiResult<T>): T {
+  if (result.status === 'success') {
+    return result.data;
+  }
+  throw new Error(result.error);
+}
+```
+
+### Generic Functions
+- Use generics for type-safe reusable functions
+- Maintain type safety while providing flexibility
+- Use proper constraints when needed
+
+```typescript
+// ✅ GOOD - Generic functions
+function createApiResponse<T>(data: T, status: number, message: string): ApiResponse<T> {
+  return { data, status, message };
+}
+
+function mapArray<T, U>(array: T[], mapper: (item: T) => U): U[] {
+  return array.map(mapper);
+}
+
+function filterArray<T>(array: T[], predicate: (item: T) => boolean): T[] {
+  return array.filter(predicate);
+}
+
+// ✅ GOOD - Generic with constraints
+function processUserData<T extends User>(user: T): T {
+  // Process user data while maintaining type safety
+  return user;
+}
+```
+
+### Error Handling
+- Create custom error classes for better error management
+- Use proper try-catch blocks for type conversions
+- Provide meaningful error messages
+
+```typescript
+// ✅ GOOD - Custom error classes
+class ValidationError extends Error {
+  constructor(message: string, public field?: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+function validateUser(data: unknown): User {
+  if (!isUser(data)) {
+    throw new ValidationError('Invalid user data');
+  }
+  return data;
+}
+
+// ✅ GOOD - Safe JSON parsing with validation
+function safeParseJSON<T>(json: string, validator: (data: unknown) => data is T): T {
+  try {
+    const parsed = JSON.parse(json);
+    if (validator(parsed)) {
+      return parsed;
+    }
+    throw new ValidationError('Invalid JSON structure');
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new ValidationError('Invalid JSON format');
+    }
+    throw error;
+  }
+}
+```
+
+## ESLint Configuration
+
+### Type Safety Rules
+Add these ESLint rules to enforce type safety:
+
+```json
+{
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-non-null-assertion": "error",
+    "@typescript-eslint/ban-ts-comment": "error",
+    "@typescript-eslint/no-unsafe-assignment": "error",
+    "@typescript-eslint/no-unsafe-call": "error",
+    "@typescript-eslint/no-unsafe-member-access": "error",
+    "@typescript-eslint/no-unsafe-return": "error",
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/prefer-optional-chain": "error"
+  }
+}
+```
+
+## Code Review Guidelines
+
+### Type Safety Checklist
+When reviewing code, ensure:
+
+- [ ] No `any` types are used
+- [ ] No type assertions (`as`) without proper validation
+- [ ] No `@ts-ignore` or `@ts-expect-error` comments
+- [ ] No non-null assertion operators (`!`)
+- [ ] All functions have explicit return types
+- [ ] All parameters have explicit types
+- [ ] Proper error handling is implemented
+- [ ] Type guards are used for runtime validation
+- [ ] Generics are used for flexible but type-safe functions
+- [ ] Discriminated unions are used for complex state management
+
+### Benefits
+Following these rules will:
+
+1. **Prevent Runtime Errors**: Catch type-related issues at compile time
+2. **Improve Code Quality**: Force explicit type definitions
+3. **Enhance Maintainability**: Make code easier to understand and modify
+4. **Better IDE Support**: Get better autocomplete and error detection
+5. **Safer Refactoring**: TypeScript can catch breaking changes
+6. **Documentation**: Types serve as inline documentation
+
+### Exceptions
+The only acceptable exceptions are:
+
+1. **Third-party library integration** where types are truly unknown
+2. **Legacy code migration** (temporary, with clear migration plan)
+3. **Performance-critical code** (with proper benchmarking justification)
+

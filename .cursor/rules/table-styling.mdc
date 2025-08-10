@@ -1,0 +1,123 @@
+---
+description: Establish consistent, accessible, and maintainable styles for all tables in the application. Defines table structure, button interactions, badges, responsiveness, and accessibility requirements.
+globs: ["**/*.tsx"]
+alwaysApply: true
+---
+
+# Table Styling Conventions
+
+## Purpose
+Establish a consistent, accessible, and maintainable style for all tables in the application. These rules are based on the patterns in `CategoriesTable.tsx` and `IngredientTable.tsx` and must be followed for all new and refactored tables.
+
+
+## Table Structure
+
+### Container
+- Always wrap tables in `<div className="overflow-x-auto">` to enable horizontal scrolling on small screens.
+- Use `<table className="w-full">` to ensure the table fills its container.
+
+### Table Head
+- Use `<thead>` with a single `<tr>` for column headers.
+- Header row: `className="border-b border-gray-200 bg-gray-50"`
+- Header cells (`<th>`):
+  - `className="text-left py-4 px-4 font-medium text-gray-700"`
+  - Use `text-right` for action columns if needed.
+
+### Table Body
+- Each row (`<tr>`) should have `className="border-b border-gray-100"` for clear separation.
+- Data cells (`<td>`):
+  - `className="py-4 px-4"` for consistent padding.
+  - Use `font-medium text-gray-900` for primary data.
+  - Use `text-sm text-gray-600` for secondary data.
+
+### Actions Column
+- Action buttons should be right-aligned using `text-right` on `<th>` and `justify-end` on a flex container in `<td>`.
+- Use a `div` with `flex items-center gap-2` for action buttons.
+
+
+## Buttons and Interactions
+- Use the reusable `Button` component with `variant="ghost"` and `size="sm"` for all table actions.
+- The delete button must have `text-red-600 hover:text-red-700 hover:bg-red-50`.
+- Use Lucide icons (e.g., `Edit`, `Trash2`) at 14–16px.
+- Ensure a minimum touch area: `min-w-[44px] min-h-[44px] p-2`.
+- Add `aria-label` for accessibility.
+
+
+## Badges and Status
+- Use the `Badge` component for status, units, or metadata.
+- Example: `<Badge variant="info" size="sm">{ingredient.unit}</Badge>`
+- For status (e.g., stock): use `success`, `warning`, or `danger` variants.
+
+
+## Responsiveness & Accessibility
+- Always use `overflow-x-auto` for mobile compatibility.
+- Use `text-sm` for secondary info, `font-medium` for main data.
+- Ensure color contrast (see styling-conventions.mdc).
+- All action buttons must have `aria-label`.
+
+
+## Empty State
+- If the table is empty, render the `EmptyState` component with a relevant icon and message.
+
+
+## Example Table Head
+```tsx
+<thead>
+  <tr className="border-b border-gray-200 bg-gray-50">
+    <th className="text-left py-4 px-4 font-medium text-gray-700">Nombre</th>
+    <th className="text-left py-4 px-4 font-medium text-gray-700">Fecha de Creación</th>
+    <th className="text-right py-4 px-4 font-medium text-gray-700">Acciones</th>
+  </tr>
+</thead>
+```
+
+## Example Table Row
+```tsx
+<tr className="border-b border-gray-100">
+  <td className="py-4 px-4">
+    <div className="font-medium text-gray-900">{item.name}</div>
+  </td>
+  <td className="py-4 px-4">
+    <Badge variant="info" size="sm">{item.unit}</Badge>
+  </td>
+  <td className="py-4 px-4">
+    <div className="flex items-center gap-2">
+      <span className="font-medium">{item.stock}</span>
+      <Badge variant={stockStatus.variant} size="sm">{stockStatus.text}</Badge>
+    </div>
+  </td>
+  <td className="py-4 px-4">
+    <div className="flex items-center justify-end gap-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        leftIcon={<Edit size={14} />}
+        onClick={() => onEdit(item)}
+        aria-label={`Editar ${item.name}`}
+      >
+        Editar
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        leftIcon={<Trash2 size={14} />}
+        onClick={() => onDelete(item)}
+        aria-label={`Eliminar ${item.name}`}
+        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+      >
+        Eliminar
+      </Button>
+    </div>
+  </td>
+</tr>
+```
+
+
+## Summary Checklist
+- [ ] Table is wrapped in `overflow-x-auto` container
+- [ ] Consistent padding and font styles on all cells
+- [ ] Header row uses `bg-gray-50` and border
+- [ ] Action buttons use `Button` component and proper classes
+- [ ] Badges are used for status/metadata
+- [ ] Table is accessible and responsive
+- [ ] Empty state uses `EmptyState` component

@@ -1,0 +1,126 @@
+---
+description: Git operations must be explicitly requested by the user
+globs: "**/*"
+alwaysApply: true
+---
+
+# Git Operations Rule
+
+## Purpose
+Prevent unauthorized Git operations that could affect the repository state without explicit user permission.
+
+## Rule Enforcement
+
+### ❌ FORBIDDEN - Unauthorized Git Operations
+- **NO git add** without explicit user request
+- **NO git commit** without explicit user request  
+- **NO git push** without explicit user request
+- **NO git stash** without explicit user request
+- **NO git reset** without explicit user request
+- **NO git merge** without explicit user request
+- **NO git branch** operations without explicit user request
+
+### ✅ ALLOWED - Git Operations with Explicit Permission
+- **git status** - To check repository state
+- **git log** - To view commit history
+- **git diff** - To view changes
+- **git show** - To view specific commits
+- **git branch** - To list branches (read-only)
+- **git remote** - To view remote configuration
+
+## Explicit Permission Requirements
+
+### Required Phrase Patterns
+The user must explicitly request Git operations using clear language:
+
+**✅ Explicit Requests:**
+- "Haz commit de los cambios"
+- "Agrega y haz commit de los cambios"
+- "Haz push de los cambios"
+- "Ejecuta git add ."
+- "Haz commit con el mensaje '...'"
+- "Sube los cambios al repositorio"
+
+**❌ Implicit or Ambiguous Requests:**
+- "Guarda los cambios" (ambiguous)
+- "Actualiza el repositorio" (ambiguous)
+- "Sincroniza" (ambiguous)
+
+## Code Changes vs Git Operations
+
+### Allowed Without Git Operations
+- **File editing** - Modify, create, delete files
+- **Code refactoring** - Restructure code
+- **Component creation** - Create new components
+- **Type definitions** - Add/modify TypeScript types
+- **Configuration changes** - Update config files
+
+### Requires Explicit Permission
+- **Version control operations** - Any git command that changes repository state
+- **Commit creation** - Saving changes to Git history
+- **Repository synchronization** - Pushing/pulling changes
+
+## Exception Handling
+
+### Emergency Situations
+Only in critical situations where data loss is imminent:
+- **Auto-save functionality** - If explicitly configured
+- **Backup operations** - If part of automated workflow
+- **Recovery operations** - To restore from errors
+
+### Documentation Requirements
+When exceptions are made:
+- Document the reason for the exception
+- Notify the user immediately
+- Provide rollback instructions if needed
+
+## User Communication
+
+### Before Git Operations
+Always confirm with the user:
+1. **What operation** will be performed
+2. **Which files** will be affected
+3. **What commit message** will be used (if applicable)
+4. **Any potential risks** or side effects
+
+### After Git Operations
+Provide clear feedback:
+1. **Operation result** (success/failure)
+2. **Files affected** and their status
+3. **Next steps** or recommendations
+4. **Any warnings** or issues encountered
+
+## Examples
+
+### ✅ Good - Explicit Request
+```
+User: "Haz commit de todos los cambios con el mensaje 'feat: add new user interface'"
+Agent: "Ejecutando git add . y git commit -m 'feat: add new user interface'..."
+```
+
+### ❌ Bad - Implicit Request
+```
+User: "Guarda los cambios"
+Agent: "Los cambios están listos. ¿Quieres que haga commit?"
+```
+
+### ✅ Good - Status Check
+```
+User: "¿Cuál es el estado del repositorio?"
+Agent: "Ejecutando git status para verificar el estado actual..."
+```
+
+## Benefits
+
+1. **User Control**: User maintains full control over repository state
+2. **Prevention of Accidents**: No accidental commits or pushes
+3. **Clear Communication**: Explicit requests reduce misunderstandings
+4. **Audit Trail**: All Git operations are intentional and documented
+5. **Team Safety**: Prevents conflicts in collaborative environments
+
+## Enforcement
+
+- **Code Reviews**: Check for unauthorized Git operations
+- **Documentation**: Keep this rule updated with new patterns
+- **Training**: Ensure understanding of explicit permission requirements
+- **Monitoring**: Track compliance with this rule

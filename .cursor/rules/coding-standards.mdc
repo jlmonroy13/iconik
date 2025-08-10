@@ -1,0 +1,91 @@
+---
+description: Guidelines for writing clean, maintainable, and accessible code.
+globs: ["**/*"]
+alwaysApply: true
+priority: 100
+---
+
+# Coding Standards
+
+## TypeScript Best Practices
+
+### Type Safety
+- Always use explicit types for function parameters and return values
+- Avoid using `any` type - use proper TypeScript types instead
+- Use interfaces for object shapes and types for unions/primitives
+
+### Component Props
+- Always define interfaces for component props
+- Use descriptive prop names
+- Make optional props explicit with `?`
+
+```typescript
+// ✅ Good
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary';
+  disabled?: boolean;
+}
+
+// ❌ Avoid
+interface ButtonProps {
+  label: any;
+  onClick: any;
+  variant: any;
+}
+```
+
+## React Best Practices
+
+### Component Structure
+- Use functional components with hooks
+- Keep components focused and single-purpose
+- Extract reusable logic into custom hooks
+- Use proper naming conventions (PascalCase for components)
+
+### State Management
+- Use `useState` for local component state
+- Use `useEffect` for side effects
+- Keep state as close to where it's used as possible
+- Consider context for shared state across components
+
+### Performance
+- Use `React.memo` for expensive components
+- Use `useCallback` and `useMemo` when appropriate
+- Avoid creating objects/functions in render
+
+## File Organization
+
+### Naming Conventions
+- Components: PascalCase (e.g., `UserProfile.tsx`)
+- Files: kebab-case or PascalCase
+- Folders: kebab-case
+- Constants: UPPER_SNAKE_CASE
+- Functions: camelCase
+
+### Import Order
+1. React and external libraries
+2. Internal components
+3. Utilities and helpers
+4. Types and interfaces
+5. Constants
+
+## Code Style
+
+### Comments
+- Write meaningful comments for complex logic
+- Use JSDoc for function documentation
+- Comment the "why" not the "what"
+
+### Error Handling
+- Always handle potential errors
+- Use try-catch blocks for async operations
+- Provide meaningful error messages
+- Log errors appropriately
+
+## Accessibility
+- Use semantic HTML elements
+- Include proper ARIA labels
+- Ensure keyboard navigation works
+- Test with screen readers

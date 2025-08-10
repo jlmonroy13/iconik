@@ -1,0 +1,295 @@
+---
+description: Defines the structure and organization of feature folders within the dashboard application.
+globs: [src/app/dashboard/**/*]
+alwaysApply: true
+---
+
+# Page Structure Rule for @/(app) Sections
+
+## Purpose
+All feature folders inside `src/app/dashboard` (e.g., `/clients`, `/appointments`, `/spa-services`, etc.) must follow a consistent, scalable, and maintainable structure. This ensures code clarity, separation of concerns, and easy onboarding for new developers.
+
+## Folder Structure
+
+```
+src/app/dashboard/<feature>/
+  ├── page.tsx           # Server Component (entry point for the route)
+  ├── actions.ts         # All server actions (must start with "use server", only async exports)
+  ├── types.ts           # All types, interfaces, and schemas (no logic or functions)
+  ├── schemas.ts         # Zod validation schemas (optional, can be in types.ts)
+  ├── utils.tsx          # Utility functions (optional)
+  └── components/        # All client components, modularized by feature
+        ├── ComponentName.tsx
+        ├── index.ts
+        └── ... (other components)
+```
+
+## File/Component Roles
+
+- **page.tsx**
+  - Must be a React Server Component.
+  - Handles data fetching and passes data to client components.
+  - Should not contain business logic or direct DB access.
+  - Imports and renders client components from `components/`.
+
+- **actions.ts**
+  - Must begin with `"use server"` as the first line.
+  - Contains all server actions for the feature (CRUD, etc.).
+  - **Only async functions can be exported** – no types, interfaces, schemas, constants, or objects.
+  - All validation schemas and types must be imported from `types.ts`.
+  - Handles all DB access and side effects.
+  - Exports types for form state and action return values.
+  - No UI code or React components.
+
+- **types.ts**
+  - Contains all types, interfaces, and Zod schemas for the feature.
+  - **No logic, functions, or non-type exports**.
+  - Used by both `actions.ts` and client components for type safety and validation.
+
+- **components/**
+  - Contains all client components for the feature, each in its own folder.
+  - Each component folder must have:
+    - `<ComponentName>.tsx`: The main component file.
+    - `index.ts`: Exports the main component as default.
+  - Components must be functional, use hooks, and follow the coding standards.
+  - All UI logic, state, and interactivity live here.
+
+## Coding Standards
+
+- Follow all rules in `coding-standards.mdc`:
+  - TypeScript: explicit types, no `any`, interfaces for props.
+  - React: functional components, hooks, single-purpose, proper naming.
+  - File/folder naming: PascalCase for components, kebab-case or PascalCase for files, kebab-case for folders.
+  - Import order and modularization as described.
+  - UI text in Spanish, code/comments/types in English.
+
+## Examples
+
+### Clients Feature
+```
+src/app/dashboard/clients/
+  ├── page.tsx
+  ├── actions.ts
+  ├── types.ts
+  ├── schemas.ts
+  └── components/
+        ├── ClientForm.tsx
+        ├── ClientList.tsx
+        ├── ClientItem.tsx
+        ├── ClientModal.tsx
+        ├── ClientFilters.tsx
+        ├── ClientStats.tsx
+        ├── ClientsSection.tsx
+        ├── ClientsClientPage.tsx
+        ├── ClientClientWrapper.tsx
+        ├── EmptyState.tsx
+        └── index.ts
+```
+
+### Appointments Feature
+```
+src/app/dashboard/appointments/
+  ├── page.tsx
+  ├── actions.ts
+  ├── types.ts
+  ├── schemas.ts
+  ├── utils.tsx
+  ├── loading.tsx
+  └── components/
+        ├── AppointmentForm.tsx
+        ├── AppointmentList.tsx
+        ├── AppointmentModal.tsx
+        ├── AppointmentCalendar.tsx
+        ├── AppointmentFilters.tsx
+        ├── AppointmentStats.tsx
+        ├── AppointmentsClient.tsx
+        ├── AppointmentsClientPage.tsx
+        ├── AppointmentsClientWrapper.tsx
+        ├── AppointmentsHeader.tsx
+        ├── AppointmentsSection.tsx
+        ├── FloatingActionButton.tsx
+        └── index.ts
+```
+
+### Spa Services Feature
+```
+src/app/dashboard/spa-services/
+  ├── page.tsx
+  ├── actions.ts
+  ├── types.ts
+  ├── schemas.ts
+  ├── utils.tsx
+  ├── metadata.ts
+  └── components/
+        ├── ServiceForm.tsx
+        ├── ServiceList.tsx
+        ├── ServiceItem.tsx
+        ├── ServiceModal.tsx
+        ├── ServiceFilters.tsx
+        ├── ServiceStats.tsx
+        ├── ServicesClientPage.tsx
+        ├── ServiceClientWrapper.tsx
+        ├── EmptyState.tsx
+        └── index.ts
+```
+
+### Example actions.ts
+```typescript
+"use server";
+
+import { createProductSchema, CreateProductData } from "./types";
+import { prisma } from "@/prisma";
+
+export async function createProduct(data: CreateProductData) {
+  const validated = createProductSchema.parse(data);
+  // ... database logic
+}
+
+export async function updateProduct(id: string, data: CreateProductData) {
+  // ...
+}
+
+// ❌ Forbidden: No types, interfaces, schemas, constants, or objects exported from actions.ts
+```
+
+### Example types.ts
+```typescript
+import { z } from "zod";
+
+export const createProductSchema = z.object({
+  name: z.string().min(1),
+  price: z.number().positive(),
+  // ...
+});
+
+export type CreateProductData = z.infer<typeof createProductSchema>;
+```
+
+## Enforcement
+
+- All new features and refactors in `@/(app)` must follow this structure.
+- `actions.ts` must start with `"use server"` and only export async functions.
+- No types, interfaces, schemas, constants, or objects can be exported from `actions.ts`.
+- All types, interfaces, and schemas must be defined in `types.ts`.
+- No business logic or DB access in client components or `page.tsx`.
+- No UI code in `actions.ts`.
+- All validation must use Zod schemas from `types.ts`.
+
+## Actions.ts Export Restrictions
+
+### ✅ Allowed Exports
+```typescript
+// ✅ Good - Only async server actions
+export async function createProduct(data: CreateProductData) {
+  // Implementation
+}
+
+export async function updateProduct(id: string, data: CreateProductData) {
+  // Implementation
+}
+```
+
+### ❌ Forbidden Exports
+```typescript
+// ❌ Forbidden - Types, interfaces, schemas, constants, or objects
+export type CreateProductData = { name: string };
+export const createProductSchema = z.object({ name: z.string() });
+export const PRODUCT_STATUSES = ["active", "inactive"];
+export function helper() {}
+```
+
+### Function Export Rules
+- **Only async functions can be exported** from actions.ts
+- Regular (synchronous) functions, types, interfaces, schemas, constants, and objects are not allowed
+- All exported functions must be server actions that perform async operations
+
+## Data Adaptation Pattern for Actions
+
+- All server actions (e.g., getAllX) **must adapt the data to match the strict frontend types** before returning.
+- This includes:
+  - Casting enums from Prisma to the frontend enum type
+  - Mapping relation arrays to arrays of IDs if the frontend expects IDs
+  - Converting `null` to `undefined` for optional fields
+  - Ensuring all required fields by the frontend type are present
+- This keeps the UI code clean and type-safe, and centralizes backend-to-frontend adaptation in one place.
+
+**Example:**
+```typescript
+export async function getAllClients() {
+  const clients = await prisma.client.findMany({
+    orderBy: { name: 'asc' },
+    include: { appointments: true },
+  });
+
+  return clients.map(client => ({
+    ...client,
+    status: client.status as ClientStatus,
+    phone: client.phone ?? undefined,
+    appointments: Array.isArray(client.appointments)
+      ? client.appointments.map(appointment => appointment.id)
+      : [],
+  }));
+}
+```
+
+
+- No business logic or DB access in client components or `page.tsx`.
+- No UI code in `actions.ts`.
+- All validation must use Zod in `actions.ts`.
+
+## Cross-Page Data Dependencies
+
+### Importing Actions from Other Pages
+When a page needs data from another entity (e.g., toppings page needs ingredients data), **always import the actions from the respective feature folder** instead of creating duplicate actions.
+
+**✅ Good - Import actions from other pages:**
+```typescript
+// src/app/dashboard/appointments/page.tsx
+import AppointmentsClient from "./components/AppointmentsClient";
+import { getAllAppointments } from "./actions";
+import { getAllClients } from "../clients/actions"; // ✅ Import from clients page
+import { getAllManicurists } from "../manicurists/actions"; // ✅ Import from manicurists page
+
+export default async function AppointmentsPage() {
+  const appointments = await getAllAppointments();
+  const clients = await getAllClients(); // ✅ Use imported action
+  const manicurists = await getAllManicurists(); // ✅ Use imported action
+  return <AppointmentsClient appointments={appointments} clients={clients} manicurists={manicurists} />;
+}
+```
+
+**❌ Forbidden - Duplicate actions in other pages:**
+```typescript
+// ❌ Don't create getAllClients in appointments/actions.ts
+// ❌ Don't duplicate client-related actions in other pages
+export async function getAllClients() {
+  // This should be in clients/actions.ts only
+}
+```
+
+### When to Import Actions
+- **Form dependencies**: When forms need data from other entities (e.g., appointment form needs clients and manicurists)
+- **Display requirements**: When displaying related data (e.g., appointments showing client and manicurist info)
+- **Validation needs**: When validation requires data from other entities
+- **Dropdown options**: When select inputs need options from other entities
+
+### Import Path Convention
+Use relative paths to import actions from other feature folders:
+```typescript
+// From appointments page to clients
+import { getAllClients } from "../clients/actions";
+
+// From appointments page to manicurists
+import { getAllManicurists } from "../manicurists/actions";
+
+// From spa-services page to categories
+import { getAllCategories } from "../categories/actions";
+```
+
+## Additional Enforcement
+
+- Always import actions from their respective feature folder (e.g., for clients from clients/actions.ts), never duplicate or create copies of actions in other modules.
+- When a page needs data from another entity, import the actions from that entity's page, don't create duplicate actions.
+- Each entity should have its own actions.ts file with all CRUD operations for that entity.
+- Cross-page dependencies should be handled through action imports, not action duplication.
+

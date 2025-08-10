@@ -1,0 +1,186 @@
+---
+description: Automatically run formatting and linting scripts when code formatting issues are detected
+globs: **/*.{js,jsx,ts,tsx,json,css,md}
+alwaysApply: true
+---
+
+# Code Formatting Automation Rule
+
+## Purpose
+Automatically run formatting and linting scripts when code formatting issues are detected to maintain consistent code quality and style across the project.
+
+## Available Scripts from package.json
+
+### Formatting Scripts
+- **`npm run format`**: Run Prettier to format all files
+- **`npm run format:check`**: Check if files are properly formatted without making changes
+- **`npm run lint`**: Run ESLint to check for linting errors
+- **`npm run lint:fix`**: Run ESLint with auto-fix for automatically fixable issues
+- **`npm run type-check`**: Run TypeScript compiler to check for type errors
+
+## Automatic Execution Triggers
+
+### When Formatting Issues Are Detected
+When Cursor detects formatting inconsistencies or linting errors, automatically run the following sequence:
+
+1. **Format Code**: `npm run format`
+   - Formats all files using Prettier
+   - Ensures consistent code style
+
+2. **Fix Linting Issues**: `npm run lint:fix`
+   - Automatically fixes ESLint issues that can be resolved
+   - Maintains code quality standards
+
+3. **Type Check**: `npm run type-check`
+   - Verifies TypeScript type safety
+   - Catches type-related errors
+
+4. **Final Lint Check**: `npm run lint`
+   - Final verification that all linting issues are resolved
+   - Reports any remaining issues that need manual attention
+
+## Execution Order and Logic
+
+### Primary Formatting Flow
+```bash
+# 1. Format all files
+npm run format
+
+# 2. Fix auto-fixable linting issues
+npm run lint:fix
+
+# 3. Check for type errors
+npm run type-check
+
+# 4. Final lint check
+npm run lint
+```
+
+### Error Handling
+- If any step fails, stop execution and report the error
+- Provide clear error messages indicating which step failed
+- Suggest manual intervention for non-auto-fixable issues
+
+## Integration with Cursor
+
+### Automatic Detection
+- Monitor for formatting inconsistencies in real-time
+- Detect when files don't match Prettier configuration
+- Identify ESLint violations
+- Recognize TypeScript type errors
+
+### User Notification
+- Show progress indicators during script execution
+- Display results of each step
+- Highlight any issues that require manual attention
+- Provide quick access to fix remaining issues
+
+## Configuration Files
+
+### Prettier Configuration
+- Uses project's `.prettierrc` or `prettier.config.js`
+- Respects `.prettierignore` for excluded files
+- Applies consistent formatting rules
+
+### ESLint Configuration
+- Uses project's `.eslintrc.js` or `eslint.config.mjs`
+- Respects `.eslintignore` for excluded files
+- Applies project-specific linting rules
+
+### TypeScript Configuration
+- Uses `tsconfig.json` for type checking
+- Respects `tsconfig.json` exclusions
+- Provides detailed type error reporting
+
+## File Types Covered
+
+### JavaScript/TypeScript Files
+- `.js`, `.jsx`, `.ts`, `.tsx` files
+- Applies both formatting and linting
+- Includes type checking for TypeScript files
+
+### Other File Types
+- `.json`, `.css`, `.md` files
+- Applies formatting only
+- No linting for non-code files
+
+## Performance Considerations
+
+### Selective Execution
+- Only run scripts when formatting issues are detected
+- Avoid unnecessary executions on properly formatted code
+- Use incremental checks when possible
+
+### Caching
+- Cache formatting results to avoid redundant executions
+- Only re-run when file content changes
+- Optimize for development workflow
+
+## Error Recovery
+
+### Failed Formatting
+- If `npm run format` fails, report the error
+- Suggest manual formatting for problematic files
+- Provide specific error details
+
+### Failed Linting
+- If `npm run lint:fix` fails, show remaining issues
+- Provide direct links to fix specific problems
+- Suggest manual intervention for complex issues
+
+### Type Errors
+- If `npm run type-check` fails, display type errors
+- Show file locations and specific type issues
+- Provide suggestions for type fixes
+
+## User Experience
+
+### Progress Feedback
+- Show clear progress indicators
+- Display which step is currently running
+- Provide estimated completion times
+
+### Results Summary
+- Show summary of all executed steps
+- Highlight any remaining issues
+- Provide quick actions to resolve problems
+
+### Manual Override
+- Allow users to skip automatic execution
+- Provide manual trigger for formatting scripts
+- Enable selective script execution
+
+## Benefits
+
+1. **Consistency**: Ensures all code follows project formatting standards
+2. **Quality**: Catches linting and type errors automatically
+3. **Efficiency**: Reduces manual formatting work
+4. **Reliability**: Prevents formatting inconsistencies
+5. **Developer Experience**: Seamless integration with development workflow
+
+## Troubleshooting
+
+### Common Issues
+- **Permission Errors**: Ensure npm scripts have proper permissions
+- **Configuration Issues**: Verify Prettier and ESLint configurations
+- **TypeScript Errors**: Check tsconfig.json settings
+- **Performance Issues**: Consider excluding large directories
+
+### Manual Resolution
+- Run scripts manually if automatic execution fails
+- Check configuration files for syntax errors
+- Verify all dependencies are properly installed
+- Review error logs for specific issues
+
+## Integration with Git Hooks
+
+### Pre-commit Integration
+- Works with existing husky pre-commit hooks
+- Respects lint-staged configuration
+- Maintains consistency with git workflow
+
+### Post-commit Actions
+- Can trigger after successful commits
+- Ensures code quality after changes
+- Provides feedback on formatting status
+

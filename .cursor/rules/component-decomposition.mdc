@@ -1,0 +1,240 @@
+---
+description: Component decomposition pattern for large components
+globs: src/components/**/*.tsx, src/app/dashboard/**/components/**/*.tsx
+alwaysApply: true
+---
+
+# Component Decomposition Rule
+
+## Purpose
+When components become too large (typically over 300-400 lines), they should be broken down into smaller, focused sub-components. This improves maintainability, testability, and reusability while following the established component structure conventions.
+
+## When to Decompose
+
+### Size Thresholds
+- **Primary trigger**: Components exceeding 400 lines
+- **Secondary trigger**: Components with 3+ distinct logical sections
+- **Tertiary trigger**: Components with complex state management or multiple responsibilities
+
+### Complexity Indicators
+- Multiple form sections with different validation logic
+- Complex conditional rendering with different UI patterns
+- Multiple data transformation or calculation functions
+- Extensive prop drilling or complex state management
+- Repeated UI patterns that could be extracted
+
+## Decomposition Pattern
+
+### Folder Structure
+```
+ComponentName/
+├── ComponentName.tsx          # Main component (orchestrator)
+├── index.ts                   # Export file
+└── components/                # Sub-components folder
+    ├── SubComponentA.tsx      # Focused sub-component
+    ├── SubComponentB.tsx      # Focused sub-component
+    ├── SubComponentC.tsx      # Focused sub-component
+    └── index.ts               # Central export file
+```
+
+### Naming Conventions
+- **Main component**: Keep original name (e.g., `CashDrawerModal.tsx`)
+- **Sub-components**: Descriptive, focused names (e.g., `OpeningForm.tsx`, `ClosingForm.tsx`)
+- **Folder**: `components/` (lowercase, plural)
+- **Export file**: `index.ts` in components folder
+
+## Sub-Component Guidelines
+
+### Single Responsibility
+Each sub-component should have one clear purpose:
+```typescript
+// ✅ Good - Focused component
+export const SessionInfo: React.FC<{
+  formattedDate: string;
+  formattedTime: string;
+  userName: string;
+}> = ({ formattedDate, formattedTime, userName }) => {
+  // Only handles session metadata display
+};
+
+// ❌ Avoid - Mixed responsibilities
+export const ComplexForm: React.FC = () => {
+  // Handles form validation, API calls, state management, and UI rendering
+};
+```
+
+### Proper TypeScript Interfaces
+Define clear interfaces for each sub-component:
+```typescript
+// ✅ Good - Clear interface
+interface OpeningFormProps {
+  baseAmount: number;
+  form: ReturnType<typeof useForm<OpeningFormData>>;
+  errors: ReturnType<typeof useForm<OpeningFormData>>["formState"]["errors"];
+}
+
+// ❌ Avoid - Generic or unclear interfaces
+interface Props {
+  data: any;
+  config: any;
+}
+```
+
+### Import/Export Structure
+Use centralized exports for clean imports:
+```typescript
+// components/index.ts
+export { SessionInfo } from "./SessionInfo";
+export { OpeningForm } from "./OpeningForm";
+export { ClosingForm } from "./ClosingForm";
+export { ModalFooter } from "./ModalFooter";
+
+// Main component
+import {
+  SessionInfo,
+  OpeningForm,
+  ClosingForm,
+  ModalFooter,
+} from "./components";
+```
+
+## Main Component Responsibilities
+
+### Orchestration Role
+The main component should focus on:
+- **State management**: Coordinating between sub-components
+- **Data flow**: Passing props and handling callbacks
+- **Form coordination**: Managing form instances and validation
+- **Event handling**: Orchestrating user interactions
+- **Layout composition**: Arranging sub-components
+
+### Clean Structure
+```typescript
+// ✅ Good - Clean main component
+export default function CashDrawerModal({ ... }) {
+  // State management
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  // Form setup
+  const openingForm = useForm<OpeningFormData>({ ... });
+  const closingForm = useForm<ClosingFormData>({ ... });
+
+  // Event handlers
+  const handleSave = async () => { ... };
+
+  // Layout composition
+  return (
+    <Modal>
+      <SessionInfo />
+      {type === "opening" ? <OpeningForm /> : <ClosingForm />}
+      <ModalFooter />
+    </Modal>
+  );
+}
+```
+
+## Refactoring Process
+
+### Step 1: Identify Decomposition Candidates
+1. **Analyze component size**: Count lines and identify logical sections
+2. **Identify responsibilities**: Map out different concerns and data flows
+3. **Find repeated patterns**: Look for reusable UI elements or logic
+4. **Assess complexity**: Evaluate state management and prop drilling
+
+### Step 2: Plan Component Structure
+1. **Create components folder**: `ComponentName/components/`
+2. **Design interfaces**: Define clear props for each sub-component
+3. **Plan data flow**: Determine how state and props will be passed
+4. **Identify shared logic**: Extract common utilities or hooks
+
+### Step 3: Extract Sub-Components
+1. **Start with simplest**: Extract the most self-contained sections first
+2. **Maintain functionality**: Ensure all original features work
+3. **Update imports**: Fix all import/export statements
+4. **Test thoroughly**: Verify no functionality is broken
+
+### Step 4: Clean Up Main Component
+1. **Remove inline components**: Delete the original component definitions
+2. **Update imports**: Import from the components folder
+3. **Simplify logic**: Focus on orchestration and coordination
+4. **Run quality checks**: Ensure linting and type checking pass
+
+## Quality Standards
+
+### Code Organization
+- [ ] Main component under 300 lines
+- [ ] Each sub-component under 200 lines
+- [ ] Clear separation of concerns
+- [ ] Proper TypeScript interfaces
+- [ ] Centralized exports
+
+### Maintainability
+- [ ] Easy to locate specific functionality
+- [ ] Clear component responsibilities
+- [ ] Minimal prop drilling
+- [ ] Reusable sub-components
+- [ ] Consistent naming conventions
+
+### Performance
+- [ ] Efficient re-renders
+- [ ] Proper memoization where needed
+- [ ] Optimized bundle size
+- [ ] Clean dependency tree
+
+## Examples
+
+### Before Decomposition
+```typescript
+// ❌ Large monolithic component (700+ lines)
+export default function CashDrawerModal({ ... }) {
+  // 200+ lines of state management
+  // 150+ lines of form logic
+  // 200+ lines of UI rendering
+  // 150+ lines of event handlers
+}
+```
+
+### After Decomposition
+```typescript
+// ✅ Clean main component (200 lines)
+export default function CashDrawerModal({ ... }) {
+  // 50 lines of state management
+  // 50 lines of form coordination
+  // 100 lines of orchestration logic
+}
+
+// ✅ Focused sub-components
+// SessionInfo.tsx (40 lines)
+// OpeningForm.tsx (120 lines)
+// ClosingForm.tsx (250 lines)
+// ModalFooter.tsx (60 lines)
+```
+
+## Benefits
+
+1. **Maintainability**: Easier to locate and modify specific functionality
+2. **Testability**: Individual components can be tested in isolation
+3. **Reusability**: Sub-components can be reused in other contexts
+4. **Performance**: Better tree-shaking and optimized re-renders
+5. **Developer Experience**: Clearer code organization and easier onboarding
+6. **Code Review**: Smaller, focused changes are easier to review
+
+## Enforcement
+
+- **Code Reviews**: Check for components exceeding size thresholds
+- **Linting**: Consider adding ESLint rules for component complexity
+- **Documentation**: Keep this rule updated with new patterns
+- **Training**: Ensure team understands decomposition benefits
+
+## Exceptions
+
+### When NOT to Decompose
+- **Simple components**: Under 200 lines with clear, single purpose
+- **Tightly coupled logic**: Components where separation would create more complexity
+- **Performance-critical**: Components where decomposition would hurt performance
+- **Temporary components**: Components that will be removed or significantly changed soon
+
+### Gradual Migration
+- **Legacy components**: Can be refactored incrementally
+- **Complex refactors**: Should be done in phases to maintain stability
+- **Team coordination**: Ensure team is aware of decomposition plans

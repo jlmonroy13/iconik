@@ -1,0 +1,58 @@
+---
+description: Guidelines for consistent type usage from Prisma models across the project.
+globs: ["**/*"]
+alwaysApply: true
+priority: 100
+---
+# Type Sourcing Rule for Prisma Models
+
+## Purpose
+
+To ensure type safety, consistency, and maintainability, **all TypeScript types and interfaces that represent database entities (i.e., those defined in `prisma/schema.prisma`) must always be sourced from the corresponding files in `@/types`**. This applies to all backend and frontend code, including server actions, API handlers, and client components.
+
+## Rule
+
+- **Always use the types/interfaces defined in `@/types` for any data that originates from or maps to a Prisma model.**
+- **Do not redefine, duplicate, or inline types for Prisma-backed entities anywhere else in the codebase.**
+- If a new model or field is added to `schema.prisma`, update or create the corresponding type in `@/types` and use it everywhere.
+- When adapting data from Prisma queries, always ensure the returned object matches the type from `@/types` (including enum casting, null/undefined handling, and relation mapping as needed).
+- For Zod schemas, use `z.infer<typeof SomeType>` where `SomeType` is imported from `@/types`.
+
+## Examples
+
+```typescript
+// ✅ Good - Using types from @/types
+import type { User } from '@/src/types/User';
+
+export async function getUserById(id: string): Promise<User | null> {
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) return null;
+  // Adaptation logic if needed
+  return {
+    ...user,
+    // ...adapt fields as needed
+  };
+}
+```
+
+```typescript
+// ❌ Forbidden - Redefining types inline
+interface User {
+  id: string;
+  name: string;
+  // ...
+}
+```
+
+## Enforcement
+
+- All code reviews must check that types for Prisma models are imported from `@/types`.
+- Any new or refactored code that handles Prisma data must use the canonical types from `@/types`.
+- If a type is missing in `@/types`, it must be added before use elsewhere.
+
+## Benefits
+
+- **Consistency**: Single source of truth for all model types.
+- **Type Safety**: Prevents subtle bugs from type mismatches.
+- **Maintainability**: Easier to update types when the schema changes.
+- **Developer Experience**: Better autocomplete and documentation.

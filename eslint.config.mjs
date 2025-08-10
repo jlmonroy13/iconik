@@ -10,6 +10,35 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      'dist/**',
+      'coverage/**',
+      '*.generated.*',
+      '*.d.ts',
+      'next-env.d.ts',
+      'prisma/migrations/**',
+      '.taskmaster/**',
+      'package-lock.json',
+      'yarn.lock',
+      'pnpm-lock.yaml',
+      '*.db',
+      '*.sqlite',
+      'public/**',
+      '.git/**',
+      '.vscode/**',
+      '.github/**',
+      'scripts/**',
+      '*.config.*',
+      '*.config.js',
+      '*.config.mjs',
+      '*.config.ts',
+    ],
+  },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
