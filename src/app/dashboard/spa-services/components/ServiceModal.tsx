@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { Modal, FadeIn } from '@/components/ui'
-import { ServiceForm } from './ServiceForm'
-import type { ServiceFormData } from '../schemas'
-import type { Service } from '../types'
+import { Modal, FadeIn } from '@/components/ui';
+import { ServiceForm } from './ServiceForm';
+import type { ServiceFormData } from '../schemas';
+import type { Service } from '../types';
 
 interface ServiceModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (data: ServiceFormData) => Promise<void>
-  service?: Service
-  isSubmitting?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: ServiceFormData) => Promise<void>;
+  service?: Service;
+  isSubmitting?: boolean;
 }
 
 export function ServiceModal({
@@ -20,7 +20,7 @@ export function ServiceModal({
   service,
   isSubmitting,
 }: ServiceModalProps) {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <Modal
@@ -34,7 +34,7 @@ export function ServiceModal({
       }
     >
       <FadeIn>
-        <div className="mt-4">
+        <div className='mt-4'>
           <ServiceForm
             onSubmit={onSubmit}
             service={service}
@@ -43,5 +43,5 @@ export function ServiceModal({
         </div>
       </FadeIn>
     </Modal>
-  )
+  );
 }

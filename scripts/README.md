@@ -9,17 +9,20 @@ Este directorio contiene scripts de utilidad para el proyecto Iconik.
 Script para verificar el estado de spas y usuarios en la base de datos.
 
 #### Uso:
+
 ```bash
 node scripts/check-spas.js
 ```
 
 #### Funcionalidad:
+
 - Muestra todos los spas en la base de datos con sus estadísticas
 - Lista todos los usuarios con sus roles y tipos
 - Proporciona un resumen de la distribución de usuarios
 - Identifica super admins con y sin spa asociado
 
 #### Salida de ejemplo:
+
 ```
 🔍 Checking spas in database...
 ✅ Found 2 spas:
@@ -62,6 +65,7 @@ node scripts/check-spas.js
 ```
 
 #### Casos de uso:
+
 - **Debugging**: Verificar el estado de la base de datos
 - **Verificación**: Confirmar que los usuarios están correctamente configurados
 - **Auditoría**: Revisar la distribución de usuarios y spas
@@ -70,11 +74,13 @@ node scripts/check-spas.js
 ## Scripts Eliminados
 
 ### `test-prisma.js` ❌
+
 - **Razón**: Ya no necesario después de la configuración inicial
 - **Propósito**: Testing de conexión de Prisma y modelos
 - **Estado**: Eliminado
 
 ### `test-api.js` ❌
+
 - **Razón**: Crea datos de prueba que pueden contaminar la base de datos
 - **Propósito**: Testing de endpoints de API
 - **Estado**: Eliminado

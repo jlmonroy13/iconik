@@ -81,6 +81,7 @@ The Input component supports automatic currency formatting when the `currency` p
 ```
 
 **Features:**
+
 - Automatically formats numbers as currency (e.g., "$ 25,000" for COP)
 - Maintains numeric value for form handling
 - Supports different currencies via the `currency` prop
@@ -124,15 +125,15 @@ import { Button } from '@/components/ui'
 Specialized buttons for icons only.
 
 ```tsx
-import { IconButton } from '@/components/ui'
+import { IconButton } from '@/components/ui';
 
 <IconButton
-  variant="default"
-  size="md"
+  variant='default'
+  size='md'
   icon={<MenuIcon />}
-  label="Open menu"
+  label='Open menu'
   onClick={handleClick}
-/>
+/>;
 ```
 
 ### Badge
@@ -154,7 +155,13 @@ import { Badge } from '@/components/ui'
 Modular card system.
 
 ```tsx
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from '@/components/ui';
 
 <Card>
   <CardHeader>
@@ -166,7 +173,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
   <CardFooter>
     <Button>Action</Button>
   </CardFooter>
-</Card>
+</Card>;
 ```
 
 ### StatCard
@@ -174,19 +181,19 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 Specialized cards for displaying statistics.
 
 ```tsx
-import { StatCard } from '@/components/ui'
+import { StatCard } from '@/components/ui';
 
 <StatCard
-  title="Total Sales"
-  value="$25,000"
-  icon="💰"
-  description="This month"
+  title='Total Sales'
+  value='$25,000'
+  icon='💰'
+  description='This month'
   trend={{
     value: 12.5,
-    label: "vs last month",
-    isPositive: true
+    label: 'vs last month',
+    isPositive: true,
   }}
-/>
+/>;
 ```
 
 ### Avatar
@@ -194,15 +201,15 @@ import { StatCard } from '@/components/ui'
 User avatars with fallback to initials.
 
 ```tsx
-import { Avatar } from '@/components/ui'
+import { Avatar } from '@/components/ui';
 
 <Avatar
-  src="/user-photo.jpg"
-  alt="User"
-  fallback="JD"
-  size="md"
-  shape="circle"
-/>
+  src='/user-photo.jpg'
+  alt='User'
+  fallback='JD'
+  size='md'
+  shape='circle'
+/>;
 ```
 
 ## asChild Functionality
@@ -235,6 +242,7 @@ The `asChild` prop allows the Button component to render as another element whil
 ## Usage Patterns
 
 ### Before (repetitive code)
+
 ```tsx
 <button className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg">
   View Dashboard
@@ -246,6 +254,7 @@ The `asChild` prop allows the Button component to render as another element whil
 ```
 
 ### After (using components)
+
 ```tsx
 <Button variant="primary" size="lg">
   View Dashboard

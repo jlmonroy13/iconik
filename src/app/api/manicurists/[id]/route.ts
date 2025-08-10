@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-import { getUserIdFromRequest } from '@/lib/auth'
-import { assertUserSpaAccess } from '@/lib/authz'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+import { getUserIdFromRequest } from '@/lib/auth';
+import { assertUserSpaAccess } from '@/lib/authz';
 
 // Validation schema for updates
 const updateManicuristSchema = z.object({
@@ -11,15 +11,15 @@ const updateManicuristSchema = z.object({
   phone: z.string().min(1, 'Phone is required').optional(),
   commission: z.number().min(0).max(1).optional(),
   isActive: z.boolean().optional(),
-})
+});
 
 function getSpaIdFromRequest(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const spaId = searchParams.get('spaId')
+  const { searchParams } = new URL(request.url);
+  const spaId = searchParams.get('spaId');
   if (!spaId) {
-    throw new Error('spaId is required')
+    throw new Error('spaId is required');
   }
-  return spaId
+  return spaId;
 }
 
 // GET /api/manicurists/[id] - Get a specific manicurist
@@ -28,10 +28,10 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
     const manicurist = await prisma.manicurist.findUnique({
       where: { id: params.id, spaId },
       include: {
@@ -40,7 +40,7 @@ export async function GET(
             id: true,
             name: true,
             slug: true,
-          }
+          },
         },
         schedules: true,
         availability: true,
@@ -48,32 +48,32 @@ export async function GET(
           select: {
             appointmentServices: true,
             commissions: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
     if (!manicurist) {
       return NextResponse.json(
         { error: 'Manicurist not found' },
         { status: 404 }
-      )
+      );
     }
 
-    return NextResponse.json(manicurist)
+    return NextResponse.json(manicurist);
   } catch (error) {
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    console.error('Error fetching manicurist:', error)
+    console.error('Error fetching manicurist:', error);
     return NextResponse.json(
       { error: 'Failed to fetch manicurist' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -83,12 +83,12 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
-    const body = await request.json()
-    const validatedData = updateManicuristSchema.parse(body)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
+    const body = await request.json();
+    const validatedData = updateManicuristSchema.parse(body);
 
     const manicurist = await prisma.manicurist.update({
       where: { id: params.id, spaId },
@@ -99,7 +99,7 @@ export async function PUT(
             id: true,
             name: true,
             slug: true,
-          }
+          },
         },
         schedules: true,
         availability: true,
@@ -107,37 +107,40 @@ export async function PUT(
           select: {
             appointmentServices: true,
             commissions: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
-    return NextResponse.json(manicurist)
+    return NextResponse.json(manicurist);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
         { status: 400 }
-      )
+      );
     }
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    if (err instanceof Error && err.message.includes('Record to update not found')) {
+    if (
+      err instanceof Error &&
+      err.message.includes('Record to update not found')
+    ) {
       return NextResponse.json(
         { error: 'Manicurist not found' },
         { status: 404 }
-      )
+      );
     }
-    console.error('Error updating manicurist:', error)
+    console.error('Error updating manicurist:', error);
     return NextResponse.json(
       { error: 'Failed to update manicurist' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -147,10 +150,10 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
     // Check if manicurist has related data
     const manicuristWithCounts = await prisma.manicurist.findUnique({
       where: { id: params.id, spaId },
@@ -159,51 +162,54 @@ export async function DELETE(
           select: {
             appointmentServices: true,
             commissions: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
     if (!manicuristWithCounts) {
       return NextResponse.json(
         { error: 'Manicurist not found' },
         { status: 404 }
-      )
+      );
     }
 
     // Check if manicurist has related data
-    const hasRelatedData = Object.values(manicuristWithCounts._count).some(count => count > 0)
+    const hasRelatedData = Object.values(manicuristWithCounts._count).some(
+      count => count > 0
+    );
 
     if (hasRelatedData) {
       return NextResponse.json(
         {
           error: 'Cannot delete manicurist with related data',
           details: {
-            appointmentServices: manicuristWithCounts._count.appointmentServices,
+            appointmentServices:
+              manicuristWithCounts._count.appointmentServices,
             commissions: manicuristWithCounts._count.commissions,
-          }
+          },
         },
         { status: 400 }
-      )
+      );
     }
 
     await prisma.manicurist.delete({
-      where: { id: params.id, spaId }
-    })
+      where: { id: params.id, spaId },
+    });
 
-    return NextResponse.json({ message: 'Manicurist deleted successfully' })
+    return NextResponse.json({ message: 'Manicurist deleted successfully' });
   } catch (error) {
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    console.error('Error deleting manicurist:', error)
+    console.error('Error deleting manicurist:', error);
     return NextResponse.json(
       { error: 'Failed to delete manicurist' },
       { status: 500 }
-    )
+    );
   }
 }

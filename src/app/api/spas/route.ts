@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-import { getUserIdFromRequest } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+import { getUserIdFromRequest } from '@/lib/auth';
 
 // Validation schemas
 const createSpaSchema = z.object({
@@ -16,46 +16,43 @@ const createSpaSchema = z.object({
   timezone: z.string().default('America/Mexico_City'),
   currency: z.string().default('MXN'),
   taxRate: z.number().min(0).max(1).default(0.16),
-})
+});
 
 // GET /api/spas - Get all spas
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const isActive = searchParams.get('isActive')
-    const search = searchParams.get('search')
+    const { searchParams } = new URL(request.url);
+    const isActive = searchParams.get('isActive');
+    const search = searchParams.get('search');
 
     // Get authenticated user
-    const userId = await getUserIdFromRequest()
+    const userId = await getUserIdFromRequest();
 
     // Get user's role and spa access
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { spaId: true, role: true, isSuperAdmin: true }
-    })
+      select: { spaId: true, role: true, isSuperAdmin: true },
+    });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Super admins can see all spas, regular users only see their spa
-    const where: Record<string, unknown> = {}
+    const where: Record<string, unknown> = {};
 
     if (!user.isSuperAdmin && user.role !== 'SUPER_ADMIN') {
       if (!user.spaId) {
         return NextResponse.json(
           { error: 'User not associated with any spa' },
           { status: 403 }
-        )
+        );
       }
-      where.id = user.spaId // Only show user's spa
+      where.id = user.spaId; // Only show user's spa
     }
 
     if (isActive !== null) {
-      where.isActive = isActive === 'true'
+      where.isActive = isActive === 'true';
     }
 
     if (search) {
@@ -63,7 +60,7 @@ export async function GET(request: NextRequest) {
         { name: { contains: search, mode: 'insensitive' } },
         { address: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
-      ]
+      ];
     }
 
     const spas = await prisma.spa.findMany({
@@ -77,48 +74,48 @@ export async function GET(request: NextRequest) {
             clients: true,
             appointments: true,
             users: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
-    return NextResponse.json(spas)
+    return NextResponse.json(spas);
   } catch (error) {
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    console.error('Error fetching spas:', error)
+    console.error('Error fetching spas:', error);
     return NextResponse.json(
       { error: 'Failed to fetch spas' },
       { status: 500 }
-    )
+    );
   }
 }
 
 // POST /api/spas - Create a new spa
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const validatedData = createSpaSchema.parse(body)
+    const body = await request.json();
+    const validatedData = createSpaSchema.parse(body);
 
     // Get authenticated user
-    const userId = await getUserIdFromRequest()
+    const userId = await getUserIdFromRequest();
 
     // Check if user already has a spa (one user per spa model)
     const existingUser = await prisma.user.findUnique({
       where: { id: userId },
-      select: { spaId: true }
-    })
+      select: { spaId: true },
+    });
 
     if (existingUser && existingUser.spaId) {
       return NextResponse.json(
         { error: 'User already associated with a spa' },
         { status: 400 }
-      )
+      );
     }
 
     const spa = await prisma.spa.create({
@@ -130,37 +127,37 @@ export async function POST(request: NextRequest) {
             manicurists: true,
             clients: true,
             appointments: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
     // Associate the user with the created spa
     await prisma.user.update({
       where: { id: userId },
-      data: { spaId: spa.id }
-    })
+      data: { spaId: spa.id },
+    });
 
-    return NextResponse.json(spa, { status: 201 })
+    return NextResponse.json(spa, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
         { status: 400 }
-      )
+      );
     }
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    console.error('Error creating spa:', error)
+    console.error('Error creating spa:', error);
     return NextResponse.json(
       { error: 'Failed to create spa' },
       { status: 500 }
-    )
+    );
   }
 }

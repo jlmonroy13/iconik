@@ -21,6 +21,7 @@ Servicio principal que obtiene todas las estadísticas necesarias para el dashbo
 **Ubicación:** `src/services/dashboard/dashboardService.ts`
 
 **Funcionalidad:**
+
 - Obtiene estadísticas del día, semana, mes y totales
 - Calcula métricas de rendimiento
 - Obtiene datos de citas, pagos, clientes
@@ -28,10 +29,11 @@ Servicio principal que obtiene todas las estadísticas necesarias para el dashbo
 - Proporciona datos de top performers y servicios populares
 
 **Uso:**
-```typescript
-import { getDashboardStats } from '@/services/dashboard'
 
-const stats = await getDashboardStats()
+```typescript
+import { getDashboardStats } from '@/services/dashboard';
+
+const stats = await getDashboardStats();
 ```
 
 ## Convenciones

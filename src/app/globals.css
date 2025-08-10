@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #ffffff;
@@ -39,31 +39,31 @@ body {
 }
 
 /* Force white calendar icon for datetime-local in dark mode */
-html.dark input[type="date"]::-webkit-calendar-picker-indicator,
-html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+html.dark input[type='date']::-webkit-calendar-picker-indicator,
+html.dark input[type='datetime-local']::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(2);
 }
 
-html.dark input[type="date"],
-html.dark input[type="datetime-local"] {
+html.dark input[type='date'],
+html.dark input[type='datetime-local'] {
   color-scheme: dark;
 }
 
-html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-html.dark input[type="datetime-local"]::-webkit-input-placeholder,
-html.dark input[type="datetime-local"]::-webkit-clear-button {
+html.dark input[type='datetime-local']::-webkit-calendar-picker-indicator,
+html.dark input[type='datetime-local']::-webkit-input-placeholder,
+html.dark input[type='datetime-local']::-webkit-clear-button {
   opacity: 0 !important;
   display: none !important;
 }
 
-html.dark input[type="datetime-local"] {
+html.dark input[type='datetime-local'] {
   color-scheme: dark;
   padding-right: 2.5rem !important;
 }
 
 /* Hide the native calendar icon for date inputs */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator {
   opacity: 0 !important;
 }

@@ -1,20 +1,23 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface SwitchProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  checked: boolean
-  onCheckedChange: (checked: boolean) => void
-  disabled?: boolean
-  name?: string
-  className?: string
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
+  name?: string;
+  className?: string;
 }
 
 const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
-  ({ checked, onCheckedChange, disabled = false, name, className, ...props }, ref) => {
+  (
+    { checked, onCheckedChange, disabled = false, name, className, ...props },
+    ref
+  ) => {
     return (
       <button
-        type="button"
-        role="switch"
+        type='button'
+        role='switch'
         aria-checked={checked}
         aria-disabled={disabled}
         name={name}
@@ -30,8 +33,8 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         onClick={() => !disabled && onCheckedChange(!checked)}
         onKeyDown={e => {
           if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault()
-            if (!disabled) onCheckedChange(!checked)
+            e.preventDefault();
+            if (!disabled) onCheckedChange(!checked);
           }
         }}
         {...props}
@@ -43,10 +46,10 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
           )}
         />
       </button>
-    )
+    );
   }
-)
+);
 
-Switch.displayName = 'Switch'
+Switch.displayName = 'Switch';
 
-export default Switch
+export default Switch;

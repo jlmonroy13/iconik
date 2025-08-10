@@ -1,5 +1,5 @@
-import PaymentMethodsClientPage from './components/PaymentMethodsClientPage'
+import PaymentMethodsClientPage from './components/PaymentMethodsClientPage';
 
 export default function PaymentMethodsPage() {
-  return <PaymentMethodsClientPage />
+  return <PaymentMethodsClientPage />;
 }

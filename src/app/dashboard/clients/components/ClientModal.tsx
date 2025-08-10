@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { Modal } from '@/components/ui/Modal'
-import { FadeIn } from '@/components/ui/PageTransition'
-import { ClientForm } from './ClientForm'
-import type { ClientFormData } from '../schemas'
-import type { Client } from '../types'
+import { Modal } from '@/components/ui/Modal';
+import { FadeIn } from '@/components/ui/PageTransition';
+import { ClientForm } from './ClientForm';
+import type { ClientFormData } from '../schemas';
+import type { Client } from '../types';
 
 interface ClientModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (data: ClientFormData) => Promise<void>
-  client?: Client
-  isSubmitting?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: ClientFormData) => Promise<void>;
+  client?: Client;
+  isSubmitting?: boolean;
 }
 
 export function ClientModal({
@@ -21,7 +21,7 @@ export function ClientModal({
   client,
   isSubmitting,
 }: ClientModalProps) {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <Modal
@@ -35,7 +35,7 @@ export function ClientModal({
       }
     >
       <FadeIn>
-        <div className="mt-4">
+        <div className='mt-4'>
           <ClientForm
             onSubmit={onSubmit}
             client={client}
@@ -44,5 +44,5 @@ export function ClientModal({
         </div>
       </FadeIn>
     </Modal>
-  )
+  );
 }

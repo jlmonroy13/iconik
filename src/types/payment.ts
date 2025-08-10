@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Payment Schema
 export const PaymentSchema = z.object({
@@ -21,20 +21,24 @@ export const PaymentSchema = z.object({
   updatedAt: z.date(),
 
   // Relations
-  appointment: z.object({
-    id: z.string(),
-    scheduledAt: z.date(),
-    status: z.string(),
-  }).optional(),
-
-  appointmentService: z.object({
-    id: z.string(),
-    price: z.number(),
-    service: z.object({
+  appointment: z
+    .object({
       id: z.string(),
-      name: z.string(),
-    }),
-  }).optional(),
+      scheduledAt: z.date(),
+      status: z.string(),
+    })
+    .optional(),
+
+  appointmentService: z
+    .object({
+      id: z.string(),
+      price: z.number(),
+      service: z.object({
+        id: z.string(),
+        name: z.string(),
+      }),
+    })
+    .optional(),
 
   paymentMethod: z.object({
     id: z.string(),
@@ -43,12 +47,14 @@ export const PaymentSchema = z.object({
     icon: z.string().nullable(),
   }),
 
-  commission: z.object({
-    id: z.string(),
-    commissionAmount: z.number(),
-    spaAmount: z.number(),
-    status: z.string(),
-  }).optional(),
+  commission: z
+    .object({
+      id: z.string(),
+      commissionAmount: z.number(),
+      spaAmount: z.number(),
+      status: z.string(),
+    })
+    .optional(),
 });
 
 export type Payment = z.infer<typeof PaymentSchema>;
@@ -93,12 +99,14 @@ export const PaymentSummarySchema = z.object({
   totalAmount: z.number(),
   totalOriginalAmount: z.number(),
   totalDiscountAmount: z.number(),
-  paymentMethodBreakdown: z.array(z.object({
-    paymentMethodId: z.string(),
-    paymentMethodName: z.string(),
-    count: z.number(),
-    amount: z.number(),
-  })),
+  paymentMethodBreakdown: z.array(
+    z.object({
+      paymentMethodId: z.string(),
+      paymentMethodName: z.string(),
+      count: z.number(),
+      amount: z.number(),
+    })
+  ),
 });
 
 export type PaymentSummary = z.infer<typeof PaymentSummarySchema>;
@@ -106,7 +114,7 @@ export type PaymentSummary = z.infer<typeof PaymentSummarySchema>;
 // Discount Configuration Schema
 export const DiscountConfigSchema = z.object({
   discountAmount: z.number().min(0),
-  discountReason: z.string().min(1, "Discount reason is required"),
+  discountReason: z.string().min(1, 'Discount reason is required'),
   discountAffectsCommission: z.boolean().default(false),
 });
 

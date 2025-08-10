@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-import { getUserIdFromRequest } from '@/lib/auth'
-import { assertUserSpaAccess } from '@/lib/authz'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+import { getUserIdFromRequest } from '@/lib/auth';
+import { assertUserSpaAccess } from '@/lib/authz';
 
 // Validation schema for updates
 const updateClientSchema = z.object({
@@ -13,15 +13,15 @@ const updateClientSchema = z.object({
   dateOfBirth: z.string().optional(), // ISO date string
   notes: z.string().optional(),
   isActive: z.boolean().optional(),
-})
+});
 
 function getSpaIdFromRequest(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const spaId = searchParams.get('spaId')
+  const { searchParams } = new URL(request.url);
+  const spaId = searchParams.get('spaId');
   if (!spaId) {
-    throw new Error('spaId is required')
+    throw new Error('spaId is required');
   }
-  return spaId
+  return spaId;
 }
 
 // GET /api/clients/[id] - Get a specific client
@@ -30,10 +30,10 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
     const client = await prisma.client.findUnique({
       where: { id: params.id, spaId },
       include: {
@@ -42,38 +42,35 @@ export async function GET(
             id: true,
             name: true,
             slug: true,
-          }
+          },
         },
         _count: {
           select: {
             appointments: true,
             clientServiceHistory: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
     if (!client) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
-    return NextResponse.json(client)
+    return NextResponse.json(client);
   } catch (error) {
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    console.error('Error fetching client:', error)
+    console.error('Error fetching client:', error);
     return NextResponse.json(
       { error: 'Failed to fetch client' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -83,18 +80,20 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
-    const body = await request.json()
-    const validatedData = updateClientSchema.parse(body)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
+    const body = await request.json();
+    const validatedData = updateClientSchema.parse(body);
 
     // Parse date of birth if provided
     const data = {
       ...validatedData,
-      dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : undefined,
-    }
+      dateOfBirth: validatedData.dateOfBirth
+        ? new Date(validatedData.dateOfBirth)
+        : undefined,
+    };
 
     const client = await prisma.client.update({
       where: { id: params.id, spaId },
@@ -105,43 +104,43 @@ export async function PUT(
             id: true,
             name: true,
             slug: true,
-          }
+          },
         },
         _count: {
           select: {
             appointments: true,
             clientServiceHistory: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
-    return NextResponse.json(client)
+    return NextResponse.json(client);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
         { status: 400 }
-      )
+      );
     }
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    if (err instanceof Error && err.message.includes('Record to update not found')) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      )
+    if (
+      err instanceof Error &&
+      err.message.includes('Record to update not found')
+    ) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
-    console.error('Error updating client:', error)
+    console.error('Error updating client:', error);
     return NextResponse.json(
       { error: 'Failed to update client' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -151,10 +150,10 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
     // Check if client has related data
     const clientWithCounts = await prisma.client.findUnique({
       where: { id: params.id, spaId },
@@ -163,20 +162,19 @@ export async function DELETE(
           select: {
             appointments: true,
             clientServiceHistory: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
     if (!clientWithCounts) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Check if client has related data
-    const hasRelatedData = Object.values(clientWithCounts._count).some(count => count > 0)
+    const hasRelatedData = Object.values(clientWithCounts._count).some(
+      count => count > 0
+    );
 
     if (hasRelatedData) {
       return NextResponse.json(
@@ -185,29 +183,29 @@ export async function DELETE(
           details: {
             appointments: clientWithCounts._count.appointments,
             clientServiceHistory: clientWithCounts._count.clientServiceHistory,
-          }
+          },
         },
         { status: 400 }
-      )
+      );
     }
 
     await prisma.client.delete({
-      where: { id: params.id, spaId }
-    })
+      where: { id: params.id, spaId },
+    });
 
-    return NextResponse.json({ message: 'Client deleted successfully' })
+    return NextResponse.json({ message: 'Client deleted successfully' });
   } catch (error) {
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    console.error('Error deleting client:', error)
+    console.error('Error deleting client:', error);
     return NextResponse.json(
       { error: 'Failed to delete client' },
       { status: 500 }
-    )
+    );
   }
 }

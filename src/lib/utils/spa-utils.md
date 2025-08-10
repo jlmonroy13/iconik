@@ -13,18 +13,19 @@ Obtiene el `spaId` apropiado para el usuario actual:
 - **Si el usuario no es super admin y no tiene `spaId`**: Lanza un error (para redirigir a onboarding)
 
 #### Uso:
+
 ```typescript
-import { getCurrentSpaId } from '@/lib/utils/spa-utils'
+import { getCurrentSpaId } from '@/lib/utils/spa-utils';
 
 export async function someAction() {
   try {
-    const spaId = await getCurrentSpaId()
+    const spaId = await getCurrentSpaId();
     // Usar spaId para consultas de base de datos
-    const data = await prisma.someModel.findMany({ where: { spaId } })
-    return { success: true, data }
+    const data = await prisma.someModel.findMany({ where: { spaId } });
+    return { success: true, data };
   } catch (error) {
     // Manejar error (redirigir a onboarding, mostrar mensaje de error, etc.)
-    return { success: false, message: 'Error occurred' }
+    return { success: false, message: 'Error occurred' };
   }
 }
 ```
@@ -34,14 +35,15 @@ export async function someAction() {
 Similar a `getCurrentSpaId` pero retorna `null` en lugar de lanzar un error cuando el usuario no tiene `spaId` y no es super admin.
 
 #### Uso:
+
 ```typescript
-import { getSpaIdWithFallback } from '@/lib/utils/spa-utils'
+import { getSpaIdWithFallback } from '@/lib/utils/spa-utils';
 
 export async function someOtherAction() {
-  const spaId = await getSpaIdWithFallback()
+  const spaId = await getSpaIdWithFallback();
   if (!spaId) {
     // Manejar redirección a onboarding manualmente
-    redirect('/onboarding')
+    redirect('/onboarding');
   }
   // Usar spaId para consultas de base de datos
 }

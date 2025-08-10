@@ -1,26 +1,26 @@
-'use client'
+'use client';
 
-import { Modal, ModalFooterButton, Button } from '@/components/ui'
-import { ManicuristForm } from './ManicuristForm'
-import type { Manicurist } from '../types'
-import type { ManicuristFormData } from '../schemas'
-import type { Service } from '@/types'
-import { useId } from 'react'
+import { Modal, ModalFooterButton, Button } from '@/components/ui';
+import { ManicuristForm } from './ManicuristForm';
+import type { Manicurist } from '../types';
+import type { ManicuristFormData } from '../schemas';
+import type { Service } from '@/types';
+import { useId } from 'react';
 
 // Extend ManicuristFormData to include selectedServices
 type ExtendedManicuristFormData = ManicuristFormData & {
-  selectedServices?: string[]
-}
+  selectedServices?: string[];
+};
 
 interface ManicuristModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (data: ExtendedManicuristFormData) => Promise<void>
-  manicurist?: Manicurist
-  isSubmitting?: boolean
-  services: Service[]
-  selectedServices: string[]
-  setSelectedServices: (ids: string[]) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: ExtendedManicuristFormData) => Promise<void>;
+  manicurist?: Manicurist;
+  isSubmitting?: boolean;
+  services: Service[];
+  selectedServices: string[];
+  setSelectedServices: (ids: string[]) => void;
 }
 
 export function ManicuristModal({
@@ -31,36 +31,32 @@ export function ManicuristModal({
   isSubmitting,
   services,
   selectedServices,
-  setSelectedServices
+  setSelectedServices,
 }: ManicuristModalProps) {
-  const formId = useId()
-  console.log("manicurist", manicurist)
+  const formId = useId();
+  console.log('manicurist', manicurist);
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={manicurist ? 'Editar Manicurista' : 'Nueva Manicurista'}
-      className="max-w-4xl"
+      className='max-w-4xl'
       formId={formId}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
+        <div className='flex justify-end gap-2'>
+          <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
           <ModalFooterButton
             formId={formId}
             disabled={isSubmitting}
-            className="min-w-[140px]"
+            className='min-w-[140px]'
           >
             {isSubmitting
-              ? "Guardando..."
+              ? 'Guardando...'
               : manicurist
-              ? "Actualizar"
-              : "Crear"}{" "}
+                ? 'Actualizar'
+                : 'Crear'}{' '}
             Manicurista
           </ModalFooterButton>
         </div>
@@ -75,5 +71,5 @@ export function ManicuristModal({
         formId={formId}
       />
     </Modal>
-  )
+  );
 }

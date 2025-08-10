@@ -7,18 +7,18 @@ export type {
   Payment,
   CashRegister,
   TopManicurist,
-  PopularService
-} from './types/dashboard'
+  PopularService,
+} from './types/dashboard';
 
 // Services
-export { getDashboardStats } from '@/services/dashboard'
+export { getDashboardStats } from '@/services/dashboard';
 
 // Hooks
 export {
   useDashboard,
   useDashboardFilters,
-  useDashboardLayout
-} from './hooks/useDashboard'
+  useDashboardLayout,
+} from './hooks/useDashboard';
 
 // Components
 export {
@@ -29,8 +29,8 @@ export {
   RecentPayments,
   TopPerformers,
   PopularServices,
-  CashRegisterStatus
-} from './components'
+  CashRegisterStatus,
+} from './components';
 
 // Utils
 export {
@@ -38,8 +38,8 @@ export {
   formatDate,
   formatShortDate,
   formatPercentage,
-  formatDuration
-} from './utils/formatters'
+  formatDuration,
+} from './utils/formatters';
 
 export {
   calculatePercentageChange,
@@ -58,15 +58,15 @@ export {
   calculateRetentionRate,
   getDashboardInsights,
   validateDashboardData,
-  getDashboardSummary
-} from './utils/dashboardUtils'
+  getDashboardSummary,
+} from './utils/dashboardUtils';
 
 // Config
 export {
   DASHBOARD_CONFIG,
   DASHBOARD_SECTIONS,
-  METRIC_COLORS
-} from './config/dashboardConfig'
+  METRIC_COLORS,
+} from './config/dashboardConfig';
 
 // Default export for the main page component
-export { default as DashboardPage } from './page'
+export { default as DashboardPage } from './page';

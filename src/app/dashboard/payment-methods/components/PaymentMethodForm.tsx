@@ -1,30 +1,39 @@
-"use client"
+'use client';
 
-import { useForm, Controller, SubmitHandler } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
-import { Switch } from '@/components/ui'
-import { paymentMethodExtendedSchema, type PaymentMethodExtendedFormData } from '../schemas'
-import type { PaymentMethod } from '../types'
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Switch } from '@/components/ui';
+import {
+  paymentMethodExtendedSchema,
+  type PaymentMethodExtendedFormData,
+} from '../schemas';
+import type { PaymentMethod } from '../types';
 
 interface PaymentMethodFormProps {
-  method?: PaymentMethod
-  onSubmit: (data: PaymentMethodExtendedFormData) => Promise<void>
-  isSubmitting?: boolean
+  method?: PaymentMethod;
+  onSubmit: (data: PaymentMethodExtendedFormData) => Promise<void>;
+  isSubmitting?: boolean;
 }
 
-function getDefaultValues(method?: PaymentMethod): PaymentMethodExtendedFormData {
+function getDefaultValues(
+  method?: PaymentMethod
+): PaymentMethodExtendedFormData {
   return {
     name: method?.name || '',
     type: method?.type || '',
     isActive: typeof method?.isActive === 'boolean' ? method.isActive : true,
     icon: method?.icon || '',
     transactionFee: method?.transactionFee ?? 0,
-  }
+  };
 }
 
-export function PaymentMethodForm({ method, onSubmit, isSubmitting }: PaymentMethodFormProps) {
+export function PaymentMethodForm({
+  method,
+  onSubmit,
+  isSubmitting,
+}: PaymentMethodFormProps) {
   const {
     register,
     handleSubmit,
@@ -32,37 +41,39 @@ export function PaymentMethodForm({ method, onSubmit, isSubmitting }: PaymentMet
     control,
   } = useForm<PaymentMethodExtendedFormData>({
     resolver: zodResolver(paymentMethodExtendedSchema),
-    defaultValues: getDefaultValues(method)
-  })
+    defaultValues: getDefaultValues(method),
+  });
 
-  const onSubmitForm: SubmitHandler<PaymentMethodExtendedFormData> = async (data) => {
-    await onSubmit(data)
-  }
+  const onSubmitForm: SubmitHandler<
+    PaymentMethodExtendedFormData
+  > = async data => {
+    await onSubmit(data);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-4'>
       <Input
-        label="Nombre"
+        label='Nombre'
         {...register('name')}
         error={errors.name?.message}
       />
       <Input
-        label="Tipo (opcional)"
+        label='Tipo (opcional)'
         {...register('type')}
         error={errors.type?.message}
       />
       <Input
-        label="Ícono (opcional)"
+        label='Ícono (opcional)'
         {...register('icon')}
         error={errors.icon?.message}
       />
       <Controller
-        name="transactionFee"
+        name='transactionFee'
         control={control}
         render={({ field, fieldState }) => (
           <Input
-            label="Comisión (%)"
-            type="number"
+            label='Comisión (%)'
+            type='number'
             min={0}
             max={100}
             step={0.1}
@@ -80,24 +91,24 @@ export function PaymentMethodForm({ method, onSubmit, isSubmitting }: PaymentMet
         )}
       />
       <Controller
-        name="isActive"
+        name='isActive'
         control={control}
         render={({ field }) => (
-          <div className="flex items-center gap-2">
+          <div className='flex items-center gap-2'>
             <Switch checked={field.value} onCheckedChange={field.onChange} />
-            <span className="text-sm">Activo</span>
+            <span className='text-sm'>Activo</span>
           </div>
         )}
       />
-      <div className="flex justify-end pt-4">
-        <Button type="submit" disabled={isSubmitting}>
+      <div className='flex justify-end pt-4'>
+        <Button type='submit' disabled={isSubmitting}>
           {isSubmitting
             ? 'Guardando...'
             : method
-            ? 'Actualizar Método'
-            : 'Crear Método'}
+              ? 'Actualizar Método'
+              : 'Crear Método'}
         </Button>
       </div>
     </form>
-  )
+  );
 }

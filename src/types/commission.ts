@@ -1,13 +1,14 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Commission Status Enum
 export const CommissionStatusEnum = {
-  PENDING: "PENDING",
-  PAID: "PAID",
-  CANCELLED: "CANCELLED"
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  CANCELLED: 'CANCELLED',
 } as const;
 
-export type CommissionStatus = typeof CommissionStatusEnum[keyof typeof CommissionStatusEnum];
+export type CommissionStatus =
+  (typeof CommissionStatusEnum)[keyof typeof CommissionStatusEnum];
 
 // Commission Schema
 export const CommissionSchema = z.object({
@@ -30,24 +31,28 @@ export const CommissionSchema = z.object({
   updatedAt: z.date(),
 
   // Relations
-  manicurist: z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string().email(),
-  }).optional(),
-
-  payment: z.object({
-    id: z.string(),
-    amount: z.number(),
-    originalAmount: z.number(),
-    discountAmount: z.number(),
-    discountReason: z.string().nullable(),
-    discountAffectsCommission: z.boolean(),
-    paymentMethod: z.object({
+  manicurist: z
+    .object({
       id: z.string(),
       name: z.string(),
-    }),
-  }).optional(),
+      email: z.string().email(),
+    })
+    .optional(),
+
+  payment: z
+    .object({
+      id: z.string(),
+      amount: z.number(),
+      originalAmount: z.number(),
+      discountAmount: z.number(),
+      discountReason: z.string().nullable(),
+      discountAffectsCommission: z.boolean(),
+      paymentMethod: z.object({
+        id: z.string(),
+        name: z.string(),
+      }),
+    })
+    .optional(),
 });
 
 export type Commission = z.infer<typeof CommissionSchema>;
@@ -95,4 +100,6 @@ export const CommissionCalculationResultSchema = z.object({
   discountAffectsCommission: z.boolean(),
 });
 
-export type CommissionCalculationResult = z.infer<typeof CommissionCalculationResultSchema>;
+export type CommissionCalculationResult = z.infer<
+  typeof CommissionCalculationResultSchema
+>;

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { ReactNode, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -11,7 +11,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (status === 'loading') return;
-    const user = session?.user as { isSuperAdmin?: boolean; spaId?: string | null };
+    const user = session?.user as {
+      isSuperAdmin?: boolean;
+      spaId?: string | null;
+    };
     if (!user) {
       router.replace('/login');
     } else if (!user.isSuperAdmin && !user.spaId) {
@@ -21,25 +24,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <span className="text-gray-500 text-lg">Cargando...</span>
+      <div className='min-h-screen flex items-center justify-center'>
+        <span className='text-gray-500 text-lg'>Cargando...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="flex h-screen">
+    <div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
+      <div className='flex h-screen'>
         {/* Sidebar */}
         <Sidebar isOpen={false} onClose={() => {}} />
         {/* Main Content */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden lg:ml-0">
+        <div className='flex-1 flex flex-col h-full overflow-hidden lg:ml-0'>
           {/* Header */}
           <DashboardHeader onMenuToggle={() => {}} />
           {/* Page Content */}
-          <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-            {children}
-          </main>
+          <main className='flex-1 p-4 sm:p-6 overflow-y-auto'>{children}</main>
         </div>
       </div>
     </div>

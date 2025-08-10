@@ -1,26 +1,31 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const paymentMethodFormSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(2, 'El nombre debe tener al menos 2 caracteres')
     .max(50, 'El nombre no puede tener más de 50 caracteres'),
-  type: z.string()
+  type: z
+    .string()
     .max(20, 'El tipo no puede tener más de 20 caracteres')
     .optional(),
   isActive: z.boolean().default(true),
-  icon: z.string()
+  icon: z
+    .string()
     .max(100, 'El icono no puede tener más de 100 caracteres')
-    .optional()
-})
+    .optional(),
+});
 
-export type PaymentMethodFormData = z.infer<typeof paymentMethodFormSchema>
+export type PaymentMethodFormData = z.infer<typeof paymentMethodFormSchema>;
 
 export const paymentMethodExtendedSchema = paymentMethodFormSchema.extend({
   isActive: z.boolean(),
   transactionFee: z
     .number({ required_error: 'La comisión es obligatoria' })
     .min(0, 'Debe ser 0 o mayor')
-    .max(1, 'Máximo 1 (100%)')
-})
+    .max(1, 'Máximo 1 (100%)'),
+});
 
-export type PaymentMethodExtendedFormData = z.infer<typeof paymentMethodExtendedSchema>
+export type PaymentMethodExtendedFormData = z.infer<
+  typeof paymentMethodExtendedSchema
+>;

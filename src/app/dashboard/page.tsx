@@ -1,7 +1,7 @@
-import { PageTransition, FadeIn } from '@/components/ui'
-import { PartyPopper } from 'lucide-react'
-import type { Metadata } from 'next'
-import { getDashboardStats } from '@/services/dashboard'
+import { PageTransition, FadeIn } from '@/components/ui';
+import { PartyPopper } from 'lucide-react';
+import type { Metadata } from 'next';
+import { getDashboardStats } from '@/services/dashboard';
 import {
   TodayOverview,
   FinancialOverview,
@@ -11,28 +11,29 @@ import {
   TopPerformers,
   PopularServices,
   CashRegisterStatus,
-  SalesGoalsOverview
-} from './components'
+  SalesGoalsOverview,
+} from './components';
 
 export const metadata: Metadata = {
   title: 'Dashboard - Iconik',
-  description: 'Panel principal con estadísticas y resumen de tu spa de uñas. Visualiza servicios, ingresos, clientes y citas.',
-}
+  description:
+    'Panel principal con estadísticas y resumen de tu spa de uñas. Visualiza servicios, ingresos, clientes y citas.',
+};
 
 export default async function DashboardPage() {
-  const stats = await getDashboardStats()
+  const stats = await getDashboardStats();
 
   return (
-    <PageTransition className="h-full">
-      <div className="flex h-full flex-col">
+    <PageTransition className='h-full'>
+      <div className='flex h-full flex-col'>
         {/* Header */}
-        <div className="flex-shrink-0">
+        <div className='flex-shrink-0'>
           <FadeIn>
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                Dashboard <PartyPopper className="text-yellow-500" />
+            <div className='mb-6'>
+              <h1 className='text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2'>
+                Dashboard <PartyPopper className='text-yellow-500' />
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <p className='text-gray-600 dark:text-gray-400 mt-1'>
                 Resumen completo de tu spa de uñas
               </p>
             </div>
@@ -40,9 +41,8 @@ export default async function DashboardPage() {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-grow overflow-y-auto pr-2 min-h-0">
-          <div className="space-y-6">
-
+        <div className='flex-grow overflow-y-auto pr-2 min-h-0'>
+          <div className='space-y-6'>
             {/* Today's Overview */}
             <FadeIn delay={100}>
               <TodayOverview
@@ -77,11 +77,12 @@ export default async function DashboardPage() {
             </FadeIn>
 
             {/* Two Column Layout */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-
+            <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
               {/* Upcoming Appointments */}
               <FadeIn delay={450}>
-                <UpcomingAppointments appointments={stats.upcomingAppointments} />
+                <UpcomingAppointments
+                  appointments={stats.upcomingAppointments}
+                />
               </FadeIn>
 
               {/* Recent Payments */}
@@ -91,8 +92,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Top Performers & Popular Services */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-
+            <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
               {/* Top Manicurists */}
               <FadeIn delay={650}>
                 <TopPerformers manicurists={stats.topManicurists} />
@@ -117,5 +117,5 @@ export default async function DashboardPage() {
         </div>
       </div>
     </PageTransition>
-  )
+  );
 }

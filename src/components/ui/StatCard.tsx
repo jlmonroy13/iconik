@@ -1,76 +1,85 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
-import { Card } from './Card'
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { Card } from './Card';
 
 export interface StatCardProps {
-  title: string
-  value: React.ReactNode
-  mobileValue?: React.ReactNode
-  icon: React.ReactNode
-  description?: string
+  title: string;
+  value: React.ReactNode;
+  mobileValue?: React.ReactNode;
+  icon: React.ReactNode;
+  description?: string;
   trend?: {
-    value: number
-    label: string
-    isPositive?: boolean
-  }
-  className?: string
-  iconBgColor?: string
+    value: number;
+    label: string;
+    isPositive?: boolean;
+  };
+  className?: string;
+  iconBgColor?: string;
 }
 
 const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
-  ({ title, value, mobileValue, icon, description, trend, className, iconBgColor = 'bg-gray-100 dark:bg-gray-700', ...props }, ref) => {
-
+  (
+    {
+      title,
+      value,
+      mobileValue,
+      icon,
+      description,
+      trend,
+      className,
+      iconBgColor = 'bg-gray-100 dark:bg-gray-700',
+      ...props
+    },
+    ref
+  ) => {
     return (
-      <Card
-        ref={ref}
-        className={cn("p-4 flex flex-col", className)}
-        {...props}
-      >
-        <div className="flex items-center justify-between flex-grow">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+      <Card ref={ref} className={cn('p-4 flex flex-col', className)} {...props}>
+        <div className='flex items-center justify-between flex-grow'>
+          <div className='flex-1'>
+            <p className='text-sm font-medium text-gray-600 dark:text-gray-400 mb-1'>
               {title}
             </p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">
+            <p className='text-xl font-bold text-gray-900 dark:text-white'>
               {mobileValue ? (
                 <>
-                  <span className="hidden sm:inline">{value}</span>
-                  <span className="sm:hidden">{mobileValue}</span>
+                  <span className='hidden sm:inline'>{value}</span>
+                  <span className='sm:hidden'>{mobileValue}</span>
                 </>
               ) : (
                 value
               )}
             </p>
           </div>
-          <div className={cn(
-            "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ml-4",
-            iconBgColor
-          )}>
-            <div className="text-xl">
-              {icon}
-            </div>
+          <div
+            className={cn(
+              'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ml-4',
+              iconBgColor
+            )}
+          >
+            <div className='text-xl'>{icon}</div>
           </div>
         </div>
         {(description || trend) && (
-          <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700/50">
+          <div className='mt-2 pt-2 border-t border-gray-100 dark:border-gray-700/50'>
             {description && !trend && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className='text-xs text-gray-500 dark:text-gray-400'>
                 {description}
               </p>
             )}
             {trend && (
-              <div className="flex items-center">
+              <div className='flex items-center'>
                 <span
                   className={cn(
-                    "text-xs font-medium",
+                    'text-xs font-medium',
                     trend.isPositive
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
                   )}
                 >
-                  {trend.isPositive ? "+" : ""}{trend.value}%
+                  {trend.isPositive ? '+' : ''}
+                  {trend.value}%
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                <span className='text-xs text-gray-500 dark:text-gray-400 ml-1'>
                   {trend.label}
                 </span>
               </div>
@@ -78,9 +87,9 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
           </div>
         )}
       </Card>
-    )
+    );
   }
-)
-StatCard.displayName = "StatCard"
+);
+StatCard.displayName = 'StatCard';
 
-export { StatCard }
+export { StatCard };

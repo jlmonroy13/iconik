@@ -1,14 +1,14 @@
-import { Modal } from '@/components/ui/Modal'
-import { FadeIn } from '@/components/ui/PageTransition'
-import { PaymentMethodForm, PaymentMethodFormData } from './PaymentMethodForm'
-import type { PaymentMethod } from '../types'
+import { Modal } from '@/components/ui/Modal';
+import { FadeIn } from '@/components/ui/PageTransition';
+import { PaymentMethodForm, PaymentMethodFormData } from './PaymentMethodForm';
+import type { PaymentMethod } from '../types';
 
 interface PaymentMethodModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (data: PaymentMethodFormData) => Promise<void>
-  method?: PaymentMethod
-  isSubmitting?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: PaymentMethodFormData) => Promise<void>;
+  method?: PaymentMethod;
+  isSubmitting?: boolean;
 }
 
 export function PaymentMethodModal({
@@ -18,13 +18,15 @@ export function PaymentMethodModal({
   method,
   isSubmitting,
 }: PaymentMethodModalProps) {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={method ? 'Actualizar Método de Pago' : 'Crear Nuevo Método de Pago'}
+      title={
+        method ? 'Actualizar Método de Pago' : 'Crear Nuevo Método de Pago'
+      }
       description={
         method
           ? 'Modifica los datos del método de pago.'
@@ -32,7 +34,7 @@ export function PaymentMethodModal({
       }
     >
       <FadeIn>
-        <div className="mt-4">
+        <div className='mt-4'>
           <PaymentMethodForm
             onSubmit={onSubmit}
             method={method}
@@ -41,5 +43,5 @@ export function PaymentMethodModal({
         </div>
       </FadeIn>
     </Modal>
-  )
+  );
 }

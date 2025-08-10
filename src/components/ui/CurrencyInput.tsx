@@ -1,8 +1,11 @@
 import * as React from 'react';
-import CurrencyInputBase, { CurrencyInputProps as BaseProps } from 'react-currency-input-field';
+import CurrencyInputBase, {
+  CurrencyInputProps as BaseProps,
+} from 'react-currency-input-field';
 import { cn } from '@/lib/utils';
 
-export interface CurrencyInputProps extends Omit<BaseProps, 'onChange' | 'value'> {
+export interface CurrencyInputProps
+  extends Omit<BaseProps, 'onChange' | 'value'> {
   label?: React.ReactNode;
   labelAdornment?: React.ReactNode;
   error?: string;
@@ -12,16 +15,30 @@ export interface CurrencyInputProps extends Omit<BaseProps, 'onChange' | 'value'
   className?: string;
 }
 
-
-export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
-  ({ label, labelAdornment, error, value, onChange, name, className, ...props }, ref) => {
+export const CurrencyInput = React.forwardRef<
+  HTMLInputElement,
+  CurrencyInputProps
+>(
+  (
+    {
+      label,
+      labelAdornment,
+      error,
+      value,
+      onChange,
+      name,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <div className={cn('relative w-full')}>
         {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            <span className="flex items-center">
+          <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <span className='flex items-center'>
               {label}
-              {labelAdornment && <span className="ml-2">{labelAdornment}</span>}
+              {labelAdornment && <span className='ml-2'>{labelAdornment}</span>}
             </span>
           </label>
         )}
@@ -34,13 +51,15 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
             className
           )}
           decimalsLimit={0}
-          decimalSeparator="," // Para formato colombiano
-          groupSeparator="."
-          prefix="$ "
+          decimalSeparator=',' // Para formato colombiano
+          groupSeparator='.'
+          prefix='$ '
           value={value}
-          onValueChange={(val) => {
+          onValueChange={val => {
             if (onChange) {
-              const num = val ? parseFloat(val.replace(/\./g, '').replace(',', '.')) : undefined;
+              const num = val
+                ? parseFloat(val.replace(/\./g, '').replace(',', '.'))
+                : undefined;
               onChange(isNaN(num as number) ? undefined : num);
             }
           }}
@@ -48,7 +67,7 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
           {...props}
         />
         {error && (
-          <p className="mt-1 text-sm font-medium text-red-500 dark:text-red-400">
+          <p className='mt-1 text-sm font-medium text-red-500 dark:text-red-400'>
             {error}
           </p>
         )}

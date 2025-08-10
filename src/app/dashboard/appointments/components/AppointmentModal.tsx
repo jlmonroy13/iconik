@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import { Modal } from '@/components/ui'
-import { AppointmentForm } from './AppointmentForm'
-import type { AppointmentWithDetails } from '@/types'
-import type { AppointmentFormData } from '../schemas'
+import { Modal } from '@/components/ui';
+import { AppointmentForm } from './AppointmentForm';
+import type { AppointmentWithDetails } from '@/types';
+import type { AppointmentFormData } from '../schemas';
 
 interface Option {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface AppointmentModalProps {
-  isOpen: boolean
-  onClose: () => void
-  appointment?: AppointmentWithDetails
-  clients: Option[]
-  manicurists: Option[]
-  services: Option[]
-  onSubmit: (data: AppointmentFormData) => Promise<void>
-  onCreateClient?: (initialName?: string) => void
-  isSubmitting?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  appointment?: AppointmentWithDetails;
+  clients: Option[];
+  manicurists: Option[];
+  services: Option[];
+  onSubmit: (data: AppointmentFormData) => Promise<void>;
+  onCreateClient?: (initialName?: string) => void;
+  isSubmitting?: boolean;
 }
 
 export function AppointmentModal({
@@ -31,12 +31,12 @@ export function AppointmentModal({
   services,
   onSubmit,
   onCreateClient,
-  isSubmitting
+  isSubmitting,
 }: AppointmentModalProps) {
   const handleSubmit = async (data: AppointmentFormData) => {
-    await onSubmit(data)
-    onClose()
-  }
+    await onSubmit(data);
+    onClose();
+  };
 
   return (
     <Modal
@@ -54,5 +54,5 @@ export function AppointmentModal({
         isSubmitting={isSubmitting}
       />
     </Modal>
-  )
+  );
 }

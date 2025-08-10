@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-import { ServiceType } from '@/generated/prisma'
-import { getUserIdFromRequest } from '@/lib/auth'
-import { assertUserSpaAccess } from '@/lib/authz'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+import { ServiceType } from '@/generated/prisma';
+import { getUserIdFromRequest } from '@/lib/auth';
+import { assertUserSpaAccess } from '@/lib/authz';
 
 // Validation schema for updates
 const updateServiceSchema = z.object({
@@ -17,15 +17,15 @@ const updateServiceSchema = z.object({
   imageUrl: z.string().url().optional(),
   isActive: z.boolean().optional(),
   recommendedReturnDays: z.number().min(0).optional(),
-})
+});
 
 function getSpaIdFromRequest(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const spaId = searchParams.get('spaId')
+  const { searchParams } = new URL(request.url);
+  const spaId = searchParams.get('spaId');
   if (!spaId) {
-    throw new Error('spaId is required')
+    throw new Error('spaId is required');
   }
-  return spaId
+  return spaId;
 }
 
 // GET /api/services/[id] - Get a specific service
@@ -34,10 +34,10 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
     const service = await prisma.service.findUnique({
       where: { id: params.id, spaId },
       include: {
@@ -46,37 +46,34 @@ export async function GET(
             id: true,
             name: true,
             slug: true,
-          }
+          },
         },
         _count: {
           select: {
             appointmentServices: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
     if (!service) {
-      return NextResponse.json(
-        { error: 'Service not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Service not found' }, { status: 404 });
     }
 
-    return NextResponse.json(service)
+    return NextResponse.json(service);
   } catch (error) {
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    console.error('Error fetching service:', error)
+    console.error('Error fetching service:', error);
     return NextResponse.json(
       { error: 'Failed to fetch service' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -86,12 +83,12 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
-    const body = await request.json()
-    const validatedData = updateServiceSchema.parse(body)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
+    const body = await request.json();
+    const validatedData = updateServiceSchema.parse(body);
 
     const service = await prisma.service.update({
       where: { id: params.id, spaId },
@@ -102,42 +99,42 @@ export async function PUT(
             id: true,
             name: true,
             slug: true,
-          }
+          },
         },
         _count: {
           select: {
             appointmentServices: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
-    return NextResponse.json(service)
+    return NextResponse.json(service);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
         { status: 400 }
-      )
+      );
     }
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    if (err instanceof Error && err.message.includes('Record to update not found')) {
-      return NextResponse.json(
-        { error: 'Service not found' },
-        { status: 404 }
-      )
+    if (
+      err instanceof Error &&
+      err.message.includes('Record to update not found')
+    ) {
+      return NextResponse.json({ error: 'Service not found' }, { status: 404 });
     }
-    console.error('Error updating service:', error)
+    console.error('Error updating service:', error);
     return NextResponse.json(
       { error: 'Failed to update service' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -147,10 +144,10 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params
-    const spaId = getSpaIdFromRequest(request)
-    const userId = await getUserIdFromRequest()
-    await assertUserSpaAccess(userId, spaId)
+    const params = await context.params;
+    const spaId = getSpaIdFromRequest(request);
+    const userId = await getUserIdFromRequest();
+    await assertUserSpaAccess(userId, spaId);
     // Check if service has related data
     const serviceWithCounts = await prisma.service.findUnique({
       where: { id: params.id, spaId },
@@ -158,16 +155,13 @@ export async function DELETE(
         _count: {
           select: {
             appointmentServices: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
     if (!serviceWithCounts) {
-      return NextResponse.json(
-        { error: 'Service not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Service not found' }, { status: 404 });
     }
 
     // Check if service has related data
@@ -177,29 +171,29 @@ export async function DELETE(
           error: 'Cannot delete service with related data',
           details: {
             appointmentServices: serviceWithCounts._count.appointmentServices,
-          }
+          },
         },
         { status: 400 }
-      )
+      );
     }
 
     await prisma.service.delete({
-      where: { id: params.id, spaId }
-    })
+      where: { id: params.id, spaId },
+    });
 
-    return NextResponse.json({ message: 'Service deleted successfully' })
+    return NextResponse.json({ message: 'Service deleted successfully' });
   } catch (error) {
     const err = error as Error;
     if (err.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (err.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    console.error('Error deleting service:', error)
+    console.error('Error deleting service:', error);
     return NextResponse.json(
       { error: 'Failed to delete service' },
       { status: 500 }
-    )
+    );
   }
 }

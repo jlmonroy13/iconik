@@ -6,7 +6,7 @@ export const DASHBOARD_CONFIG = {
     today: 'today',
     week: 'week',
     month: 'month',
-    year: 'year'
+    year: 'year',
   },
 
   // Limits for data fetching
@@ -15,7 +15,7 @@ export const DASHBOARD_CONFIG = {
     recentPayments: 5,
     recentAppointments: 5,
     topManicurists: 3,
-    popularServices: 5
+    popularServices: 5,
   },
 
   // Date ranges for upcoming appointments (in days)
@@ -27,7 +27,7 @@ export const DASHBOARD_CONFIG = {
     IN_PROGRESS: 'En Progreso',
     COMPLETED: 'Completada',
     CANCELLED: 'Cancelada',
-    NO_SHOW: 'No Presentó'
+    NO_SHOW: 'No Presentó',
   },
 
   // Badge variants for different statuses
@@ -36,74 +36,74 @@ export const DASHBOARD_CONFIG = {
     IN_PROGRESS: 'default',
     COMPLETED: 'success',
     CANCELLED: 'destructive',
-    NO_SHOW: 'destructive'
+    NO_SHOW: 'destructive',
   },
 
   // Currency formatting
   currency: {
     locale: 'es-CO',
     currency: 'COP',
-    minimumFractionDigits: 0
+    minimumFractionDigits: 0,
   },
 
   // Date formatting
   dateFormat: {
     locale: 'es-ES',
     dateStyle: 'medium',
-    timeStyle: 'short'
+    timeStyle: 'short',
   },
 
   // Refresh intervals (in milliseconds)
   refreshIntervals: {
     stats: 5 * 60 * 1000, // 5 minutes
     appointments: 2 * 60 * 1000, // 2 minutes
-    payments: 3 * 60 * 1000 // 3 minutes
-  }
-} as const
+    payments: 3 * 60 * 1000, // 3 minutes
+  },
+} as const;
 
 // Dashboard section configurations
 export const DASHBOARD_SECTIONS = {
   todayOverview: {
     title: 'Resumen de Hoy',
     description: 'Estadísticas del día actual',
-    icon: 'Activity'
+    icon: 'Activity',
   },
   financialOverview: {
     title: 'Resumen Financiero',
     description: 'Vista general de ingresos y gastos',
-    icon: 'BarChart3'
+    icon: 'BarChart3',
   },
   alerts: {
     title: 'Alertas y Pendientes',
     description: 'Elementos que requieren atención',
-    icon: 'AlertCircle'
+    icon: 'AlertCircle',
   },
   upcomingAppointments: {
     title: 'Próximas Citas',
     description: 'Citas programadas para los próximos días',
-    icon: 'Calendar'
+    icon: 'Calendar',
   },
   recentPayments: {
     title: 'Pagos Recientes',
     description: 'Últimos pagos realizados',
-    icon: 'CreditCard'
+    icon: 'CreditCard',
   },
   topPerformers: {
     title: 'Top Manicuristas del Mes',
     description: 'Manicuristas con mejor rendimiento',
-    icon: 'Users'
+    icon: 'Users',
   },
   popularServices: {
     title: 'Servicios Más Populares',
     description: 'Servicios más solicitados',
-    icon: 'Sparkles'
+    icon: 'Sparkles',
   },
   cashRegister: {
     title: 'Estado de Caja',
     description: 'Información de caja registradora',
-    icon: 'CreditCard'
-  }
-} as const
+    icon: 'CreditCard',
+  },
+} as const;
 
 // Color schemes for different metrics
 export const METRIC_COLORS = {
@@ -111,24 +111,24 @@ export const METRIC_COLORS = {
     bg: 'bg-green-50 dark:bg-green-900/20',
     text: 'text-green-800 dark:text-green-200',
     value: 'text-green-900 dark:text-green-100',
-    icon: 'text-green-600'
+    icon: 'text-green-600',
   },
   negative: {
     bg: 'bg-red-50 dark:bg-red-900/20',
     text: 'text-red-800 dark:text-red-200',
     value: 'text-red-900 dark:text-red-100',
-    icon: 'text-red-600'
+    icon: 'text-red-600',
   },
   neutral: {
     bg: 'bg-blue-50 dark:bg-blue-900/20',
     text: 'text-blue-800 dark:text-blue-200',
     value: 'text-blue-900 dark:text-blue-100',
-    icon: 'text-blue-600'
+    icon: 'text-blue-600',
   },
   warning: {
     bg: 'bg-yellow-50 dark:bg-yellow-900/20',
     text: 'text-yellow-800 dark:text-yellow-200',
     value: 'text-yellow-900 dark:text-yellow-100',
-    icon: 'text-yellow-600'
-  }
-} as const
+    icon: 'text-yellow-600',
+  },
+} as const;
