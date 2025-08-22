@@ -64,6 +64,13 @@ model Spa {
   cashRegisterTransactions   CashRegisterTransaction[]
   bookingLinkServices        BookingLinkService[]
   spaSchedules               SpaSchedule[]
+  dianSettings               SpaDianSettings?
+  invoices                   Invoice[]
+  invoiceItems               InvoiceItem[]
+  invoicePayments            InvoicePayment[]
+  dianLogs                   DianLog[]
+  branches                   Branch[]
+  corporateSettings          SpaCorporateSettings?
 
   @@map("spas")
 }
@@ -193,13 +200,16 @@ model Client {
   birthday  DateTime?
   notes     String?
   spaId     String
+  branchId  String?   // Sede donde se registró el cliente (opcional para clientes corporativos)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   // Relations
   spa                  Spa                    @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch               Branch?                @relation(fields: [branchId], references: [id], onDelete: SetNull)
   appointments         Appointment[]
   clientServiceHistory ClientServiceHistory[]
+  invoices             Invoice[]
 
   @@map("clients")
 }
@@ -257,11 +267,13 @@ model Manicurist {
   commission Float    @default(0.5) // Commission percentage (0.0 to 1.0)
   isActive   Boolean  @default(true)
   spaId      String
+  branchId   String?  // Sede principal de la manicurista (opcional para manicuristas multi-sede)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   // Relations
   spa                 Spa                         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch              Branch?                     @relation(fields: [branchId], references: [id], onDelete: SetNull)
   appointments        Appointment[]
   appointmentServices AppointmentService[]
   commissions         Commission[]
@@ -351,7 +363,7 @@ model BookingLinkService {
 
   spaId     String
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   bookingLink BookingLink @relation(fields: [bookingLinkId], references: [id], onDelete: Cascade)
@@ -519,11 +531,13 @@ model CashRegister {
   currentBalance Float   @default(0) // Current cash balance
 
   spaId     String
+  branchId  String?  // Sede donde se encuentra la caja
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
   spa    Spa                 @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
   shifts CashRegisterShift[]
 
   @@map("cash_registers")
@@ -608,22 +622,26 @@ model Service {
   imageUrl              String?
   isActive              Boolean     @default(true)
   spaId                 String
+  branchId              String?     // Sede donde se ofrece el servicio (opcional para servicios multi-sede)
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
   // Relations
   spa                  Spa                         @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch               Branch?                     @relation(fields: [branchId], references: [id], onDelete: SetNull)
   appointmentServices  AppointmentService[]
   clientServiceHistory ClientServiceHistory[]
   serviceDurations     ManicuristServiceDuration[]
   salesGoals           SalesGoal[]
   bookingLinkServices  BookingLinkService[]
+  invoiceItems         InvoiceItem[]
 }
 
 model Appointment {
   id            String            @id @default(cuid())
   clientId      String
   manicuristId  String?
+  branchId      String?           // Sede donde se realiza la cita (opcional para compatibilidad)
   isScheduled   Boolean // true = scheduled, false = walk-in
   scheduledAt   DateTime
   status        AppointmentStatus @default(SCHEDULED)
@@ -649,6 +667,7 @@ model Appointment {
 
   // Relations
   spa                      Spa                          @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch                   Branch?                      @relation(fields: [branchId], references: [id], onDelete: SetNull)
   client                   Client                       @relation(fields: [clientId], references: [id])
   manicurist               Manicurist?                  @relation(fields: [manicuristId], references: [id])
   services                 AppointmentService[]
@@ -717,6 +736,7 @@ model Payment {
   appointmentId        String?
   appointmentServiceId String?
   paymentMethodId      String
+  branchId             String?  // Sede donde se realizó el pago
   amount               Float
   paidAt               DateTime @default(now())
   reference            String?
@@ -737,11 +757,13 @@ model Payment {
 
   // Relations
   spa                     Spa                      @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch                  Branch?                  @relation(fields: [branchId], references: [id], onDelete: SetNull)
   appointment             Appointment?             @relation(fields: [appointmentId], references: [id])
   appointmentService      AppointmentService?      @relation(fields: [appointmentServiceId], references: [id])
   paymentMethod           PaymentMethod            @relation(fields: [paymentMethodId], references: [id])
   commission              Commission?
   cashRegisterTransaction CashRegisterTransaction?
+  invoicePayments         InvoicePayment[]
 }
 
 model Commission {
@@ -834,6 +856,373 @@ model ExpensePayment {
   expense       Expense       @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   spa           Spa           @relation(fields: [spaId], references: [id], onDelete: Cascade)
+}
+
+// =====================================================
+// FACTURACIÓN DIAN-COMPLIANT PARA COLOMBIA
+// =====================================================
+
+model SpaDianSettings {
+  id String @id @default(cuid())
+  spaId String @unique
+
+  // Información DIAN del Spa
+  businessName        String // Razón social
+  businessType        BusinessType // Tipo de persona: "JURIDICA" o "NATURAL"
+  taxId               String // NIT sin DV
+  taxIdDV             String @db.VarChar(1) // Dígito de verificación (1 carácter)
+  taxRegime           TaxRegime // Régimen fiscal
+  fiscalResponsibility FiscalResponsibility // Responsabilidad fiscal
+  additionalFiscalResponsibility String? // Responsabilidades fiscales adicionales (texto libre)
+
+  // Dirección fiscal
+  addressLine1        String // Dirección línea 1
+  addressLine2        String? // Dirección línea 2 (opcional)
+  city                String // Ciudad
+  state               String // Departamento
+  countryCode         String @default("CO") // Código de país (ISO 3166-1 alpha-2)
+  postalCode          String? // Código postal
+
+  // Información de contacto fiscal
+  phone               String? // Teléfono
+  email               String? // Email
+
+  // Configuración de facturación
+  invoicePrefix       String @default("FAC") // Prefijo para numeración de facturas
+  invoiceStartNumber  Int    @default(1) // Número inicial para facturas
+  currentInvoiceNumber Int   @default(0) // Número actual de factura
+
+  // Configuración DIAN
+  dianTestMode        Boolean @default(true) // true = ambiente de pruebas, false = producción
+  dianUsername        String? // Usuario DIAN
+  dianPassword        String? // Contraseña DIAN (encriptada)
+  dianCertificate     String? // Certificado digital (base64)
+  dianCertificatePassword String? // Contraseña del certificado
+
+  // Configuración de impuestos
+  defaultTaxRate      Float @default(0.19) // IVA por defecto (19%)
+  exemptTaxRate       Float @default(0.0) // Tasa para productos exentos
+
+  // Configuración de descuentos
+  allowDiscounts      Boolean @default(true) // Permitir descuentos en facturas
+  maxDiscountPercent  Float @default(50.0) // Máximo descuento permitido (%)
+
+  // Configuración de términos de pago
+  defaultPaymentTerms String @default("CONTADO") // Términos de pago por defecto
+  allowPartialPayments Boolean @default(true) // Permitir pagos parciales
+
+  // Configuración de notas
+  defaultNotes        String? // Notas por defecto en facturas
+  footerText          String? // Texto del pie de página
+
+  // Configuración de archivos
+  logoUrl             String? // URL del logo para facturas
+  signatureUrl        String? // URL de la firma digital
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa Spa @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("spa_dian_settings")
+}
+
+model Invoice {
+  id String @id @default(cuid())
+
+  // Información básica de la factura
+  invoiceNumber      String @unique // Número de factura (ej: "FAC-001-00000001")
+  invoiceType        InvoiceType @default(SALE) // Tipo de factura
+  invoiceStatus      InvoiceStatus @default(DRAFT) // Estado de la factura
+
+  // Fechas
+  issueDate          DateTime @default(now()) // Fecha de emisión
+  dueDate            DateTime? // Fecha de vencimiento
+  sentAt             DateTime? // Fecha de envío al cliente
+  paidAt             DateTime? // Fecha de pago
+
+  // Información del cliente
+  clientId           String? // Cliente (opcional para facturas sin cliente)
+  clientName         String // Nombre del cliente
+  clientTaxId        String? // NIT del cliente (sin DV)
+  clientTaxIdDV      String? // DV del cliente
+  clientAddress      String? // Dirección del cliente
+  clientPhone        String? // Teléfono del cliente
+  clientEmail        String? // Email del cliente
+
+  // Información del Spa
+  spaId              String
+  branchId           String? // Sede donde se emitió la factura (opcional para facturas corporativas)
+  spaName            String // Nombre del spa
+  spaTaxId           String // NIT del spa
+  spaAddress         String // Dirección del spa
+
+  // Totales
+  subtotal           Float // Subtotal sin impuestos
+  taxAmount          Float @default(0) // Monto de impuestos
+  discountAmount     Float @default(0) // Monto de descuentos
+  totalAmount        Float // Monto total
+
+  // Información de pago
+  paymentTerms       String @default("CONTADO") // Términos de pago
+  paymentMethod      String? // Método de pago
+  paidAmount         Float @default(0) // Monto pagado
+  balanceAmount      Float // Monto pendiente
+
+  // Información DIAN
+  dianStatus         DianStatus @default(PENDING) // Estado en DIAN
+  dianResponse       String? // Respuesta de DIAN
+  dianErrors         String? // Errores de DIAN
+  dianCufe           String? // CUFE (Código Único de Factura Electrónica)
+  dianQrCode         String? // Código QR de DIAN
+  dianPdfUrl         String? // URL del PDF de DIAN
+
+  // Archivos
+  pdfUrl             String? // URL del PDF generado
+  xmlUrl             String? // URL del XML generado
+
+  // Notas y observaciones
+  notes              String? // Notas internas
+  publicNotes        String? // Notas visibles al cliente
+  footerText         String? // Texto del pie de página
+
+  // Información de auditoría
+  createdBy          String // Usuario que creó la factura
+  approvedBy         String? // Usuario que aprobó la factura
+  approvedAt         DateTime? // Fecha de aprobación
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  spa                Spa                @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch             Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  client             Client?            @relation(fields: [clientId], references: [id])
+  items              InvoiceItem[]
+  payments           InvoicePayment[]
+  dianLogs           DianLog[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id String @id @default(cuid())
+  invoiceId String
+
+  // Información del servicio/producto
+  serviceId          String? // Servicio relacionado (opcional)
+  itemName           String // Nombre del item
+  itemDescription    String? // Descripción del item
+  itemCode           String? // Código del item
+
+  // Cantidades y precios
+  quantity           Float @default(1) // Cantidad
+  unitPrice          Float // Precio unitario
+  unitMeasure        String @default("UNIDAD") // Unidad de medida
+  subtotal           Float // Subtotal (quantity * unitPrice) - Campo calculado
+
+  // Impuestos
+  taxRate            Float @default(0.19) // Tasa de impuesto
+  taxAmount          Float @default(0) // Monto de impuesto - Campo calculado
+  taxType            String @default("IVA") // Tipo de impuesto
+
+  // Descuentos
+  discountRate       Float @default(0) // Porcentaje de descuento
+  discountAmount     Float @default(0) // Monto de descuento - Campo calculado
+
+  // Total del item
+  totalAmount        Float // Total del item (subtotal + tax - discount) - Campo calculado
+
+  // Información adicional
+  notes              String? // Notas del item
+
+  spaId              String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  invoice            Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  service            Service?           @relation(fields: [serviceId], references: [id])
+  spa                Spa                @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+model InvoicePayment {
+  id String @id @default(cuid())
+  invoiceId String
+  paymentId String? // Pago relacionado (opcional) - Conecta con el sistema de pagos de citas
+
+  // Información del pago
+  amount             Float // Monto del pago
+  paymentMethod      String // Método de pago
+  paymentDate        DateTime @default(now()) // Fecha del pago
+  reference          String? // Referencia del pago
+
+  // Información de la transacción
+  transactionId      String? // ID de la transacción externa
+  status             PaymentStatus @default(COMPLETED) // Estado del pago
+
+  // Notas
+  notes              String? // Notas del pago
+
+  spaId              String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  invoice            Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  payment            Payment?           @relation(fields: [paymentId], references: [id])
+  spa                Spa                @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_payments")
+}
+
+model DianLog {
+  id String @id @default(cuid())
+
+  // Información de la operación
+  operationType      String // Tipo de operación: "SEND_INVOICE", "GET_STATUS", etc.
+  invoiceId          String? // Factura relacionada (opcional)
+
+  // Información de la petición
+  requestData        String // Datos de la petición (JSON)
+  requestTimestamp   DateTime @default(now()) // Timestamp de la petición
+
+  // Información de la respuesta
+  responseData       String? // Datos de la respuesta (JSON)
+  responseTimestamp  DateTime? // Timestamp de la respuesta
+  responseStatus     String? // Status de la respuesta
+  responseCode       String? // Código de respuesta DIAN
+
+  // Información de errores
+  errorMessage       String? // Mensaje de error
+  errorCode          String? // Código de error
+  errorDetails       String? // Detalles del error
+
+  // Información del ambiente
+  isTestMode         Boolean @default(true) // true = pruebas, false = producción
+
+  spaId              String
+  createdAt          DateTime @default(now())
+
+  // Relations
+  invoice            Invoice?           @relation(fields: [invoiceId], references: [id])
+  spa                Spa                @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("dian_logs")
+}
+
+// =====================================================
+// SISTEMA MULTI-SEDES
+// =====================================================
+
+model Branch {
+  id          String   @id @default(cuid())
+  name        String   // Nombre de la sede (ej: "Sede Centro", "Sede Norte")
+  code        String   // Código único de la sede (ej: "CENTRO", "NORTE")
+  description String?  // Descripción opcional
+
+  // Información de contacto
+  address     String   // Dirección de la sede
+  phone       String?  // Teléfono de la sede
+  email       String?  // Email de la sede
+
+  // Configuración de horarios
+  openingTime String?  // Hora de apertura (ej: "09:00")
+  closingTime String?  // Hora de cierre (ej: "18:00")
+
+  // Estado de la sede
+  isActive    Boolean  @default(true)
+  isMain      Boolean  @default(false) // true = sede principal
+
+  // Configuración de facturación
+  invoicePrefix String? // Prefijo específico para facturas de esta sede
+
+  spaId       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  spa         Spa              @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  settings    BranchSettings?
+  appointments Appointment[]
+  services    Service[]
+  manicurists Manicurist[]
+  clients     Client[]
+  payments    Payment[]
+  invoices    Invoice[]
+  cashRegisters CashRegister[]
+
+  @@unique([spaId, code])
+  @@map("branches")
+}
+
+model SpaCorporateSettings {
+  id String @id @default(cuid())
+  spaId String @unique
+
+  // Configuración de clientes corporativos
+  enableCorporateClients Boolean @default(true) // Habilitar clientes corporativos
+  allowCrossBranchAppointments Boolean @default(true) // Permitir citas entre sedes
+  requireBranchSelection Boolean @default(true) // Requerir selección de sede
+
+  // Configuración de facturación corporativa
+  corporateInvoicePrefix String @default("FAC-CORP") // Prefijo para facturas corporativas
+  enableConsolidatedInvoicing Boolean @default(false) // Facturación consolidada
+
+  // Configuración de reportes
+  enableCrossBranchReports Boolean @default(true) // Reportes entre sedes
+  enableBranchComparison Boolean @default(true) // Comparación entre sedes
+
+  // Configuración de permisos
+  allowBranchSpecificSettings Boolean @default(true) // Configuraciones específicas por sede
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa Spa @relation(fields: [spaId], references: [id], onDelete: Cascade)
+
+  @@map("spa_corporate_settings")
+}
+
+model BranchSettings {
+  id String @id @default(cuid())
+  branchId String @unique
+
+  // Configuración específica de la sede
+  customInvoicePrefix String? // Prefijo personalizado para facturas
+  customTaxRate Float? // Tasa de impuesto específica de la sede
+  customOperatingHours Boolean @default(false) // Usar horarios personalizados
+
+  // Configuración de servicios
+  enableAllServices Boolean @default(true) // Habilitar todos los servicios del spa
+  restrictedServices String[] // IDs de servicios restringidos en esta sede
+
+  // Configuración de manicuristas
+  enableAllManicurists Boolean @default(true) // Habilitar todas las manicuristas del spa
+  restrictedManicurists String[] // IDs de manicuristas restringidas en esta sede
+
+  // Configuración de clientes
+  allowNewClients Boolean @default(true) // Permitir nuevos clientes en esta sede
+  allowWalkIns Boolean @default(true) // Permitir clientes sin cita
+
+  // Configuración de pagos
+  allowedPaymentMethods String[] // Métodos de pago permitidos en esta sede
+
+  // Configuración de facturación
+  useSpaDianSettings Boolean @default(true) // Usar configuración DIAN del spa principal
+  customDianSettings String? // Configuración DIAN personalizada (JSON)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@map("branch_settings")
 }
 
 // =====================================================
@@ -977,4 +1366,58 @@ enum CashRegisterTransactionType {
   CLOSING_BALANCE // Final cash when closing shift
   ADJUSTMENT // Manual adjustment/correction
   OTHER // Other cash transaction
+}
+
+enum InvoiceType {
+  SALE
+  RETURN
+  ADJUSTMENT
+  CREDIT_NOTE
+  DEBIT_NOTE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  CANCELLED
+  VOIDED
+}
+
+enum DianStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  VOIDED
+}
+
+enum PaymentStatus {
+  COMPLETED
+  FAILED
+  PENDING
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum BusinessType {
+  JURIDICA
+  NATURAL
+}
+
+enum TaxRegime {
+  SIMPLIFICADO
+  COMUN
+  GRAN_CONTRIBUYENTE
+}
+
+enum FiscalResponsibility {
+  O_13 // O-13: Gran Contribuyente
+  O_15 // O-15: Autorretenedor
+  O_23 // O-23: Agente de Retención IVA
+  O_47 // O-47: Régimen Simple de Tributación
+  O_48 // O-48: Responsable de IVA
+  O_49 // O-49: No Responsable de IVA
+  O_50 // O-50: Responsable de IVA por Factura
+  // Nota: Para responsabilidades adicionales específicas, usar campo de texto libre
 }
