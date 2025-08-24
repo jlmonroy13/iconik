@@ -2,6 +2,7 @@ import { requireRoleForPage } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { SpaDetailClient } from './components/SpaDetailClient';
+import { DashboardHeader } from '@/components/ui';
 
 export default async function SpaDetailPage({
   params,
@@ -9,7 +10,7 @@ export default async function SpaDetailPage({
   params: { spaId: string };
 }) {
   // Require SUPER_ADMIN role with redirect
-  const _user = await requireRoleForPage('SUPER_ADMIN');
+  const user = await requireRoleForPage('SUPER_ADMIN');
 
   // Get spa with all related data
   const spa = await prisma.spa.findUnique({
@@ -55,5 +56,14 @@ export default async function SpaDetailPage({
     notFound();
   }
 
-  return <SpaDetailClient spa={spa} />;
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <DashboardHeader
+        user={user}
+        title={spa.name}
+        subtitle={`Detalle completo del spa y gestión de recursos - ${spa.branches.length} sedes`}
+      />
+      <SpaDetailClient spa={spa} />
+    </div>
+  );
 }

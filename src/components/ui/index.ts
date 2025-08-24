@@ -10,6 +10,7 @@ export { Select } from './Select';
 export { SearchSelect } from './SearchSelect';
 export * from './Label';
 export { UserMenu } from './UserMenu';
+export { DashboardHeader } from './DashboardHeader';
 export {
   Skeleton,
   CardSkeleton,

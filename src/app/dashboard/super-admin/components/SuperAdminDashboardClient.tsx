@@ -79,18 +79,6 @@ export function SuperAdminDashboardClient({
 
   return (
     <div className="container mx-auto p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Dashboard Super Admin
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Gestión de todos los spas del sistema
-          </p>
-        </div>
-      </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>

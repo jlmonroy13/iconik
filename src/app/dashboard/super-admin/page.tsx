@@ -1,6 +1,7 @@
 import { requireRoleForPage } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 import { SuperAdminDashboardClient } from './components/SuperAdminDashboardClient';
+import { DashboardHeader } from '@/components/ui';
 
 type Admin = {
   id: string;
@@ -16,7 +17,7 @@ type Admin = {
 
 export default async function SuperAdminDashboardPage() {
   // Require SUPER_ADMIN role with redirect
-  const _user = await requireRoleForPage('SUPER_ADMIN');
+  const user = await requireRoleForPage('SUPER_ADMIN');
 
   // Get all spas with stats
   const spas = await prisma.spa.findMany({
@@ -69,5 +70,14 @@ export default async function SuperAdminDashboardPage() {
     user => user.role === 'SPA_ADMIN' || user.role === 'SUPER_ADMIN'
   ) as Admin[];
 
-  return <SuperAdminDashboardClient spas={spas} admins={admins} />;
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <DashboardHeader
+        user={user}
+        title="Dashboard Super Admin"
+        subtitle="Gestión de todos los spas del sistema"
+      />
+      <SuperAdminDashboardClient spas={spas} admins={admins} />
+    </div>
+  );
 }

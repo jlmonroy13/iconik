@@ -124,32 +124,19 @@ export function SpaDetailClient({ spa }: SpaDetailClientProps) {
 
   return (
     <div className="container mx-auto p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {spa.name}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">
-              Detalle completo del spa y gestión de recursos
-            </p>
-          </div>
-          <Badge
-            className={
-              spa.isActive
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
-            }
-          >
-            {spa.isActive ? 'Activo' : 'Inactivo'}
-          </Badge>
-        </div>
-        <div className="mt-4">
-          <Link href="/dashboard/super-admin">
-            <Button variant="outline">Volver al Dashboard</Button>
-          </Link>
-        </div>
+      {/* Navigation and Status */}
+      <div className="flex items-center justify-between mb-6">
+        <Link href="/dashboard/super-admin">
+          <Button variant="outline" size="sm">
+            ← Volver al Dashboard
+          </Button>
+        </Link>
+        <Badge
+          variant={spa.isActive ? 'success' : 'destructive'}
+          className="text-sm"
+        >
+          {spa.isActive ? 'Activo' : 'Inactivo'}
+        </Badge>
       </div>
 
       {/* Spa Info */}
