@@ -7,11 +7,25 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
     "db:studio": "prisma studio",
-    "clean": "rm -rf .next node_modules package-lock.json .turbo .cache"
+    "clean": "rm -rf .next node_modules package-lock.json .turbo .cache",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix --ignore-pattern 'prisma/seed.ts' --ignore-pattern 'scripts/**/*'",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -42,6 +56,11 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.6.2",
     "prisma": "^6.11.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.4",

@@ -1,11 +1,12 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
-export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string
-  error?: string
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
@@ -26,11 +27,9 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           )}
           {...props}
         />
-        {error && (
-          <p className="text-xs text-red-500 mt-1">{error}</p>
-        )}
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       </div>
-    )
+    );
   }
-)
-Textarea.displayName = 'Textarea'
+);
+Textarea.displayName = 'Textarea';

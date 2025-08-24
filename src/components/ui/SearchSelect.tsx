@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import { useState, useRef, useEffect } from 'react'
-import { Search, Plus, ChevronDown } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useState, useRef, useEffect } from 'react';
+import { Search, Plus, ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Option {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface SearchSelectProps {
-  options: Option[]
-  value: string
-  onChange: (value: string) => void
-  onCreateNew?: () => void
-  label?: string
-  placeholder?: string
-  error?: string
-  disabled?: boolean
+  options: Option[];
+  value: string;
+  onChange: (value: string) => void;
+  onCreateNew?: () => void;
+  label?: string;
+  placeholder?: string;
+  error?: string;
+  disabled?: boolean;
 }
 
 export function SearchSelect({
@@ -26,74 +26,77 @@ export function SearchSelect({
   onChange,
   onCreateNew,
   label,
-  placeholder = "Buscar...",
+  placeholder = 'Buscar...',
   error,
-  disabled = false
+  disabled = false,
 }: SearchSelectProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const containerRef = useRef<HTMLDivElement>(null)
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Filter options based on search term
   const filteredOptions = options.filter(option =>
     option.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
   // Get selected option
-  const selectedOption = options.find(option => option.id === value)
+  const selectedOption = options.find(option => option.id === value);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Focus search input when dropdown opens
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
-      searchInputRef.current.focus()
+      searchInputRef.current.focus();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   const handleToggle = () => {
     if (!disabled) {
-      setIsOpen(!isOpen)
+      setIsOpen(!isOpen);
       if (!isOpen) {
-        setSearchTerm('')
+        setSearchTerm('');
       }
     }
-  }
+  };
 
   const handleOptionSelect = (optionId: string) => {
-    onChange(optionId)
-    setIsOpen(false)
-    setSearchTerm('')
-  }
+    onChange(optionId);
+    setIsOpen(false);
+    setSearchTerm('');
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-  }
+    setSearchTerm(e.target.value);
+  };
 
   const handleSearchFocus = () => {
     if (!isOpen) {
-      setIsOpen(true)
+      setIsOpen(true);
     }
-  }
+  };
 
   const handleCreateNew = () => {
     if (onCreateNew) {
-      onCreateNew()
-      setIsOpen(false)
-      setSearchTerm('')
+      onCreateNew();
+      setIsOpen(false);
+      setSearchTerm('');
     }
-  }
+  };
 
   return (
     <div className="space-y-2" ref={containerRef}>
@@ -110,28 +113,34 @@ export function SearchSelect({
           onClick={handleToggle}
           disabled={disabled}
           className={cn(
-            "w-full px-3 py-2 text-sm border rounded-md transition-colors",
-            "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600",
-            "focus:outline-none focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-800",
-            "flex items-center justify-between",
+            'w-full px-3 py-2 text-sm border rounded-md transition-colors',
+            'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600',
+            'focus:outline-none focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-800',
+            'flex items-center justify-between',
             error
-              ? "border-red-500 dark:border-red-400 focus:ring-red-500"
-              : "",
+              ? 'border-red-500 dark:border-red-400 focus:ring-red-500'
+              : '',
             disabled
-              ? "opacity-50 cursor-not-allowed"
-              : "cursor-pointer hover:border-gray-400 dark:hover:border-gray-500"
+              ? 'opacity-50 cursor-not-allowed'
+              : 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-500'
           )}
         >
-          <span className={cn(
-            "truncate",
-            selectedOption ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"
-          )}>
+          <span
+            className={cn(
+              'truncate',
+              selectedOption
+                ? 'text-gray-900 dark:text-white'
+                : 'text-gray-500 dark:text-gray-400'
+            )}
+          >
             {selectedOption ? selectedOption.name : placeholder}
           </span>
-          <ChevronDown className={cn(
-            "h-4 w-4 text-gray-400 transition-transform",
-            isOpen && "rotate-180"
-          )} />
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 text-gray-400 transition-transform',
+              isOpen && 'rotate-180'
+            )}
+          />
         </button>
 
         {/* Dropdown */}
@@ -156,16 +165,17 @@ export function SearchSelect({
             {/* Options List */}
             <div className="max-h-60 overflow-auto py-1">
               {filteredOptions.length > 0 ? (
-                filteredOptions.map((option) => (
+                filteredOptions.map(option => (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => handleOptionSelect(option.id)}
                     className={cn(
-                      "w-full px-3 py-2 text-sm text-left cursor-pointer",
-                      "hover:bg-gray-100 dark:hover:bg-gray-800",
-                      "focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800",
-                      value === option.id && "bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300"
+                      'w-full px-3 py-2 text-sm text-left cursor-pointer',
+                      'hover:bg-gray-100 dark:hover:bg-gray-800',
+                      'focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800',
+                      value === option.id &&
+                        'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300'
                     )}
                   >
                     {option.name}
@@ -188,7 +198,7 @@ export function SearchSelect({
                       )}
                     </div>
                   ) : (
-                    "No hay opciones disponibles"
+                    'No hay opciones disponibles'
                   )}
                 </div>
               )}
@@ -215,5 +225,5 @@ export function SearchSelect({
         <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
       )}
     </div>
-  )
+  );
 }

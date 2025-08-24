@@ -1,15 +1,15 @@
-import { formatCurrency } from '@/lib/utils/calculations'
-import { calculateCommissionWithKitCostTaxAndFees } from '@/lib/utils/calculations'
+import { formatCurrency } from '@/lib/utils/calculations';
+import { calculateCommissionWithKitCostTaxAndFees } from '@/lib/utils/calculations';
 
 interface CommissionBreakdownProps {
-  servicePrice: number
-  kitCost?: number
-  taxRate?: number
-  commissionRate: number
-  discountAmount?: number
-  discountAffectsCommission?: boolean
-  transactionFeeRate?: number
-  showDetails?: boolean
+  servicePrice: number;
+  kitCost?: number;
+  taxRate?: number;
+  commissionRate: number;
+  discountAmount?: number;
+  discountAffectsCommission?: boolean;
+  transactionFeeRate?: number;
+  showDetails?: boolean;
 }
 
 export function CommissionBreakdown({
@@ -20,7 +20,7 @@ export function CommissionBreakdown({
   discountAmount = 0,
   discountAffectsCommission = false,
   transactionFeeRate = 0,
-  showDetails = true
+  showDetails = true,
 }: CommissionBreakdownProps) {
   const result = calculateCommissionWithKitCostTaxAndFees(
     servicePrice,
@@ -30,7 +30,7 @@ export function CommissionBreakdown({
     discountAmount,
     discountAffectsCommission,
     transactionFeeRate
-  )
+  );
 
   return (
     <div className="space-y-4">
@@ -42,7 +42,8 @@ export function CommissionBreakdown({
             {formatCurrency(result.manicuristEarnings)}
           </div>
           <div className="text-xs text-blue-600">
-            {((result.manicuristEarnings / result.finalTotal) * 100).toFixed(1)}%
+            {((result.manicuristEarnings / result.finalTotal) * 100).toFixed(1)}
+            %
           </div>
         </div>
 
@@ -70,12 +71,18 @@ export function CommissionBreakdown({
 
         {result.transactionFeeAmount > 0 && (
           <div className="bg-purple-50 p-3 rounded-lg">
-            <div className="text-sm text-purple-600 font-medium">Comisión TDC</div>
+            <div className="text-sm text-purple-600 font-medium">
+              Comisión TDC
+            </div>
             <div className="text-lg font-bold text-purple-800">
               {formatCurrency(result.transactionFeeAmount)}
             </div>
             <div className="text-xs text-purple-600">
-              {((result.transactionFeeAmount / result.finalTotal) * 100).toFixed(1)}%
+              {(
+                (result.transactionFeeAmount / result.finalTotal) *
+                100
+              ).toFixed(1)}
+              %
             </div>
           </div>
         )}
@@ -100,9 +107,12 @@ export function CommissionBreakdown({
                 <span>Precio del servicio</span>
               </div>
               <div className="text-right">
-                <div className="font-medium">{formatCurrency(result.servicePrice)}</div>
+                <div className="font-medium">
+                  {formatCurrency(result.servicePrice)}
+                </div>
                 <div className="text-xs text-muted-foreground">
-                  {((result.servicePrice / result.finalTotal) * 100).toFixed(1)}%
+                  {((result.servicePrice / result.finalTotal) * 100).toFixed(1)}
+                  %
                 </div>
               </div>
             </div>
@@ -114,7 +124,9 @@ export function CommissionBreakdown({
                   <span>Costo del kit</span>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium">{formatCurrency(result.kitCost)}</div>
+                  <div className="font-medium">
+                    {formatCurrency(result.kitCost)}
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     {((result.kitCost / result.finalTotal) * 100).toFixed(1)}%
                   </div>
@@ -129,9 +141,14 @@ export function CommissionBreakdown({
                   <span>Impuestos</span>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium">{formatCurrency(result.governmentTax)}</div>
+                  <div className="font-medium">
+                    {formatCurrency(result.governmentTax)}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    {((result.governmentTax / result.finalTotal) * 100).toFixed(1)}%
+                    {((result.governmentTax / result.finalTotal) * 100).toFixed(
+                      1
+                    )}
+                    %
                   </div>
                 </div>
               </div>
@@ -144,9 +161,15 @@ export function CommissionBreakdown({
                   <span>Comisión tarjeta</span>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium">{formatCurrency(result.transactionFeeAmount)}</div>
+                  <div className="font-medium">
+                    {formatCurrency(result.transactionFeeAmount)}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    {((result.transactionFeeAmount / result.finalTotal) * 100).toFixed(1)}%
+                    {(
+                      (result.transactionFeeAmount / result.finalTotal) *
+                      100
+                    ).toFixed(1)}
+                    %
                   </div>
                 </div>
               </div>
@@ -159,9 +182,16 @@ export function CommissionBreakdown({
                   <span>Descuento</span>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium">-{formatCurrency(result.discountAmount)}</div>
+                  <div className="font-medium">
+                    -{formatCurrency(result.discountAmount)}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    -{((result.discountAmount / result.finalTotal) * 100).toFixed(1)}%
+                    -
+                    {(
+                      (result.discountAmount / result.finalTotal) *
+                      100
+                    ).toFixed(1)}
+                    %
                   </div>
                 </div>
               </div>
@@ -173,20 +203,21 @@ export function CommissionBreakdown({
       {/* Commission Rate Info */}
       <div className="bg-amber-50 p-3 rounded-lg">
         <div className="text-sm text-amber-800">
-          <strong>Comisión de la manicurista:</strong> {(commissionRate * 100).toFixed(0)}%
+          <strong>Comisión de la manicurista:</strong>{' '}
+          {(commissionRate * 100).toFixed(0)}%
           <span className="text-xs ml-2">
-            (calculada solo sobre el precio del servicio: {formatCurrency(servicePrice)})
+            (calculada solo sobre el precio del servicio:{' '}
+            {formatCurrency(servicePrice)})
           </span>
         </div>
         {result.transactionFeeAmount > 0 && (
           <div className="text-xs text-amber-700 mt-1">
-            <strong>Comisión de tarjeta:</strong> {(transactionFeeRate * 100).toFixed(2)}%
-            <span className="ml-2">
-              (deducida de las ganancias del spa)
-            </span>
+            <strong>Comisión de tarjeta:</strong>{' '}
+            {(transactionFeeRate * 100).toFixed(2)}%
+            <span className="ml-2">(deducida de las ganancias del spa)</span>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

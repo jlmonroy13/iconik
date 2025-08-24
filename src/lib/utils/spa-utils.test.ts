@@ -3,7 +3,7 @@
  * This file is for documentation and testing purposes
  */
 
-import { getCurrentSpaId, getSpaIdWithFallback } from './spa-utils'
+import { getCurrentSpaId, getSpaIdWithFallback } from './spa-utils';
 
 // Example usage:
 //
@@ -30,4 +30,4 @@ import { getCurrentSpaId, getSpaIdWithFallback } from './spa-utils'
 //   // Use spaId for database queries
 // }
 
-export { getCurrentSpaId, getSpaIdWithFallback }
+export { getCurrentSpaId, getSpaIdWithFallback };

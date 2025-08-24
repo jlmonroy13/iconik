@@ -1,39 +1,54 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { Button, Input, Card, CardContent, useNotifications } from '@/components/ui'
-import { Loader2, Mail } from 'lucide-react'
-import { PROTECTED_ROUTES } from '@/lib/constants/routes'
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import {
+  Button,
+  Input,
+  Card,
+  CardContent,
+  useNotifications,
+} from '@/components/ui';
+import { Loader2, Mail } from 'lucide-react';
+import { PROTECTED_ROUTES } from '@/lib/constants/routes';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const { showSuccess, showError } = useNotifications()
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { showSuccess, showError } = useNotifications();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
       const result = await signIn('resend', {
         email,
         callbackUrl: PROTECTED_ROUTES.DASHBOARD,
         redirect: false,
-      })
+      });
 
       if (result?.error) {
-        showError('Error', 'Error al enviar el magic link. Por favor, verifica tu email e intenta de nuevo.')
+        showError(
+          'Error',
+          'Error al enviar el magic link. Por favor, verifica tu email e intenta de nuevo.'
+        );
       } else {
-        showSuccess('Éxito', '¡Magic link enviado! Revisa tu correo electrónico para continuar.')
-        setEmail('')
+        showSuccess(
+          'Éxito',
+          '¡Magic link enviado! Revisa tu correo electrónico para continuar.'
+        );
+        setEmail('');
       }
     } catch {
-      showError('Error', 'Error al enviar el magic link. Por favor, intenta de nuevo.')
+      showError(
+        'Error',
+        'Error al enviar el magic link. Por favor, intenta de nuevo.'
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -60,7 +75,7 @@ export default function LoginPage() {
                 label="Correo electrónico"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 disabled={isLoading}
                 required
@@ -91,7 +106,8 @@ export default function LoginPage() {
             {/* Info */}
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Te enviaremos un enlace mágico a tu correo electrónico para iniciar sesión de forma segura.
+                Te enviaremos un enlace mágico a tu correo electrónico para
+                iniciar sesión de forma segura.
               </p>
             </div>
 
@@ -115,5 +131,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

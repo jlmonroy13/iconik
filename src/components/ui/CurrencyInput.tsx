@@ -1,8 +1,11 @@
 import * as React from 'react';
-import CurrencyInputBase, { CurrencyInputProps as BaseProps } from 'react-currency-input-field';
+import CurrencyInputBase, {
+  CurrencyInputProps as BaseProps,
+} from 'react-currency-input-field';
 import { cn } from '@/lib/utils';
 
-export interface CurrencyInputProps extends Omit<BaseProps, 'onChange' | 'value'> {
+export interface CurrencyInputProps
+  extends Omit<BaseProps, 'onChange' | 'value'> {
   label?: React.ReactNode;
   labelAdornment?: React.ReactNode;
   error?: string;
@@ -12,9 +15,23 @@ export interface CurrencyInputProps extends Omit<BaseProps, 'onChange' | 'value'
   className?: string;
 }
 
-
-export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
-  ({ label, labelAdornment, error, value, onChange, name, className, ...props }, ref) => {
+export const CurrencyInput = React.forwardRef<
+  HTMLInputElement,
+  CurrencyInputProps
+>(
+  (
+    {
+      label,
+      labelAdornment,
+      error,
+      value,
+      onChange,
+      name,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <div className={cn('relative w-full')}>
         {label && (
@@ -38,9 +55,11 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
           groupSeparator="."
           prefix="$ "
           value={value}
-          onValueChange={(val) => {
+          onValueChange={val => {
             if (onChange) {
-              const num = val ? parseFloat(val.replace(/\./g, '').replace(',', '.')) : undefined;
+              const num = val
+                ? parseFloat(val.replace(/\./g, '').replace(',', '.'))
+                : undefined;
               onChange(isNaN(num as number) ? undefined : num);
             }
           }}

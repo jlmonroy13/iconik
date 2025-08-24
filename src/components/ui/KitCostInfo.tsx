@@ -1,16 +1,20 @@
-import { Info, AlertTriangle, Plus, X } from 'lucide-react'
-import { ServiceType } from '@/generated/prisma'
-import { shouldHaveKitCost, getDefaultKitCost, validateKitCost } from '@/lib/utils/calculations'
-import { formatCurrency } from '@/lib/utils/calculations'
-import { Button } from '@/components/ui/Button'
+import { Info, AlertTriangle, Plus, X } from 'lucide-react';
+import { ServiceType } from '@/generated/prisma';
+import {
+  shouldHaveKitCost,
+  getDefaultKitCost,
+  validateKitCost,
+} from '@/lib/utils/calculations';
+import { formatCurrency } from '@/lib/utils/calculations';
+import { Button } from '@/components/ui/Button';
 
 interface KitCostInfoProps {
-  serviceType: ServiceType
-  kitCost?: number
-  showValidation?: boolean
-  onAddKitCost?: () => void
-  onRemoveKitCost?: () => void
-  showActions?: boolean
+  serviceType: ServiceType;
+  kitCost?: number;
+  showValidation?: boolean;
+  onAddKitCost?: () => void;
+  onRemoveKitCost?: () => void;
+  showActions?: boolean;
 }
 
 export function KitCostInfo({
@@ -19,12 +23,14 @@ export function KitCostInfo({
   showValidation = false,
   onAddKitCost,
   onRemoveKitCost,
-  showActions = false
+  showActions = false,
 }: KitCostInfoProps) {
-  const hasKitCost = shouldHaveKitCost(serviceType)
-  const defaultKitCost = getDefaultKitCost(serviceType)
-  const validation = showValidation ? validateKitCost(serviceType, kitCost || 0) : null
-  const hasKitCostValue = kitCost && kitCost > 0
+  const hasKitCost = shouldHaveKitCost(serviceType);
+  const defaultKitCost = getDefaultKitCost(serviceType);
+  const validation = showValidation
+    ? validateKitCost(serviceType, kitCost || 0)
+    : null;
+  const hasKitCostValue = kitCost && kitCost > 0;
 
   if (!hasKitCost) {
     return (
@@ -32,14 +38,17 @@ export function KitCostInfo({
         <Info className="h-4 w-4" />
         <span>This service type does not require a kit cost</span>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Info className="h-4 w-4" />
-        <span>Kit cost goes directly to the spa and doesn&apos;t affect manicurist commission</span>
+        <span>
+          Kit cost goes directly to the spa and doesn&apos;t affect manicurist
+          commission
+        </span>
       </div>
 
       {!hasKitCostValue && showActions && (
@@ -101,14 +110,24 @@ export function KitCostInfo({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export function KitCostSummary({ services }: { services: Array<{ type: ServiceType; kitCost?: number }> }) {
-  const servicesWithKitCost = services.filter(service => shouldHaveKitCost(service.type) && service.kitCost && service.kitCost > 0)
-  const totalKitCost = servicesWithKitCost.reduce((sum, service) => sum + (service.kitCost || 0), 0)
+export function KitCostSummary({
+  services,
+}: {
+  services: Array<{ type: ServiceType; kitCost?: number }>;
+}) {
+  const servicesWithKitCost = services.filter(
+    service =>
+      shouldHaveKitCost(service.type) && service.kitCost && service.kitCost > 0
+  );
+  const totalKitCost = servicesWithKitCost.reduce(
+    (sum, service) => sum + (service.kitCost || 0),
+    0
+  );
 
-  if (totalKitCost === 0) return null
+  if (totalKitCost === 0) return null;
 
   return (
     <div className="rounded-lg bg-muted p-3">
@@ -116,8 +135,12 @@ export function KitCostSummary({ services }: { services: Array<{ type: ServiceTy
       <div className="mt-1 space-y-1">
         {servicesWithKitCost.map((service, index) => (
           <div key={index} className="flex justify-between text-sm">
-            <span className="capitalize">{service.type.toLowerCase().replace('_', ' ')}</span>
-            <span className="font-medium">{formatCurrency(service.kitCost || 0)}</span>
+            <span className="capitalize">
+              {service.type.toLowerCase().replace('_', ' ')}
+            </span>
+            <span className="font-medium">
+              {formatCurrency(service.kitCost || 0)}
+            </span>
           </div>
         ))}
         <div className="border-t pt-1 flex justify-between font-medium">
@@ -126,5 +149,5 @@ export function KitCostSummary({ services }: { services: Array<{ type: ServiceTy
         </div>
       </div>
     </div>
-  )
+  );
 }

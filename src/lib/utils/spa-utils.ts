@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma'
-import { auth } from '@/../../auth'
-import type { Session } from 'next-auth'
+import { prisma } from '@/lib/prisma';
+import { auth } from '@/../../auth';
+import type { Session } from 'next-auth';
 
 /**
  * Gets the appropriate spaId for the current user
@@ -9,36 +9,39 @@ import type { Session } from 'next-auth'
  * @returns Promise<string> - The spaId to use
  */
 export async function getCurrentSpaId(): Promise<string> {
-  const session = await auth()
+  const session = await auth();
 
   if (!session?.user) {
-    throw new Error('No authenticated user found')
+    throw new Error('No authenticated user found');
   }
 
   // Type assertion to ensure we have the extended user type
-  const user = session.user as Session['user'] & { isSuperAdmin?: boolean; spaId?: string | null }
+  const user = session.user as Session['user'] & {
+    isSuperAdmin?: boolean;
+    spaId?: string | null;
+  };
 
   // If user has a spaId, use it
   if (user.spaId) {
-    return user.spaId
+    return user.spaId;
   }
 
   // If user is super admin and has no spaId, get the first available spa
   if (user.isSuperAdmin) {
     const firstSpa = await prisma.spa.findFirst({
       where: { isActive: true },
-      select: { id: true }
-    })
+      select: { id: true },
+    });
 
     if (!firstSpa) {
-      throw new Error('No active spas found in the system')
+      throw new Error('No active spas found in the system');
     }
 
-    return firstSpa.id
+    return firstSpa.id;
   }
 
   // If user is not super admin and has no spaId, redirect to onboarding
-  throw new Error('User has no spaId and is not super admin')
+  throw new Error('User has no spaId and is not super admin');
 }
 
 /**
@@ -47,30 +50,33 @@ export async function getCurrentSpaId(): Promise<string> {
  * @returns Promise<string | null> - The spaId to use or null if should redirect to onboarding
  */
 export async function getSpaIdWithFallback(): Promise<string | null> {
-  const session = await auth()
+  const session = await auth();
 
   if (!session?.user) {
-    return null
+    return null;
   }
 
   // Type assertion to ensure we have the extended user type
-  const user = session.user as Session['user'] & { isSuperAdmin?: boolean; spaId?: string | null }
+  const user = session.user as Session['user'] & {
+    isSuperAdmin?: boolean;
+    spaId?: string | null;
+  };
 
   // If user has a spaId, use it
   if (user.spaId) {
-    return user.spaId
+    return user.spaId;
   }
 
   // If user is super admin and has no spaId, get the first available spa
   if (user.isSuperAdmin) {
     const firstSpa = await prisma.spa.findFirst({
       where: { isActive: true },
-      select: { id: true }
-    })
+      select: { id: true },
+    });
 
-    return firstSpa?.id || null
+    return firstSpa?.id || null;
   }
 
   // If user is not super admin and has no spaId, return null for onboarding redirect
-  return null
+  return null;
 }

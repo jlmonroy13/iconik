@@ -1,4 +1,4 @@
-import { useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react';
 import {
   canAccessSpa,
   canAccessBranch,
@@ -16,9 +16,9 @@ import {
   getUserSpaId,
   getUserBranchId,
   getUserAccessLevel,
-  canAccessFeature
-} from '@/lib/authz'
-import { User } from '@/generated/prisma'
+  canAccessFeature,
+} from '@/lib/authz';
+import { User } from '@/generated/prisma';
 
 // =====================================================
 // HOOKS DE AUTORIZACIÓN PARA EL FRONTEND
@@ -28,168 +28,180 @@ import { User } from '@/generated/prisma'
  * Hook para obtener el usuario actual de la sesión
  */
 export function useUser(): User | null {
-  const { data: session } = useSession()
-  return session?.user as User | null
+  const { data: session } = useSession();
+  return session?.user as User | null;
 }
 
 /**
  * Hook para verificar si el usuario puede acceder a un spa
  */
 export function useCanAccessSpa(spaId: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canAccessSpa(user, spaId)
+  const user = useUser();
+  if (!user) return false;
+  return canAccessSpa(user, spaId);
 }
 
 /**
  * Hook para verificar si el usuario puede acceder a una sede
  */
 export function useCanAccessBranch(branchId: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canAccessBranch(user, branchId)
+  const user = useUser();
+  if (!user) return false;
+  return canAccessBranch(user, branchId);
 }
 
 /**
  * Hook para verificar si el usuario puede gestionar un spa
  */
 export function useCanManageSpa(spaId: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canManageSpa(user, spaId)
+  const user = useUser();
+  if (!user) return false;
+  return canManageSpa(user, spaId);
 }
 
 /**
  * Hook para verificar si el usuario puede gestionar una sede
  */
 export function useCanManageBranch(branchId: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canManageBranch(user, branchId)
+  const user = useUser();
+  if (!user) return false;
+  return canManageBranch(user, branchId);
 }
 
 /**
  * Hook para verificar si el usuario puede gestionar citas
  */
-export function useCanManageAppointments(spaId: string, branchId?: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canManageAppointments(user, spaId, branchId)
+export function useCanManageAppointments(
+  spaId: string,
+  branchId?: string
+): boolean {
+  const user = useUser();
+  if (!user) return false;
+  return canManageAppointments(user, spaId, branchId);
 }
 
 /**
  * Hook para verificar si el usuario puede ver reportes
  */
 export function useCanViewReports(spaId: string, branchId?: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canViewReports(user, spaId, branchId)
+  const user = useUser();
+  if (!user) return false;
+  return canViewReports(user, spaId, branchId);
 }
 
 /**
  * Hook para verificar si el usuario puede gestionar configuración DIAN
  */
 export function useCanManageDianSettings(spaId: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canManageDianSettings(user, spaId)
+  const user = useUser();
+  if (!user) return false;
+  return canManageDianSettings(user, spaId);
 }
 
 /**
  * Hook para verificar si el usuario puede gestionar usuarios
  */
 export function useCanManageUsers(targetSpaId?: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canManageUsers(user, targetSpaId)
+  const user = useUser();
+  if (!user) return false;
+  return canManageUsers(user, targetSpaId);
 }
 
 /**
  * Hook para verificar si el usuario es super admin
  */
 export function useIsSuperAdmin(): boolean {
-  const user = useUser()
-  if (!user) return false
-  return isSuperAdmin(user)
+  const user = useUser();
+  if (!user) return false;
+  return isSuperAdmin(user);
 }
 
 /**
  * Hook para verificar si el usuario es spa admin
  */
 export function useIsSpaAdmin(): boolean {
-  const user = useUser()
-  if (!user) return false
-  return isSpaAdmin(user)
+  const user = useUser();
+  if (!user) return false;
+  return isSpaAdmin(user);
 }
 
 /**
  * Hook para verificar si el usuario es branch admin
  */
 export function useIsBranchAdmin(): boolean {
-  const user = useUser()
-  if (!user) return false
-  return isBranchAdmin(user)
+  const user = useUser();
+  if (!user) return false;
+  return isBranchAdmin(user);
 }
 
 /**
  * Hook para verificar si el usuario es manicurista
  */
 export function useIsManicurist(): boolean {
-  const user = useUser()
-  if (!user) return false
-  return isManicurist(user)
+  const user = useUser();
+  if (!user) return false;
+  return isManicurist(user);
 }
 
 /**
  * Hook para verificar si el usuario es cliente
  */
 export function useIsClient(): boolean {
-  const user = useUser()
-  if (!user) return false
-  return isClient(user)
+  const user = useUser();
+  if (!user) return false;
+  return isClient(user);
 }
 
 /**
  * Hook para obtener el spaId del usuario
  */
 export function useUserSpaId(): string | null {
-  const user = useUser()
-  if (!user) return null
-  return getUserSpaId(user)
+  const user = useUser();
+  if (!user) return null;
+  return getUserSpaId(user);
 }
 
 /**
  * Hook para obtener el branchId del usuario
  */
 export function useUserBranchId(): string | null {
-  const user = useUser()
-  if (!user) return null
-  return getUserBranchId(user)
+  const user = useUser();
+  if (!user) return null;
+  return getUserBranchId(user);
 }
 
 /**
  * Hook para obtener el nivel de acceso del usuario
  */
-export function useUserAccessLevel(): 'system' | 'spa' | 'branch' | 'individual' | null {
-  const user = useUser()
-  if (!user) return null
-  return getUserAccessLevel(user)
+export function useUserAccessLevel():
+  | 'system'
+  | 'spa'
+  | 'branch'
+  | 'individual'
+  | null {
+  const user = useUser();
+  if (!user) return null;
+  return getUserAccessLevel(user);
 }
 
 /**
  * Hook para verificar si el usuario puede acceder a una funcionalidad específica
  */
-export function useCanAccessFeature(feature: string, spaId?: string, branchId?: string): boolean {
-  const user = useUser()
-  if (!user) return false
-  return canAccessFeature(user, feature, spaId, branchId)
+export function useCanAccessFeature(
+  feature: string,
+  spaId?: string,
+  branchId?: string
+): boolean {
+  const user = useUser();
+  if (!user) return false;
+  return canAccessFeature(user, feature, spaId, branchId);
 }
 
 /**
  * Hook para obtener información completa de autorización del usuario
  */
 export function useAuthorization() {
-  const user = useUser()
+  const user = useUser();
 
   if (!user) {
     return {
@@ -212,7 +224,7 @@ export function useAuthorization() {
       canManageDianSettings: () => false,
       canManageUsers: () => false,
       canAccessFeature: () => false,
-    }
+    };
   }
 
   return {
@@ -230,10 +242,14 @@ export function useAuthorization() {
     canAccessBranch: (branchId: string) => canAccessBranch(user, branchId),
     canManageSpa: (spaId: string) => canManageSpa(user, spaId),
     canManageBranch: (branchId: string) => canManageBranch(user, branchId),
-    canManageAppointments: (spaId: string, branchId?: string) => canManageAppointments(user, spaId, branchId),
-    canViewReports: (spaId: string, branchId?: string) => canViewReports(user, spaId, branchId),
-    canManageDianSettings: (spaId: string) => canManageDianSettings(user, spaId),
+    canManageAppointments: (spaId: string, branchId?: string) =>
+      canManageAppointments(user, spaId, branchId),
+    canViewReports: (spaId: string, branchId?: string) =>
+      canViewReports(user, spaId, branchId),
+    canManageDianSettings: (spaId: string) =>
+      canManageDianSettings(user, spaId),
     canManageUsers: (targetSpaId?: string) => canManageUsers(user, targetSpaId),
-    canAccessFeature: (feature: string, spaId?: string, branchId?: string) => canAccessFeature(user, feature, spaId, branchId),
-  }
+    canAccessFeature: (feature: string, spaId?: string, branchId?: string) =>
+      canAccessFeature(user, feature, spaId, branchId),
+  };
 }

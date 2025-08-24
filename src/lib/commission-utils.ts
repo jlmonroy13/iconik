@@ -8,14 +8,17 @@
  * @param commissionRate - Commission rate (0.0 to 1.0)
  * @returns Object with commission and spa amounts
  */
-export function calculateCommission(serviceAmount: number, commissionRate: number) {
-  const commissionAmount = serviceAmount * commissionRate
-  const spaAmount = serviceAmount - commissionAmount
+export function calculateCommission(
+  serviceAmount: number,
+  commissionRate: number
+) {
+  const commissionAmount = serviceAmount * commissionRate;
+  const spaAmount = serviceAmount - commissionAmount;
 
   return {
     commissionAmount: Math.round(commissionAmount * 100) / 100, // Round to 2 decimal places
-    spaAmount: Math.round(spaAmount * 100) / 100
-  }
+    spaAmount: Math.round(spaAmount * 100) / 100,
+  };
 }
 
 /**
@@ -24,7 +27,7 @@ export function calculateCommission(serviceAmount: number, commissionRate: numbe
  * @returns Formatted percentage string
  */
 export function formatCommissionRate(rate: number): string {
-  return `${(rate * 100).toFixed(0)}%`
+  return `${(rate * 100).toFixed(0)}%`;
 }
 
 /**
@@ -33,8 +36,8 @@ export function formatCommissionRate(rate: number): string {
  * @returns Commission rate (0.0 to 1.0)
  */
 export function parseCommissionRate(percentage: string): number {
-  const num = parseFloat(percentage.replace('%', ''))
-  return num / 100
+  const num = parseFloat(percentage.replace('%', ''));
+  return num / 100;
 }
 
 /**
@@ -47,13 +50,14 @@ export function calculateTotalCommissions(
   commissions: Array<{ commissionAmount: number; isPaid: boolean }>,
   isPaid?: boolean
 ): number {
-  const filteredCommissions = isPaid !== undefined
-    ? commissions.filter(c => c.isPaid === isPaid)
-    : commissions
+  const filteredCommissions =
+    isPaid !== undefined
+      ? commissions.filter(c => c.isPaid === isPaid)
+      : commissions;
 
   return filteredCommissions.reduce((total, commission) => {
-    return total + commission.commissionAmount
-  }, 0)
+    return total + commission.commissionAmount;
+  }, 0);
 }
 
 /**
@@ -64,13 +68,13 @@ export function calculateTotalCommissions(
 export function calculateAverageCommissionRate(
   commissions: Array<{ commissionRate: number }>
 ): number {
-  if (commissions.length === 0) return 0
+  if (commissions.length === 0) return 0;
 
   const totalRate = commissions.reduce((sum, commission) => {
-    return sum + commission.commissionRate
-  }, 0)
+    return sum + commission.commissionRate;
+  }, 0);
 
-  return totalRate / commissions.length
+  return totalRate / commissions.length;
 }
 
 /**
@@ -78,9 +82,11 @@ export function calculateAverageCommissionRate(
  * @param isPaid - Whether the commission is paid
  * @returns Badge variant
  */
-export function getCommissionStatusVariant(isPaid: boolean): 'success' | 'warning' | 'secondary' {
-  if (isPaid) return 'success'
-  return 'warning'
+export function getCommissionStatusVariant(
+  isPaid: boolean
+): 'success' | 'warning' | 'secondary' {
+  if (isPaid) return 'success';
+  return 'warning';
 }
 
 /**
@@ -89,5 +95,5 @@ export function getCommissionStatusVariant(isPaid: boolean): 'success' | 'warnin
  * @returns Status text
  */
 export function getCommissionStatusText(isPaid: boolean): string {
-  return isPaid ? 'Pagada' : 'Pendiente'
+  return isPaid ? 'Pagada' : 'Pendiente';
 }

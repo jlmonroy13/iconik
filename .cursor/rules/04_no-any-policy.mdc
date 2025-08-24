@@ -11,56 +11,195 @@ priority: 100
 
 ## ❌ Forbidden
 
-- Never use `any` in your codebase.
-- Avoid type assertions like `value as any`.
-- Don’t bypass type inference when working with Prisma or external data.
+- **Never use `any`** in your codebase.
+- **Avoid type assertions** like `value as any`.
+- **Don't bypass type inference** when working with Prisma or external data.
+- **Don't create duplicate type definitions** - use centralized types from `@/types`.
+- **Don't use generic object types** when specific types are available.
 
 ## ✅ Required Practices
 
-- Use types from Prisma schema:  
-  `Prisma.UserCreateInput`, `Prisma.AppointmentGetPayload<...>`, etc.
+### **Type Organization**
+- **Import types from centralized modules**: `@/types`, `@/types/auth`, `@/types/forms`, etc.
+- **Use Prisma-generated types** for database operations: `Prisma.UserCreateInput`, `Prisma.SpaGetPayload<{include: {...}}>`
+- **Define reusable types** in appropriate modules under `src/types/`
+- **Use utility types** for common patterns: `Partial<T>`, `Pick<T, 'field'>`, `WithId<T>`, `WithSpaId<T>`
 
-- Use `typeof prisma.modelName` for instances when appropriate.
+### **Form and Validation Types**
+- **Use Zod schemas** for form validation and type inference
+- **Import form types** from `@/types/forms`: `CreateBranchData`, `UpdateServiceData`, etc.
+- **Use base schemas** for common fields: `baseNameSchema`, `baseEmailSchema`
 
-- Define reusable types in a `types.ts` file when Prisma types are not available.
+### **Authentication and Authorization Types**
+- **Use type guards** for role checking: `isSpaAdmin(user)`, `isBranchAdmin(user)`
+- **Import auth types** from `@/types/auth`: `AuthenticatedUser`, `SpaAdminUser`, etc.
+- **Use permission helpers**: `canAccessSpa(user, spaId)`, `canManageUsers(user)`
 
-- Use `Partial<Type>`, `Pick<Type, 'field'>`, or `ReturnType<typeof fn>` as needed for flexibility without sacrificing type safety.
+### **API and Server Action Types**
+- **Use API response types** from `@/types/api`: `ApiResponse<T>`, `ServerActionResult<T>`
+- **Define proper return types** for server actions and API routes
+- **Use pagination types** for list operations: `PaginatedResponse<T>`, `PaginationParams`
 
 ## ✅ Examples
 
+### **Good: Using Centralized Types**
 ```ts
-// GOOD: Using a Prisma-generated type
-import { Prisma } from "@prisma/client"
+// GOOD: Import from centralized types
+import {
+  AuthenticatedUser,
+  SpaWithStats,
+  CreateBranchData,
+  ApiResponse,
+  isSpaAdmin
+} from '@/types'
 
-function createUser(data: Prisma.UserCreateInput) {
-  // ...
+export default async function SpaDashboardPage({ params }: { params: { spaId: string } }) {
+  const spa: SpaWithStats = await prisma.spa.findUnique({
+    where: { id: params.spaId },
+    include: { branches: true, _count: true }
+  })
+
+  return <SpaDashboardClient spa={spa} />
 }
 ```
 
+### **Good: Form Types with Zod**
 ```ts
-// GOOD: Using a custom type from a shared module
-import { ClientFormData } from "@/types/forms"
+// GOOD: Using Zod schemas and inferred types
+import { createBranchSchema, CreateBranchData } from '@/types/forms'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
-function handleSubmit(data: ClientFormData) {
-  // ...
+export function CreateBranchForm({ spaId }: { spaId: string }) {
+  const form = useForm<CreateBranchData>({
+    resolver: zodResolver(createBranchSchema),
+    defaultValues: { name: "", code: "", address: "" }
+  })
+
+  const onSubmit = async (data: CreateBranchData): Promise<ApiResponse> => {
+    // Implementation
+  }
 }
 ```
 
+### **Good: Type Guards and Permissions**
 ```ts
-// GOOD: Partial type for mocking or editing
-const draft: Partial<User> = {
-  name: "John"
+// GOOD: Using type guards for role checking
+import { isSpaAdmin, canAccessSpa, AuthenticatedUser } from '@/types/auth'
+
+export function SpaNavigation({ user, spaId }: { user: AuthenticatedUser; spaId: string }) {
+  if (!canAccessSpa(user, spaId)) {
+    return <UnauthorizedMessage />
+  }
+
+  if (isSpaAdmin(user)) {
+    return <SpaAdminNavigation spaId={spaId} />
+  }
+
+  return <BranchAdminNavigation spaId={spaId} branchId={user.branchId} />
+}
+```
+
+### **Good: Prisma Types with Relations**
+```ts
+// GOOD: Using Prisma types with includes
+import { SpaWithStats, BranchWithStats } from '@/types/prisma'
+
+export async function getSpaWithStats(spaId: string): Promise<SpaWithStats | null> {
+  return await prisma.spa.findUnique({
+    where: { id: spaId },
+    include: {
+      branches: {
+        include: {
+          _count: { select: { clients: true, manicurists: true } }
+        }
+      },
+      _count: { select: { clients: true, services: true } }
+    }
+  })
+}
+```
+
+### **Good: API Response Types**
+```ts
+// GOOD: Proper API response typing
+import { ApiResponse, CreateResponse, ServerActionResult } from '@/types/api'
+
+export async function createBranch(
+  spaId: string,
+  data: CreateBranchData
+): ServerActionResult<Branch> {
+  try {
+    const branch = await prisma.branch.create({
+      data: { ...data, spaId }
+    })
+
+    return { success: true, data: branch }
+  } catch (error) {
+    return { success: false, error: "Error al crear la sede" }
+  }
 }
 ```
 
 ## ❌ Examples to Avoid
 
+### **Bad: Using Any**
 ```ts
 // BAD: Using any
 function handleSubmit(data: any) {
   // ...
 }
+
+// BAD: Asserting to any
+const parsed = JSON.parse(json) as any;
 ```
+
+### **Bad: Duplicate Type Definitions**
+```ts
+// BAD: Creating duplicate types
+interface User {
+  id: string
+  email: string
+  role: string
+}
+
+// BAD: Using generic types when specific ones exist
+function processData(data: object) {
+  // ...
+}
+```
+
+### **Bad: Bypassing Type Safety**
+```ts
+// BAD: Not using proper types for forms
+const form = useForm({
+  defaultValues: { name: "", email: "" }
+})
+
+// BAD: Not using type guards
+if (user.role === 'SPA_ADMIN') {
+  // TypeScript doesn't know user.spaId exists
+  console.log(user.spaId)
+}
+```
+
+### **Bad: Inconsistent API Responses**
+```ts
+// BAD: Inconsistent return types
+export async function createUser(data: UserData) {
+  try {
+    const user = await prisma.user.create({ data })
+    return user // No consistent response structure
+  } catch (error) {
+    return { error: "Failed" } // Different structure
+  }
+}
+```
+
+## 🎯 Goal
+
+This policy ensures that your codebase maintains strong static typing aligned with your Prisma schema and shared domain types, improving safety, readability, and developer productivity. All types should be centralized, reusable, and properly validated through Zod schemas and type guards.
+
 
 ```ts
 // BAD: Asserting unknown to any

@@ -1,28 +1,28 @@
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils';
 
 interface SpinnerProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl'
-  variant?: 'default' | 'primary' | 'white'
-  className?: string
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'default' | 'primary' | 'white';
+  className?: string;
 }
 
 export function Spinner({
   size = 'md',
   variant = 'default',
-  className
+  className,
 }: SpinnerProps) {
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',
     lg: 'w-8 h-8',
-    xl: 'w-12 h-12'
-  }
+    xl: 'w-12 h-12',
+  };
 
   const variantClasses = {
     default: 'text-gray-400 dark:text-gray-500',
     primary: 'text-pink-600 dark:text-pink-400',
-    white: 'text-white'
-  }
+    white: 'text-white',
+  };
 
   return (
     <div
@@ -54,22 +54,22 @@ export function Spinner({
         />
       </svg>
     </div>
-  )
+  );
 }
 
 // Loading overlay component
 interface LoadingOverlayProps {
-  isLoading: boolean
-  children: React.ReactNode
-  className?: string
+  isLoading: boolean;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export function LoadingOverlay({
   isLoading,
   children,
-  className
+  className,
 }: LoadingOverlayProps) {
-  if (!isLoading) return <>{children}</>
+  if (!isLoading) return <>{children}</>;
 
   return (
     <div className={cn('relative', className)}>
@@ -83,18 +83,18 @@ export function LoadingOverlay({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Button with loading state
 interface LoadingButtonProps {
-  isLoading: boolean
-  children: React.ReactNode
-  loadingText?: string
-  className?: string
-  disabled?: boolean
-  onClick?: () => void
-  type?: 'button' | 'submit'
+  isLoading: boolean;
+  children: React.ReactNode;
+  loadingText?: string;
+  className?: string;
+  disabled?: boolean;
+  onClick?: () => void;
+  type?: 'button' | 'submit';
 }
 
 export function LoadingButton({
@@ -104,7 +104,7 @@ export function LoadingButton({
   className,
   disabled,
   onClick,
-  type = 'button'
+  type = 'button',
 }: LoadingButtonProps) {
   return (
     <button
@@ -121,5 +121,5 @@ export function LoadingButton({
       {isLoading && <Spinner size="sm" variant="white" />}
       {isLoading ? loadingText : children}
     </button>
-  )
+  );
 }

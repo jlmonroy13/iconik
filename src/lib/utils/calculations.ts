@@ -1,4 +1,4 @@
-import { ServiceType } from '@/generated/prisma'
+import { ServiceType } from '@/generated/prisma';
 
 // =====================================================
 // CALCULATION UTILITIES
@@ -15,7 +15,7 @@ export function shouldHaveKitCost(serviceType: ServiceType): boolean {
     'NAIL_ART',
     'GEL_POLISH',
     'ACRYLIC_NAILS',
-    'NAIL_REPAIR'
+    'NAIL_REPAIR',
   ];
 
   return servicesWithKitCost.includes(serviceType);
@@ -34,7 +34,7 @@ export function getDefaultKitCost(serviceType: ServiceType): number {
     NAIL_REPAIR: 1000,
     HAND_SPA: 0,
     FOOT_SPA: 0,
-    OTHER: 0
+    OTHER: 0,
   };
 
   return defaultKitCosts[serviceType] || 0;
@@ -43,28 +43,31 @@ export function getDefaultKitCost(serviceType: ServiceType): number {
 /**
  * Validate kit cost for service type
  */
-export function validateKitCost(serviceType: ServiceType, kitCost: number): {
+export function validateKitCost(
+  serviceType: ServiceType,
+  kitCost: number
+): {
   isValid: boolean;
   message?: string;
 } {
   if (kitCost < 0) {
     return {
       isValid: false,
-      message: 'Kit cost cannot be negative'
+      message: 'Kit cost cannot be negative',
     };
   }
 
   if (!shouldHaveKitCost(serviceType) && kitCost > 0) {
     return {
       isValid: false,
-      message: 'This service type does not require a kit cost'
+      message: 'This service type does not require a kit cost',
     };
   }
 
   if (shouldHaveKitCost(serviceType) && kitCost === 0) {
     return {
       isValid: true,
-      message: 'Warning: This service type typically requires a kit cost'
+      message: 'Warning: This service type typically requires a kit cost',
     };
   }
 
@@ -74,7 +77,11 @@ export function validateKitCost(serviceType: ServiceType, kitCost: number): {
 /**
  * Calculate total service cost including kit cost and tax
  */
-export function calculateTotalServiceCost(price: number, kitCost?: number, taxRate?: number): number {
+export function calculateTotalServiceCost(
+  price: number,
+  kitCost?: number,
+  taxRate?: number
+): number {
   const subtotal = price + (kitCost || 0);
   const taxAmount = taxRate ? subtotal * taxRate : 0;
   return subtotal + taxAmount;
@@ -241,20 +248,20 @@ export function calculateCommissionBreakdown(
       label: 'Precio del servicio',
       amount: result.servicePrice,
       percentage: (result.servicePrice / result.totalAmount) * 100,
-      color: 'bg-blue-100 text-blue-800'
+      color: 'bg-blue-100 text-blue-800',
     },
     {
       label: 'Costo del kit',
       amount: result.kitCost,
       percentage: (result.kitCost / result.totalAmount) * 100,
-      color: 'bg-green-100 text-green-800'
+      color: 'bg-green-100 text-green-800',
     },
     {
       label: 'Impuestos',
       amount: result.taxAmount,
       percentage: (result.taxAmount / result.totalAmount) * 100,
-      color: 'bg-red-100 text-red-800'
-    }
+      color: 'bg-red-100 text-red-800',
+    },
   ];
 
   if (result.discountAmount > 0) {
@@ -262,7 +269,7 @@ export function calculateCommissionBreakdown(
       label: 'Descuento',
       amount: -result.discountAmount,
       percentage: -(result.discountAmount / result.totalAmount) * 100,
-      color: 'bg-orange-100 text-orange-800'
+      color: 'bg-orange-100 text-orange-800',
     });
   }
 
@@ -273,15 +280,18 @@ export function calculateCommissionBreakdown(
       manicurist: result.manicuristEarnings,
       spa: result.spaEarnings,
       tax: result.governmentTax,
-      discount: result.discountAmount
-    }
+      discount: result.discountAmount,
+    },
   };
 }
 
 /**
  * Format currency for display
  */
-export function formatCurrency(amount: number, currency: string = 'COP'): string {
+export function formatCurrency(
+  amount: number,
+  currency: string = 'COP'
+): string {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: currency,
@@ -301,7 +311,10 @@ export function calculatePercentage(part: number, total: number): number {
 /**
  * Calculate discount percentage
  */
-export function calculateDiscountPercentage(originalAmount: number, finalAmount: number): number {
+export function calculateDiscountPercentage(
+  originalAmount: number,
+  finalAmount: number
+): number {
   if (originalAmount === 0) return 0;
   return ((originalAmount - finalAmount) / originalAmount) * 100;
 }
@@ -309,15 +322,23 @@ export function calculateDiscountPercentage(originalAmount: number, finalAmount:
 /**
  * Calculate total for multiple services with kit costs and taxes
  */
-export function calculateTotalForServices(services: Array<{ price: number; kitCost?: number; taxRate?: number }>): {
+export function calculateTotalForServices(
+  services: Array<{ price: number; kitCost?: number; taxRate?: number }>
+): {
   totalServicePrice: number;
   totalKitCost: number;
   totalSubtotal: number;
   totalTaxAmount: number;
   totalAmount: number;
 } {
-  const totalServicePrice = services.reduce((sum, service) => sum + service.price, 0);
-  const totalKitCost = services.reduce((sum, service) => sum + (service.kitCost || 0), 0);
+  const totalServicePrice = services.reduce(
+    (sum, service) => sum + service.price,
+    0
+  );
+  const totalKitCost = services.reduce(
+    (sum, service) => sum + (service.kitCost || 0),
+    0
+  );
   const totalSubtotal = totalServicePrice + totalKitCost;
 
   // Calculate tax for each service individually (in case different services have different tax rates)
@@ -379,7 +400,10 @@ export function calculateCommissionWithKitCost(
 /**
  * Calculate transaction fee amount
  */
-export function calculateTransactionFee(amount: number, feeRate: number): number {
+export function calculateTransactionFee(
+  amount: number,
+  feeRate: number
+): number {
   return amount * feeRate;
 }
 
@@ -458,7 +482,10 @@ export function calculateCommissionWithKitCostTaxAndFees(
   }
 
   // Transaction fee calculation
-  const transactionFeeAmount = calculateTransactionFee(finalTotal, finalTransactionFeeRate);
+  const transactionFeeAmount = calculateTransactionFee(
+    finalTotal,
+    finalTransactionFeeRate
+  );
 
   // Money distribution
   const manicuristEarnings = finalCommissionAmount;
@@ -498,19 +525,19 @@ export function calculateCommissionWithKitCostTaxAndFees(
  */
 export function getDefaultTransactionFees(): Record<string, number> {
   return {
-    'Cash': 0,
-    'Efectivo': 0,
-    'Visa': 0.035, // 3.5%
-    'Mastercard': 0.035, // 3.5%
+    Cash: 0,
+    Efectivo: 0,
+    Visa: 0.035, // 3.5%
+    Mastercard: 0.035, // 3.5%
     'American Express': 0.045, // 4.5%
-    'Amex': 0.045, // 4.5%
-    'Débito': 0.025, // 2.5%
-    'Debit': 0.025, // 2.5%
-    'Transferencia': 0.01, // 1%
-    'Transfer': 0.01, // 1%
-    'Nequi': 0.015, // 1.5%
-    'Daviplata': 0.015, // 1.5%
-    'Bancolombia': 0.02, // 2%
+    Amex: 0.045, // 4.5%
+    Débito: 0.025, // 2.5%
+    Debit: 0.025, // 2.5%
+    Transferencia: 0.01, // 1%
+    Transfer: 0.01, // 1%
+    Nequi: 0.015, // 1.5%
+    Daviplata: 0.015, // 1.5%
+    Bancolombia: 0.02, // 2%
   };
 }
 
