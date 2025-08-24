@@ -2,19 +2,15 @@
 export const PUBLIC_ROUTES = {
   HOME: '/',
   LOGIN: '/login',
-  SUPER_ADMIN_LOGIN: '/superadmin/login',
 } as const
 
 // Protected routes
 export const PROTECTED_ROUTES = {
-  DASHBOARD: '/dashboard',
-  SUPER_ADMIN_DASHBOARD: '/superadmin/dashboard',
-  ONBOARDING: '/onboarding',
+  DASHBOARD: '/',
 } as const
 
 // API routes
 export const API_ROUTES = {
-  DASHBOARD: '/api/dashboard',
   AUTH: '/api/auth',
 } as const
 

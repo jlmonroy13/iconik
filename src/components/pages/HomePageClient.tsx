@@ -20,14 +20,6 @@ export default function HomePageClient() {
             >
               Iniciar sesión
             </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full"
-              onClick={() => router.push('/superadmin/login')}
-            >
-              Super Admin Login
-            </Button>
           </div>
         </CardContent>
       </Card>

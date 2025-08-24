@@ -110,6 +110,7 @@ model User {
   password  String? // Hashed password for Auth.js (optional for magic link/OAuth)
   role      UserRole @default(CLIENT)
   spaId     String? // Spa association is optional for super admin
+  branchId  String? // Branch association (para BRANCH_ADMIN)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -126,6 +127,7 @@ model User {
 
   // App relations
   spa                        Spa?                          @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch                     Branch?                       @relation(fields: [branchId], references: [id], onDelete: SetNull)
   approvedAppointments       Appointment[]                @relation("AppointmentApprover")
   preConfirmedAppointments   Appointment[]                @relation("AppointmentPreConfirmer")
   appointmentApprovalHistory AppointmentApprovalHistory[]
@@ -1147,6 +1149,7 @@ model Branch {
   // Relations
   spa         Spa              @relation(fields: [spaId], references: [id], onDelete: Cascade)
   settings    BranchSettings?
+  users       User[]           // Usuarios asignados a esta sede
   appointments Appointment[]
   services    Service[]
   manicurists Manicurist[]
@@ -1230,10 +1233,11 @@ model BranchSettings {
 // =====================================================
 
 enum UserRole {
-  SUPER_ADMIN // System super administrator
-  ADMIN // Spa owner/administrator
-  MANICURIST // Nail technician
-  CLIENT // Regular customer
+  SUPER_ADMIN    // System super administrator
+  SPA_ADMIN      // Spa owner/administrator (acceso a todas las sedes del spa)
+  BRANCH_ADMIN   // Branch administrator (acceso limitado a una sede específica)
+  MANICURIST     // Nail technician
+  CLIENT         // Regular customer
 }
 
 enum ServiceType {

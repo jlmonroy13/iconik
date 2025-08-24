@@ -1,6 +1,0 @@
-export * from './ServiceStats'
-export * from './ServiceFilters'
-export * from './ServiceItem'
-export * from './EmptyState'
-export * from './ServiceModal'
-export * from './ServiceClientWrapper'
