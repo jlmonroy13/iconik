@@ -16,20 +16,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: PUBLIC_ROUTES.LOGIN,
     error: PUBLIC_ROUTES.LOGIN,
   },
+  secret: process.env.AUTH_SECRET,
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   callbacks: {
-    async session({ session, user }) {
-      // Safely assign custom fields to session.user
-      const dbUser = user as {
-        id: string;
-        email: string;
-        name?: string | null;
-        role: UserRole;
-        spaId?: string | null;
-        branchId?: string | null;
-        isSuperAdmin: boolean;
-        isActive: boolean;
-      };
-
+    async session({ session, token }) {
+      // Add user data from token to session
       const sessionUser = session.user as typeof session.user & {
         id: string;
         role: UserRole;
@@ -39,13 +33,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         isActive: boolean;
       };
 
-      // Assign all user properties to session
-      sessionUser.id = dbUser.id;
-      sessionUser.role = dbUser.role;
-      sessionUser.spaId = dbUser.spaId ?? null;
-      sessionUser.branchId = dbUser.branchId ?? null;
-      sessionUser.isSuperAdmin = dbUser.isSuperAdmin ?? false;
-      sessionUser.isActive = dbUser.isActive ?? true;
+      // Assign token data to session
+      sessionUser.id = token.id as string;
+      sessionUser.role = token.role as UserRole;
+      sessionUser.spaId = token.spaId as string | null;
+      sessionUser.branchId = token.branchId as string | null;
+      sessionUser.isSuperAdmin = token.isSuperAdmin as boolean;
+      sessionUser.isActive = token.isActive as boolean;
 
       return session;
     },
@@ -61,8 +55,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return token;
     },
-  },
-  session: {
-    strategy: 'jwt',
   },
 });

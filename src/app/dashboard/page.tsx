@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth-utils';
+import { requireAuthForPage } from '@/lib/auth-utils';
 import {
   isSuperAdmin,
   isSpaAdmin,
@@ -8,11 +8,7 @@ import {
 } from '@/types/auth';
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await requireAuthForPage();
 
   // Redirect based on user role
   if (isSuperAdmin(user)) {

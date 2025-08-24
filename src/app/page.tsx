@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Button, Card, CardContent } from '@/components/ui';
 import Link from 'next/link';
+import { redirectIfAuthenticated } from '@/lib/auth-utils';
 
 export const metadata: Metadata = {
   title: 'Iconik - SaaS para Gestión de Spas de Uñas',
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
+  // Redirect authenticated users to their dashboard
+  await redirectIfAuthenticated();
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Card className="max-w-md mx-auto text-center">

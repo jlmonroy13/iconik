@@ -6,7 +6,7 @@ export const PUBLIC_ROUTES = {
 
 // Protected routes
 export const PROTECTED_ROUTES = {
-  DASHBOARD: '/',
+  DASHBOARD: '/dashboard',
 } as const;
 
 // API routes
