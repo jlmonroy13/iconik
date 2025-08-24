@@ -25,8 +25,6 @@ export {
 } from './EmptyState';
 export { Spinner, LoadingOverlay, LoadingButton } from './Spinner';
 export { PageTransition, FadeIn, StaggeredList } from './PageTransition';
-export { Notification } from './Notification';
-export { NotificationProvider, useNotifications } from './NotificationContext';
 export { MultiSelect } from './MultiSelect';
 export { Modal, ModalFooterButton } from './Modal';
 export { ConfirmDialog } from './ConfirmDialog';

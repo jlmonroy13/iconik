@@ -1,0 +1,139 @@
+---
+title: Server-First Architecture Rule
+description: "Enforce a server-first architecture by preferring Server Components over Client Components. Use Server Actions for data mutations, form handling, and authentication. Only use Client Components when necessary for interactivity, React hooks, or browser APIs. Follow Next.js best practices for component separation and state management."
+globs: ["**/*"]
+alwaysApply: true
+priority: 100
+---
+
+# Server-First Architecture Rule
+
+## **Core Principle**
+**Always prefer Server Components over Client Components.** Only use `"use client"` when absolutely necessary for interactivity that cannot be achieved with Server Actions.
+
+## **Server Components by Default**
+- **All `page.tsx` files must be Server Components** (no `"use client"`)
+- **All `layout.tsx` files must be Server Components** (no `"use client"`)
+- **All API routes must be Server Components** (no `"use client"`)
+- **All Server Actions must be in Server Components**
+
+## **When to Use Client Components**
+Only add `"use client"` when you need:
+- **React hooks** (`useState`, `useEffect`, `useForm`, etc.)
+- **Event handlers** (`onClick`, `onSubmit`, etc.)
+- **Browser APIs** (`localStorage`, `window`, etc.)
+- **Third-party libraries** that require client-side execution
+
+## **Authentication Strategy**
+- **Use `auth()` from NextAuth v5** in Server Components for session data
+- **Use Server Actions** for authentication operations
+- **Avoid `useSession()`** when possible - prefer `auth()` in Server Components
+- **Client Components only for login forms** and interactive auth flows
+
+## **Data Fetching**
+- **Server Components** for all data fetching using `auth()` and Prisma
+- **Server Actions** for mutations and form submissions
+- **No client-side data fetching** unless absolutely necessary
+- **Use `revalidatePath()`** and `revalidateTag()` for cache invalidation
+
+## **State Management**
+- **Server state** via Server Actions and database
+- **Local component state** only for UI interactions
+- **No global client state** (Redux, Zustand, etc.) unless absolutely necessary
+- **URL state** for navigation and filters
+
+## **Form Handling**
+- **Server Actions** for form submissions
+- **React Hook Form** only in Client Components when needed
+- **Zod validation** on both client and server
+- **Optimistic updates** via Server Actions
+
+## **Notifications and Feedback**
+- **Local component state** for immediate feedback
+- **Server Actions** for persistent notifications
+- **No global notification context** - keep it simple
+- **Toast notifications** only when necessary
+
+## **File Structure**
+```
+app/
+├── page.tsx (Server Component)
+├── layout.tsx (Server Component)
+├── login/
+│   └── page.tsx (Client Component - form interactivity)
+└── dashboard/
+    ├── page.tsx (Server Component)
+    └── components/
+        ├── DashboardClient.tsx (Client Component - if needed)
+        └── ServerOnlyComponent.tsx (Server Component)
+```
+
+## **Examples**
+
+### ✅ Good: Server Component
+```tsx
+// app/dashboard/page.tsx
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+
+export default async function DashboardPage() {
+  const session = await auth();
+  const spas = await prisma.spa.findMany({
+    where: { isActive: true }
+  });
+
+  return <DashboardClient spas={spas} user={session?.user} />;
+}
+```
+
+### ✅ Good: Client Component (when necessary)
+```tsx
+// app/dashboard/components/DashboardClient.tsx
+'use client';
+import { useState } from 'react';
+
+export default function DashboardClient({ spas, user }) {
+  const [selectedSpa, setSelectedSpa] = useState(spas[0]?.id);
+
+  return (
+    <div>
+      <select value={selectedSpa} onChange={(e) => setSelectedSpa(e.target.value)}>
+        {spas.map(spa => (
+          <option key={spa.id} value={spa.id}>{spa.name}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+```
+
+### ❌ Bad: Unnecessary Client Component
+```tsx
+// Don't do this - no interactivity needed
+'use client';
+export default function StaticPage({ data }) {
+  return <div>{data.title}</div>; // No hooks or event handlers
+}
+```
+
+## **Performance Benefits**
+- **Smaller JavaScript bundles** - less client-side code
+- **Faster initial page loads** - server-rendered content
+- **Better SEO** - fully rendered on server
+- **Reduced client-side complexity** - simpler state management
+
+## **Migration Strategy**
+When refactoring existing code:
+1. **Start with Server Components** for data fetching
+2. **Extract Client Components** only for interactive parts
+3. **Use Server Actions** for mutations
+4. **Remove unnecessary client-side state**
+
+## **Remember**
+- **Server Components are the default**
+- **Client Components are the exception**
+- **Server Actions over client-side mutations**
+- **Keep client-side code minimal**
+
+- **Server Actions over client-side mutations**
+- **Keep client-side code minimal**

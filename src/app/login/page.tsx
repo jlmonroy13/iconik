@@ -2,24 +2,22 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import {
-  Button,
-  Input,
-  Card,
-  CardContent,
-  useNotifications,
-} from '@/components/ui';
+import { Button, Input, Card, CardContent } from '@/components/ui';
 import { Loader2, Mail } from 'lucide-react';
 import { PROTECTED_ROUTES } from '@/lib/constants/routes';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { showSuccess, showError } = useNotifications();
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setMessage(null);
 
     try {
       const result = await signIn('resend', {
@@ -29,22 +27,22 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        showError(
-          'Error',
-          'Error al enviar el magic link. Por favor, verifica tu email e intenta de nuevo.'
-        );
+        setMessage({
+          type: 'error',
+          text: 'Error al enviar el magic link. Por favor, verifica tu email e intenta de nuevo.',
+        });
       } else {
-        showSuccess(
-          'Éxito',
-          '¡Magic link enviado! Revisa tu correo electrónico para continuar.'
-        );
+        setMessage({
+          type: 'success',
+          text: '¡Magic link enviado! Revisa tu correo electrónico para continuar.',
+        });
         setEmail('');
       }
     } catch {
-      showError(
-        'Error',
-        'Error al enviar el magic link. Por favor, intenta de nuevo.'
-      );
+      setMessage({
+        type: 'error',
+        text: 'Error al enviar el magic link. Por favor, intenta de nuevo.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -69,6 +67,19 @@ export default function LoginPage() {
         {/* Login Form */}
         <Card className="shadow-xl">
           <CardContent className="p-8">
+            {/* Message Display */}
+            {message && (
+              <div
+                className={`mb-4 p-3 rounded-lg text-sm ${
+                  message.type === 'success'
+                    ? 'bg-green-50 text-green-800 border border-green-200'
+                    : 'bg-red-50 text-red-800 border border-red-200'
+                }`}
+              >
+                {message.text}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <Input
@@ -102,33 +113,8 @@ export default function LoginPage() {
                 )}
               </Button>
             </form>
-
-            {/* Info */}
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Te enviaremos un enlace mágico a tu correo electrónico para
-                iniciar sesión de forma segura.
-              </p>
-            </div>
-
-            {/* Super Admin Link */}
-            <div className="mt-4 text-center">
-              <a
-                href="/superadmin/login"
-                className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 underline"
-              >
-                ¿Eres Super Administrador? Accede aquí
-              </a>
-            </div>
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            © 2024 Iconik. Todos los derechos reservados.
-          </p>
-        </div>
       </div>
     </div>
   );
