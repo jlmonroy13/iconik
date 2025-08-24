@@ -97,7 +97,8 @@ export function Modal({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 ml-4"
+            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 ml-4 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+            aria-label="Cerrar modal"
           >
             <X className="h-5 w-5" />
           </button>

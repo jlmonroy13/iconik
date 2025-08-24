@@ -49,3 +49,4 @@ export {
   DropdownMenuRadioGroup,
 } from './dropdown-menu';
 export { Textarea } from './Textarea';
+export * from './Table';
