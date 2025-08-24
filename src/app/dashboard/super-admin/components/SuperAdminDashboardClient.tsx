@@ -1,31 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableBadge,
-  TableEmptyState,
-} from '@/components/ui';
 import { Button } from '@/components/ui/Button';
 import { SpaModal } from './SpaModal';
 import { AdminModal } from './AdminModal';
 import { SpaWithStats } from '@/types/prisma';
+import {
+  StatsCards,
+  SectionHeader,
+  DataTable,
+  TableColumn,
+} from '@/components/dashboard';
+import { calculateSuperAdminStats } from '@/lib/dashboard';
 import Link from 'next/link';
 
-type Admin = {
+// Use the actual Prisma types instead of custom ones
+type UserWithSpa = {
   id: string;
   name: string | null;
   email: string;
-  role: 'SPA_ADMIN' | 'SUPER_ADMIN';
+  role: string;
   spaId: string | null;
   isActive: boolean;
   spa: {
@@ -35,7 +29,7 @@ type Admin = {
 
 interface SuperAdminDashboardClientProps {
   spas: SpaWithStats[];
-  admins: Admin[];
+  admins: UserWithSpa[];
 }
 
 export function SuperAdminDashboardClient({
@@ -45,7 +39,7 @@ export function SuperAdminDashboardClient({
   const [isSpaModalOpen, setIsSpaModalOpen] = useState(false);
   const [selectedSpa, setSelectedSpa] = useState<SpaWithStats | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [selectedAdmin, setSelectedAdmin] = useState<UserWithSpa | null>(null);
 
   const handleCreateSpa = () => {
     setSelectedSpa(null);
@@ -67,7 +61,7 @@ export function SuperAdminDashboardClient({
     setIsAdminModalOpen(true);
   };
 
-  const handleEditAdmin = (user: Admin) => {
+  const handleEditAdmin = (user: UserWithSpa) => {
     setSelectedAdmin(user);
     setIsAdminModalOpen(true);
   };
@@ -77,239 +71,216 @@ export function SuperAdminDashboardClient({
     setSelectedAdmin(null);
   };
 
+  // Define table columns for spas
+  const spaColumns: TableColumn<SpaWithStats>[] = [
+    {
+      key: 'name',
+      header: 'Spa',
+      render: spa => (
+        <div>
+          <div className="text-sm font-medium text-gray-900 dark:text-white">
+            {spa.name}
+          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {spa.slug}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Estado',
+      render: spa => (
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            spa.isActive
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+          }`}
+        >
+          {spa.isActive ? 'Activo' : 'Inactivo'}
+        </span>
+      ),
+    },
+    {
+      key: 'branches',
+      header: 'Sedes',
+      render: spa => (
+        <div className="text-sm text-gray-900 dark:text-white">
+          {spa.branches.length}
+        </div>
+      ),
+    },
+    {
+      key: 'users',
+      header: 'Usuarios',
+      render: spa => (
+        <div className="text-sm text-gray-900 dark:text-white">
+          {spa._count.users}
+        </div>
+      ),
+    },
+    {
+      key: 'clients',
+      header: 'Clientes',
+      render: spa => (
+        <div className="text-sm text-gray-900 dark:text-white">
+          {spa._count.clients}
+        </div>
+      ),
+    },
+    {
+      key: 'appointments',
+      header: 'Citas',
+      render: spa => (
+        <div className="text-sm text-gray-900 dark:text-white">
+          {spa._count.appointments}
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Acciones',
+      className: 'text-right',
+      render: spa => (
+        <div className="flex justify-end space-x-2">
+          <Link href={`/dashboard/super-admin/spa/${spa.id}`}>
+            <Button variant="outline" size="sm">
+              Ver Detalle
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleEditSpa(spa)}
+          >
+            Editar
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  // Define table columns for admins
+  const adminColumns: TableColumn<UserWithSpa>[] = [
+    {
+      key: 'name',
+      header: 'Administrador',
+      render: admin => (
+        <div className="text-sm font-medium text-gray-900 dark:text-white">
+          {admin.name || 'Sin nombre'}
+        </div>
+      ),
+    },
+    {
+      key: 'email',
+      header: 'Email',
+      render: admin => (
+        <div className="text-sm text-gray-900 dark:text-white">
+          {admin.email}
+        </div>
+      ),
+    },
+    {
+      key: 'role',
+      header: 'Rol',
+      render: admin => (
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            admin.role === 'SUPER_ADMIN'
+              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+              : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+          }`}
+        >
+          {admin.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Spa Admin'}
+        </span>
+      ),
+    },
+    {
+      key: 'spa',
+      header: 'Spa Asignado',
+      render: admin => (
+        <div className="text-sm text-gray-900 dark:text-white">
+          {admin.role === 'SPA_ADMIN'
+            ? admin.spa?.name || 'Sin asignar'
+            : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Estado',
+      render: admin => (
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            admin.isActive
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+          }`}
+        >
+          {admin.isActive ? 'Activo' : 'Inactivo'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Acciones',
+      className: 'text-right',
+      render: admin => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleEditAdmin(admin)}
+        >
+          Editar
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="container mx-auto p-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{spas.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Usuarios
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {spas.reduce((total, spa) => total + spa._count.users, 0)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Clientes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {spas.reduce((total, spa) => total + spa._count.clients, 0)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Citas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {spas.reduce((total, spa) => total + spa._count.appointments, 0)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatsCards stats={calculateSuperAdminStats(spas)} />
 
       {/* Spas Table */}
       <div className="mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Gestión de Spas
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">
-              Administra todos los spas registrados
-            </p>
-          </div>
-          <Button onClick={handleCreateSpa}>Crear Spa</Button>
-        </div>
+        <SectionHeader
+          title="Gestión de Spas"
+          description="Administra todos los spas registrados"
+          action={<Button onClick={handleCreateSpa}>Crear Spa</Button>}
+        />
 
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <tr>
-                  <TableHead>Spa</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Sedes</TableHead>
-                  <TableHead>Usuarios</TableHead>
-                  <TableHead>Clientes</TableHead>
-                  <TableHead>Citas</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </tr>
-              </TableHeader>
-              <TableBody>
-                {spas.map((spa, index) => (
-                  <TableRow key={spa.id} isAlternate={index % 2 !== 0}>
-                    <TableCell>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {spa.name}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {spa.slug}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <TableBadge
-                        variant={spa.isActive ? 'success' : 'destructive'}
-                      >
-                        {spa.isActive ? 'Activo' : 'Inactivo'}
-                      </TableBadge>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-900 dark:text-white">
-                      {spa.branches.length}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-900 dark:text-white">
-                      {spa._count.users}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-900 dark:text-white">
-                      {spa._count.clients}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-900 dark:text-white">
-                      {spa._count.appointments}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Link href={`/dashboard/super-admin/spa/${spa.id}`}>
-                          <Button variant="outline" size="sm">
-                            Ver Detalle
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditSpa(spa)}
-                        >
-                          Editar
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            {spas.length === 0 && (
-              <TableEmptyState
-                title="No hay spas registrados en el sistema."
-                action={
-                  <Button onClick={handleCreateSpa}>Crear Primer Spa</Button>
-                }
-              />
-            )}
-          </CardContent>
-        </Card>
+        <DataTable
+          data={spas}
+          columns={spaColumns}
+          emptyStateTitle="No hay spas registrados en el sistema."
+          emptyStateAction={
+            <Button onClick={handleCreateSpa}>Crear Primer Spa</Button>
+          }
+        />
       </div>
 
       {/* Admins Table */}
       <div className="mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Administradores
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">
-              Gestiona los administradores del sistema
-            </p>
-          </div>
-          <Button onClick={handleCreateAdmin}>Crear Administrador</Button>
-        </div>
+        <SectionHeader
+          title="Administradores"
+          description="Gestiona los administradores del sistema"
+          action={
+            <Button onClick={handleCreateAdmin}>Crear Administrador</Button>
+          }
+        />
 
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <tr>
-                  <TableHead>Administrador</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead>Spa Asignado</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </tr>
-              </TableHeader>
-              <TableBody>
-                {admins.map((user, index) => (
-                  <TableRow key={user.id} isAlternate={index % 2 !== 0}>
-                    <TableCell>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {user.name || 'Sin nombre'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900 dark:text-white">
-                        {user.email}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <TableBadge
-                        variant={
-                          user.role === 'SUPER_ADMIN' ? 'info' : 'default'
-                        }
-                      >
-                        {user.role === 'SUPER_ADMIN'
-                          ? 'Super Admin'
-                          : 'Spa Admin'}
-                      </TableBadge>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-900 dark:text-white">
-                      {user.role === 'SPA_ADMIN'
-                        ? user.spa?.name || 'Sin asignar'
-                        : 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <TableBadge
-                        variant={user.isActive ? 'success' : 'destructive'}
-                      >
-                        {user.isActive ? 'Activo' : 'Inactivo'}
-                      </TableBadge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditAdmin(user)}
-                      >
-                        Editar
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            {admins.length === 0 && (
-              <TableEmptyState
-                title="No hay administradores registrados."
-                action={
-                  <Button onClick={handleCreateAdmin}>
-                    Crear Primer Administrador
-                  </Button>
-                }
-              />
-            )}
-          </CardContent>
-        </Card>
+        <DataTable
+          data={admins}
+          columns={adminColumns}
+          emptyStateTitle="No hay administradores registrados."
+          emptyStateAction={
+            <Button onClick={handleCreateAdmin}>
+              Crear Primer Administrador
+            </Button>
+          }
+        />
       </div>
 
       {/* Spa Modal */}
@@ -324,7 +295,18 @@ export function SuperAdminDashboardClient({
         isOpen={isAdminModalOpen}
         onClose={handleCloseAdminModal}
         spas={spas.map(spa => ({ id: spa.id, name: spa.name, slug: spa.slug }))}
-        user={selectedAdmin || undefined}
+        user={
+          selectedAdmin
+            ? {
+                id: selectedAdmin.id,
+                name: selectedAdmin.name,
+                email: selectedAdmin.email,
+                role: selectedAdmin.role as 'SPA_ADMIN' | 'SUPER_ADMIN',
+                spaId: selectedAdmin.spaId,
+                isActive: selectedAdmin.isActive,
+              }
+            : undefined
+        }
       />
     </div>
   );

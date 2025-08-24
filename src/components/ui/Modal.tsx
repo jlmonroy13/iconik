@@ -28,6 +28,7 @@ interface ModalProps {
   className?: string;
   footer?: React.ReactNode;
   formId?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export function Modal({
@@ -39,6 +40,7 @@ export function Modal({
   className,
   footer,
   formId,
+  size = 'md',
 }: ModalProps) {
   const [isClient, setIsClient] = React.useState(false);
 
@@ -78,7 +80,13 @@ export function Modal({
       {/* Modal */}
       <div
         className={cn(
-          'relative z-50 w-full max-w-lg rounded-lg bg-white shadow-lg dark:bg-gray-800 max-h-[90vh] flex flex-col',
+          'relative z-50 w-full rounded-lg bg-white shadow-lg dark:bg-gray-800 max-h-[90vh] flex flex-col',
+          {
+            'max-w-sm': size === 'sm',
+            'max-w-lg': size === 'md',
+            'max-w-2xl': size === 'lg',
+            'max-w-4xl': size === 'xl',
+          },
           'animate-in fade-in-0 zoom-in-95',
           className
         )}
