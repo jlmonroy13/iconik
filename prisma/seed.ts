@@ -31,7 +31,7 @@ async function main() {
 
   console.log('✅ Usuario SUPER_ADMIN creado:', superAdmin.email);
 
-  // Crear Spa 1
+  // ===== SPA 1 =====
   const spa1 = await prisma.spa.create({
     data: {
       name: 'Spa 1',
@@ -59,7 +59,7 @@ async function main() {
 
   console.log('✅ Usuario SPA_ADMIN del Spa 1 creado:', spa1Admin.email);
 
-  // Crear Sede 1 del Spa 1
+  // ===== SPA 1 - SEDE 1 (Principal) =====
   const spa1Branch1 = await prisma.branch.create({
     data: {
       name: 'Sede Principal Spa 1',
@@ -111,7 +111,59 @@ async function main() {
     spa1Branch1Manicurist.email
   );
 
-  // Crear Spa 2
+  // ===== SPA 1 - SEDE 2 (Secundaria) =====
+  const spa1Branch2 = await prisma.branch.create({
+    data: {
+      name: 'Sede Norte Spa 1',
+      code: 'SPA1_NORTE',
+      description: 'Sede norte del Spa 1',
+      address: 'Avenida Norte 456, Local 15',
+      phone: '+1234567891',
+      email: 'norte@spa1.com',
+      openingTime: '08:30',
+      closingTime: '17:30',
+      isMain: false,
+      spaId: spa1.id,
+    },
+  });
+
+  console.log('✅ Sede 2 del Spa 1 creada:', spa1Branch2.name);
+
+  // Crear usuario BRANCH_ADMIN para la Sede 2 del Spa 1
+  const spa1Branch2Admin = await prisma.user.create({
+    data: {
+      email: 'jlmonroy13+spa1branch2@gmail.com',
+      name: 'Administrador Sede 2 Spa 1',
+      role: 'BRANCH_ADMIN',
+      emailVerified: new Date(),
+      spaId: spa1.id,
+      branchId: spa1Branch2.id,
+    },
+  });
+
+  console.log(
+    '✅ Usuario BRANCH_ADMIN de la Sede 2 del Spa 1 creado:',
+    spa1Branch2Admin.email
+  );
+
+  // Crear usuario MANICURIST para la Sede 2 del Spa 1
+  const spa1Branch2Manicurist = await prisma.user.create({
+    data: {
+      email: 'jlmonroy13+spa1branch2manicurista@gmail.com',
+      name: 'Manicurista Sede 2 Spa 1',
+      role: 'MANICURIST',
+      emailVerified: new Date(),
+      spaId: spa1.id,
+      branchId: spa1Branch2.id,
+    },
+  });
+
+  console.log(
+    '✅ Usuario MANICURIST de la Sede 2 del Spa 1 creado:',
+    spa1Branch2Manicurist.email
+  );
+
+  // ===== SPA 2 =====
   const spa2 = await prisma.spa.create({
     data: {
       name: 'Spa 2',
@@ -139,7 +191,7 @@ async function main() {
 
   console.log('✅ Usuario SPA_ADMIN del Spa 2 creado:', spa2Admin.email);
 
-  // Crear Sede 1 del Spa 2
+  // ===== SPA 2 - SEDE 1 (Principal) =====
   const spa2Branch1 = await prisma.branch.create({
     data: {
       name: 'Sede Principal Spa 2',
@@ -191,18 +243,80 @@ async function main() {
     spa2Branch1Manicurist.email
   );
 
+  // ===== SPA 2 - SEDE 2 (Secundaria) =====
+  const spa2Branch2 = await prisma.branch.create({
+    data: {
+      name: 'Sede Sur Spa 2',
+      code: 'SPA2_SUR',
+      description: 'Sede sur del Spa 2',
+      address: 'Calle Sur 789, Centro Comercial Plaza Sur',
+      phone: '+0987654322',
+      email: 'sur@spa2.com',
+      openingTime: '09:30',
+      closingTime: '18:30',
+      isMain: false,
+      spaId: spa2.id,
+    },
+  });
+
+  console.log('✅ Sede 2 del Spa 2 creada:', spa2Branch2.name);
+
+  // Crear usuario BRANCH_ADMIN para la Sede 2 del Spa 2
+  const spa2Branch2Admin = await prisma.user.create({
+    data: {
+      email: 'jlmonroy13+spa2branch2@gmail.com',
+      name: 'Administrador Sede 2 Spa 2',
+      role: 'BRANCH_ADMIN',
+      emailVerified: new Date(),
+      spaId: spa2.id,
+      branchId: spa2Branch2.id,
+    },
+  });
+
+  console.log(
+    '✅ Usuario BRANCH_ADMIN de la Sede 2 del Spa 2 creado:',
+    spa2Branch2Admin.email
+  );
+
+  // Crear usuario MANICURIST para la Sede 2 del Spa 2
+  const spa2Branch2Manicurist = await prisma.user.create({
+    data: {
+      email: 'jlmonroy13+spa2branch2manicurista@gmail.com',
+      name: 'Manicurista Sede 2 Spa 2',
+      role: 'MANICURIST',
+      emailVerified: new Date(),
+      spaId: spa2.id,
+      branchId: spa2Branch2.id,
+    },
+  });
+
+  console.log(
+    '✅ Usuario MANICURIST de la Sede 2 del Spa 2 creado:',
+    spa2Branch2Manicurist.email
+  );
+
   console.log('🎉 Datos iniciales creados exitosamente!');
   console.log('\n📋 Resumen de usuarios creados:');
   console.log('SUPER_ADMIN: jlmonroy13@gmail.com');
-  console.log('SPA_ADMIN (Spa 1): jlmonroy13+spa1@gmail.com');
-  console.log('BRANCH_ADMIN (Spa 1, Sede 1): jlmonroy13+spa1branch1@gmail.com');
+  console.log('\n=== SPA 1 ===');
+  console.log('SPA_ADMIN: jlmonroy13+spa1@gmail.com');
+  console.log('BRANCH_ADMIN (Sede 1): jlmonroy13+spa1branch1@gmail.com');
   console.log(
-    'MANICURIST (Spa 1, Sede 1): jlmonroy13+spa1branch1manicurista@gmail.com'
+    'MANICURIST (Sede 1): jlmonroy13+spa1branch1manicurista@gmail.com'
   );
-  console.log('SPA_ADMIN (Spa 2): jlmonroy13+spa2@gmail.com');
-  console.log('BRANCH_ADMIN (Spa 2, Sede 1): jlmonroy13+spa2branch1@gmail.com');
+  console.log('BRANCH_ADMIN (Sede 2): jlmonroy13+spa1branch2@gmail.com');
   console.log(
-    'MANICURIST (Spa 2, Sede 1): jlmonroy13+spa2branch1manicurista@gmail.com'
+    'MANICURIST (Sede 2): jlmonroy13+spa1branch2manicurista@gmail.com'
+  );
+  console.log('\n=== SPA 2 ===');
+  console.log('SPA_ADMIN: jlmonroy13+spa2@gmail.com');
+  console.log('BRANCH_ADMIN (Sede 1): jlmonroy13+spa2branch1@gmail.com');
+  console.log(
+    'MANICURIST (Sede 1): jlmonroy13+spa2branch1manicurista@gmail.com'
+  );
+  console.log('BRANCH_ADMIN (Sede 2): jlmonroy13+spa2branch2@gmail.com');
+  console.log(
+    'MANICURIST (Sede 2): jlmonroy13+spa2branch2manicurista@gmail.com'
   );
 }
 

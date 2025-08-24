@@ -36,6 +36,7 @@ export type SpaWithStats = Prisma.SpaGetPayload<{
         manicurists: true;
         services: true;
         appointments: true;
+        users: true;
       };
     };
   };
