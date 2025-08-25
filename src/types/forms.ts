@@ -5,7 +5,10 @@ export const baseNameSchema = z
   .string()
   .min(1, 'El nombre es requerido')
   .max(100, 'Máximo 100 caracteres');
+
 export const baseEmailSchema = z.string().email('Email inválido');
+
+// Base schemas for common fields
 export const basePhoneSchema = z.string().optional();
 export const baseAddressSchema = z
   .string()
@@ -93,14 +96,15 @@ export const createClientSchema = z.object({
   name: baseNameSchema,
   documentType: z.enum(['CC', 'TI', 'CE', 'PA', 'NIT']),
   documentNumber: z.string().min(1, 'El número de documento es requerido'),
-  phone: basePhoneSchema,
-  email: baseEmailSchema.optional(),
-  birthday: z.date().optional(),
+  phone: z.string().min(1, 'El teléfono es requerido'),
+  email: baseEmailSchema.optional().or(z.literal('')),
+  birthday: z.string().optional(), // ISO date string
   notes: z.string().optional(),
-  branchId: z.string().optional(), // Optional for multi-branch clients
 });
 
-export const updateClientSchema = createClientSchema.partial();
+export const updateClientSchema = createClientSchema.partial().extend({
+  id: z.string().cuid(),
+});
 
 // User schemas (for super admin and spa admin)
 export const createUserSchema = z.object({

@@ -1,47 +1,116 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { notFound } from 'next/navigation';
+import { requireBranchAccessForPage } from '@/lib/auth-utils';
+import { prisma } from '@/lib/prisma';
+import { ClientsClient } from './components/ClientsClient';
+import type { ClientWithAppointmentCount } from '@/types/clients';
 
 interface ClientsPageProps {
   params: {
     spaId: string;
     branchId: string;
   };
+  searchParams: {
+    search?: string;
+    page?: string;
+    limit?: string;
+  };
 }
 
-export default async function ClientsPage({}: ClientsPageProps) {
-  // const { spaId, branchId } = params;
+export default async function ClientsPage({
+  params,
+  searchParams,
+}: ClientsPageProps) {
+  const { spaId, branchId } = params;
+  const { search, page = '1', limit = '10' } = searchParams;
+
+  // Require BRANCH_ADMIN role and branch access
+  const _user = await requireBranchAccessForPage(spaId, branchId);
+
+  // Verify branch exists
+  const branch = await prisma.branch.findUnique({
+    where: { id: branchId },
+    select: { id: true, name: true, spa: { select: { name: true } } },
+  });
+
+  if (!branch) {
+    notFound();
+  }
+
+  // Build where clause for filtering
+  const where = {
+    spaId,
+    branchId,
+    ...(search && {
+      OR: [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { email: { contains: search, mode: 'insensitive' as const } },
+        { phone: { contains: search, mode: 'insensitive' as const } },
+        { documentNumber: { contains: search, mode: 'insensitive' as const } },
+      ],
+    }),
+  };
+
+  // Get pagination parameters
+  const pageNumber = parseInt(page);
+  const limitNumber = parseInt(limit);
+  const skip = (pageNumber - 1) * limitNumber;
+
+  // Fetch clients with pagination
+  const [clientsData, totalCount] = await Promise.all([
+    prisma.client.findMany({
+      where,
+      skip,
+      take: limitNumber,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        documentType: true,
+        documentNumber: true,
+        phone: true,
+        email: true,
+        birthday: true,
+        notes: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            appointments: true,
+          },
+        },
+      },
+    }),
+    prisma.client.count({ where }),
+  ]);
+
+  // Transform to match the expected type
+  const clients: ClientWithAppointmentCount[] = clientsData.map(client => ({
+    ...client,
+    _count: {
+      appointments: client._count.appointments,
+    },
+  }));
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(totalCount / limitNumber);
+  const hasNextPage = pageNumber < totalPages;
+  const hasPrevPage = pageNumber > 1;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Gestión de Clientes
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Administra los clientes de esta sede
-        </p>
-      </div>
-
-      {/* Placeholder content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Clientes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">👥</div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Gestión de Clientes
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Aquí podrás gestionar todos los clientes de esta sede.
-            </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-              Funcionalidad en desarrollo...
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <ClientsClient
+      clients={clients}
+      branch={branch}
+      spaId={spaId}
+      branchId={branchId}
+      pagination={{
+        currentPage: pageNumber,
+        totalPages,
+        totalCount,
+        hasNextPage,
+        hasPrevPage,
+        limit: limitNumber,
+      }}
+      searchParams={searchParams}
+    />
   );
 }

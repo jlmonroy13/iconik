@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { signOut } from 'next-auth/react';
 import { AuthenticatedUser } from '@/types/auth';
+import Image from 'next/image';
 
 type BranchWithSpaAndStats = {
   id: string;
@@ -72,7 +73,7 @@ export function BranchAdminHeader({
       <div className="flex flex-1 items-center gap-x-4 lg:gap-x-6">
         <div className="flex items-center gap-x-3">
           {branch.spa.logoUrl ? (
-            <img
+            <Image
               className="h-8 w-8 rounded-full"
               src={branch.spa.logoUrl}
               alt={branch.spa.name}
