@@ -1,22 +1,24 @@
 import { notFound } from 'next/navigation';
 import { requireBranchAccessForPage } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
-import { DashboardOverview } from './components/DashboardOverview';
+import { BranchAdminLayout } from './components/BranchAdminLayout';
 
-interface BranchAdminPageProps {
+interface BranchAdminLayoutProps {
   params: {
     spaId: string;
     branchId: string;
   };
+  children: React.ReactNode;
 }
 
-export default async function BranchAdminDashboardPage({
+export default async function BranchAdminLayoutWrapper({
   params,
-}: BranchAdminPageProps) {
+  children,
+}: BranchAdminLayoutProps) {
   const { spaId, branchId } = params;
 
   // Require BRANCH_ADMIN role and branch access with redirect
-  const _user = await requireBranchAccessForPage(spaId, branchId);
+  const user = await requireBranchAccessForPage(spaId, branchId);
 
   // Get branch with stats
   const branch = await prisma.branch.findUnique({
@@ -44,6 +46,13 @@ export default async function BranchAdminDashboardPage({
   }
 
   return (
-    <DashboardOverview branch={branch} spaId={spaId} branchId={branchId} />
+    <BranchAdminLayout
+      user={user}
+      branch={branch}
+      spaId={spaId}
+      branchId={branchId}
+    >
+      {children}
+    </BranchAdminLayout>
   );
 }
