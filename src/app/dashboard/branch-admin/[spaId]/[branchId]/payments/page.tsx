@@ -1,14 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 interface PaymentsPageProps {
-  params: {
+  params: Promise<{
     spaId: string;
     branchId: string;
-  };
+  }>;
 }
 
 export default async function PaymentsPage({}: PaymentsPageProps) {
-  // const { spaId, branchId } = params;
+  // const { spaId, branchId } = await params;
 
   return (
     <div className="space-y-6">

@@ -4,16 +4,16 @@ import { prisma } from '@/lib/prisma';
 import { DashboardOverview } from './components/DashboardOverview';
 
 interface BranchAdminPageProps {
-  params: {
+  params: Promise<{
     spaId: string;
     branchId: string;
-  };
+  }>;
 }
 
 export default async function BranchAdminDashboardPage({
   params,
 }: BranchAdminPageProps) {
-  const { spaId, branchId } = params;
+  const { spaId, branchId } = await params;
 
   // Require BRANCH_ADMIN role and branch access with redirect
   const _user = await requireBranchAccessForPage(spaId, branchId);

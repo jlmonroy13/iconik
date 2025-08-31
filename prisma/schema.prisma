@@ -1241,15 +1241,11 @@ enum UserRole {
 }
 
 enum ServiceType {
-  MANICURE
-  PEDICURE
-  NAIL_ART
-  GEL_POLISH
-  ACRYLIC_NAILS
-  NAIL_REPAIR
-  HAND_SPA
-  FOOT_SPA
-  OTHER
+  MANICURE_PEDICURE // Manicure y Pedicure (tradicional, semipermanente, etc.)
+  NAIL_ART // Diseño de uñas, nail art, esculpidas
+  NAIL_EXTENSIONS // Acrílicas, polygel, extensiones
+  NAIL_MAINTENANCE // Mantenimiento, retiros, reparaciones
+  SPA_TREATMENTS // Tratamientos de spa para manos y pies
 }
 
 enum AppointmentStatus {

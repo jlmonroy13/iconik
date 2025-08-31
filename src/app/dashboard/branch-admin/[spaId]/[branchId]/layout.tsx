@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma';
 import { BranchAdminLayout } from './components/BranchAdminLayout';
 
 interface BranchAdminLayoutProps {
-  params: {
+  params: Promise<{
     spaId: string;
     branchId: string;
-  };
+  }>;
   children: React.ReactNode;
 }
 
@@ -15,7 +15,7 @@ export default async function BranchAdminLayoutWrapper({
   params,
   children,
 }: BranchAdminLayoutProps) {
-  const { spaId, branchId } = params;
+  const { spaId, branchId } = await params;
 
   // Require BRANCH_ADMIN role and branch access with redirect
   const user = await requireBranchAccessForPage(spaId, branchId);

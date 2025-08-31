@@ -1,14 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 interface SettingsPageProps {
-  params: {
+  params: Promise<{
     spaId: string;
     branchId: string;
-  };
+  }>;
 }
 
 export default async function SettingsPage({}: SettingsPageProps) {
-  // const { spaId, branchId } = params;
+  // const { spaId, branchId } = await params;
 
   return (
     <div className="space-y-6">

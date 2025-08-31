@@ -1,14 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 interface AppointmentsPageProps {
-  params: {
+  params: Promise<{
     spaId: string;
     branchId: string;
-  };
+  }>;
 }
 
-export default async function AppointmentsPage({}: AppointmentsPageProps) {
-  // const { spaId, branchId } = params;
+export default async function AppointmentsPage({
+  params,
+}: AppointmentsPageProps) {
+  const { spaId: _spaId, branchId: _branchId } = await params;
 
   return (
     <div className="space-y-6">

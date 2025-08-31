@@ -51,3 +51,4 @@ export {
 } from './dropdown-menu';
 export { Textarea } from './Textarea';
 export * from './Table';
+export { Pagination } from './Pagination';

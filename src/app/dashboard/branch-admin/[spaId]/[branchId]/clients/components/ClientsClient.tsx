@@ -9,7 +9,7 @@ import { Select } from '@/components/ui/Select';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ClientModal } from '@/app/dashboard/branch-admin/[spaId]/[branchId]/clients/components/ClientModal';
 import { ClientTable } from '@/app/dashboard/branch-admin/[spaId]/[branchId]/clients/components/ClientTable';
-import { Pagination } from '@/app/dashboard/branch-admin/[spaId]/[branchId]/clients/components/Pagination';
+import { Pagination } from '@/components/ui';
 import type {
   ClientWithAppointmentCount,
   BranchInfo,
@@ -281,6 +281,7 @@ export function ClientsClient({
               <Pagination
                 pagination={pagination}
                 onPageChange={handlePageChange}
+                itemName="clientes"
               />
             </>
           )}

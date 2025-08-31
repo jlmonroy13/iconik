@@ -7,14 +7,16 @@ import { DashboardHeader } from '@/components/ui';
 export default async function SpaDetailPage({
   params,
 }: {
-  params: { spaId: string };
+  params: Promise<{ spaId: string }>;
 }) {
+  const { spaId } = await params;
+
   // Require SUPER_ADMIN role with redirect
   const user = await requireRoleForPage('SUPER_ADMIN');
 
   // Get spa with all related data
   const spa = await prisma.spa.findUnique({
-    where: { id: params.spaId },
+    where: { id: spaId },
     include: {
       branches: {
         include: {

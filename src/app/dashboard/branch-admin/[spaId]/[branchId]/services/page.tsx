@@ -1,48 +1,110 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { notFound } from 'next/navigation';
+import { requireBranchAccessForPage } from '@/lib/auth-utils';
+import { prisma } from '@/lib/prisma';
+import { ServicesClient } from './components/ServicesClient';
+import type {
+  ServiceWithBranch,
+  ServicePaginationInfo,
+} from '@/types/services';
+import { ServiceType } from '@/lib/prisma';
 
 interface ServicesPageProps {
-  params: {
+  params: Promise<{
     spaId: string;
     branchId: string;
-  };
+  }>;
+  searchParams: Promise<{
+    search?: string;
+    type?: string;
+    page?: string;
+    limit?: string;
+  }>;
 }
 
-export default async function ServicesPage({}: ServicesPageProps) {
-  // const { spaId, branchId } = params;
+export default async function ServicesPage({
+  params,
+  searchParams,
+}: ServicesPageProps) {
+  const { spaId, branchId } = await params;
+  const { search, type, page = '1', limit = '10' } = await searchParams;
+
+  // Require BRANCH_ADMIN role and branch access
+  const _user = await requireBranchAccessForPage(spaId, branchId);
+
+  // Verify branch exists
+  const branch = await prisma.branch.findUnique({
+    where: { id: branchId },
+    select: { id: true, name: true, spa: { select: { name: true } } },
+  });
+
+  if (!branch) {
+    notFound();
+  }
+
+  // Build where clause for filtering
+  const where = {
+    spaId,
+    branchId,
+    ...(search && {
+      OR: [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { description: { contains: search, mode: 'insensitive' as const } },
+      ],
+    }),
+    ...(type && { type: type as ServiceType }),
+  };
+
+  // Get pagination parameters
+  const pageNumber = parseInt(page);
+  const limitNumber = parseInt(limit);
+  const skip = (pageNumber - 1) * limitNumber;
+
+  // Fetch services with pagination
+  const [servicesData, totalCount] = await Promise.all([
+    prisma.service.findMany({
+      where,
+      skip,
+      take: limitNumber,
+      orderBy: { name: 'asc' },
+      include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+    }),
+    prisma.service.count({ where }),
+  ]);
+
+  // Transform to match the expected type
+  const services: ServiceWithBranch[] = servicesData.map(service => ({
+    ...service,
+    branch: service.branch,
+  }));
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(totalCount / limitNumber);
+  const hasNextPage = pageNumber < totalPages;
+  const hasPrevPage = pageNumber > 1;
+
+  const pagination: ServicePaginationInfo = {
+    currentPage: pageNumber,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPrevPage,
+    limit: limitNumber,
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Gestión de Servicios
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Administra los servicios disponibles en esta sede
-        </p>
-      </div>
-
-      {/* Placeholder content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Servicios Disponibles</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🛠️</div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Gestión de Servicios
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Aquí podrás gestionar todos los servicios disponibles en esta
-              sede.
-            </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-              Funcionalidad en desarrollo...
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <ServicesClient
+      services={services}
+      pagination={pagination}
+      spaId={spaId}
+      branchId={branchId}
+    />
   );
 }

@@ -4,16 +4,16 @@ import { prisma } from '@/lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 interface ManicuristPageProps {
-  params: {
+  params: Promise<{
     spaId: string;
     branchId: string;
-  };
+  }>;
 }
 
 export default async function ManicuristDashboardPage({
   params,
 }: ManicuristPageProps) {
-  const { spaId, branchId } = params;
+  const { spaId, branchId } = await params;
 
   // Require MANICURIST role and branch access
   const _user = await requireBranchAccess(spaId, branchId);

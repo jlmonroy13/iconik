@@ -43,17 +43,6 @@ export const updateBranchSchema = createBranchSchema.partial();
 
 // Service schemas
 export const createServiceSchema = z.object({
-  type: z.enum([
-    'MANICURE',
-    'PEDICURE',
-    'NAIL_ART',
-    'GEL_POLISH',
-    'ACRYLIC_NAILS',
-    'NAIL_REPAIR',
-    'HAND_SPA',
-    'FOOT_SPA',
-    'OTHER',
-  ]),
   name: baseNameSchema,
   description: z.string().optional(),
   price: z.number().min(0, 'El precio debe ser mayor a 0'),
@@ -61,16 +50,21 @@ export const createServiceSchema = z.object({
   taxRate: z
     .number()
     .min(0)
-    .max(1, 'La tasa de impuesto debe estar entre 0 y 1')
+    .max(1, 'El impuesto debe estar entre 0 y 1')
     .optional(),
-  duration: z.number().min(1, 'La duración debe ser mayor a 0'),
+  duration: z.number().min(1, 'La duración debe ser al menos 1 minuto'),
   recommendedReturnDays: z
     .number()
-    .min(1, 'Los días de retorno deben ser mayor a 0')
+    .min(1, 'Los días de retorno deben ser al menos 1')
     .optional(),
-  imageUrl: z.string().url('URL inválida').optional(),
-  isActive: z.boolean().default(true),
-  branchId: z.string().optional(), // Optional for multi-branch services
+  type: z.enum([
+    'MANICURE_PEDICURE',
+    'NAIL_ART',
+    'NAIL_EXTENSIONS',
+    'NAIL_MAINTENANCE',
+    'SPA_TREATMENTS',
+  ]),
+  imageUrl: z.string().url('URL de imagen inválida').optional(),
 });
 
 export const updateServiceSchema = createServiceSchema.partial();

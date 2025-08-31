@@ -1,6 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
+import { Pencil, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -123,21 +124,20 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
                 </span>
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end space-x-2">
                   <IconButton
                     onClick={() => onEdit(client)}
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    icon="✏️"
-                    label="Editar cliente"
+                    icon={<Pencil className="w-4 h-4" />}
+                    title="Editar cliente"
                   />
                   <IconButton
                     onClick={() => onDelete(client)}
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    icon="🗑️"
-                    label="Eliminar cliente"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    icon={<Trash2 className="w-4 h-4" />}
+                    title="Eliminar cliente"
                   />
                 </div>
               </TableCell>

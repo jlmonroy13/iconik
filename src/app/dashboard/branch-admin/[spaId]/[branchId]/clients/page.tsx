@@ -5,10 +5,10 @@ import { ClientsClient } from './components/ClientsClient';
 import type { ClientWithAppointmentCount } from '@/types/clients';
 
 interface ClientsPageProps {
-  params: {
+  params: Promise<{
     spaId: string;
     branchId: string;
-  };
+  }>;
   searchParams: {
     search?: string;
     page?: string;
@@ -20,7 +20,7 @@ export default async function ClientsPage({
   params,
   searchParams,
 }: ClientsPageProps) {
-  const { spaId, branchId } = params;
+  const { spaId, branchId } = await params;
   const { search, page = '1', limit = '10' } = searchParams;
 
   // Require BRANCH_ADMIN role and branch access

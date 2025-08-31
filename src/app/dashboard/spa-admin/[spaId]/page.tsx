@@ -10,15 +10,15 @@ import {
 } from '@/lib/dashboard';
 
 interface SpaAdminPageProps {
-  params: {
+  params: Promise<{
     spaId: string;
-  };
+  }>;
 }
 
 export default async function SpaAdminDashboardPage({
   params,
 }: SpaAdminPageProps) {
-  const { spaId } = params;
+  const { spaId } = await params;
 
   // Require SPA_ADMIN role and spa access with redirect
   const user = await requireSpaAccessForPage(spaId);
