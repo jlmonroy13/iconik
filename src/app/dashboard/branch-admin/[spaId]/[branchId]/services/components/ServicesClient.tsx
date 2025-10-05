@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -46,6 +46,22 @@ export function ServicesClient({
   const currentSearch = searchParams.get('search') || '';
   const currentType = searchParams.get('type') || '';
   const _currentPage = searchParams.get('page') || '1';
+
+  // Check if we need to open modal in edit mode from URL params
+  useEffect(() => {
+    const editServiceId = searchParams.get('edit');
+    if (editServiceId && services.length > 0) {
+      const serviceToEdit = services.find(s => s.id === editServiceId);
+      if (serviceToEdit) {
+        setSelectedService(serviceToEdit);
+        setIsModalOpen(true);
+        // Clean up URL
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('edit');
+        window.history.replaceState({}, '', newUrl.toString());
+      }
+    }
+  }, [services, searchParams]);
 
   const handleSearch = (search: string) => {
     const params = new URLSearchParams(searchParams);
@@ -167,6 +183,7 @@ export function ServicesClient({
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
@@ -285,6 +302,8 @@ export function ServicesClient({
             services={services}
             onEdit={handleEditService}
             onDelete={handleDeleteService}
+            spaId={spaId}
+            branchId={branchId}
           />
         </CardContent>
       </Card>

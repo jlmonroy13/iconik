@@ -67,7 +67,22 @@ export function Sidebar({ isOpen, onClose, spaId, branchId }: SidebarProps) {
 
   const isActive = (href: string) => {
     const currentPath = getCurrentPath(href);
-    return pathname === currentPath;
+
+    // For exact matches
+    if (pathname === currentPath) {
+      return true;
+    }
+
+    // For sub-routes, check if the current pathname starts with the href
+    // But exclude the dashboard route to avoid conflicts
+    if (
+      href !== '/dashboard/branch-admin/[spaId]/[branchId]' &&
+      pathname.startsWith(currentPath + '/')
+    ) {
+      return true;
+    }
+
+    return false;
   };
 
   const sidebarContent = (

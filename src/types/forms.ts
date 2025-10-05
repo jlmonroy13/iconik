@@ -64,7 +64,7 @@ export const createServiceSchema = z.object({
     'NAIL_MAINTENANCE',
     'SPA_TREATMENTS',
   ]),
-  imageUrl: z.string().url('URL de imagen inválida').optional(),
+  image: z.string().optional(),
 });
 
 export const updateServiceSchema = createServiceSchema.partial();

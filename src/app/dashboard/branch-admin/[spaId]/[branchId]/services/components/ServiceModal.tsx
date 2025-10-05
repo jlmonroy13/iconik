@@ -12,6 +12,7 @@ import { Select } from '@/components/ui/Select';
 import { createServiceSchema, type CreateServiceData } from '@/types/forms';
 import { SERVICE_TYPES } from '@/types/services';
 import type { ServiceWithBranch } from '@/types/services';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 
 interface ServiceModalProps {
   isOpen: boolean;
@@ -35,13 +36,13 @@ export function ServiceModal({
     defaultValues: {
       name: '',
       description: '',
-      price: 0,
-      kitCost: 0,
-      taxRate: 0,
-      duration: 30,
-      recommendedReturnDays: 7,
+      price: undefined,
+      kitCost: undefined,
+      taxRate: undefined,
+      duration: undefined,
+      recommendedReturnDays: undefined,
       type: 'MANICURE_PEDICURE',
-      imageUrl: '',
+      image: '',
     },
   });
 
@@ -57,20 +58,20 @@ export function ServiceModal({
         duration: service.duration,
         recommendedReturnDays: service.recommendedReturnDays || 7,
         type: service.type,
-        imageUrl: service.imageUrl || '',
+        image: service.image || '',
       };
       form.reset(formData);
     } else {
       const defaultData: CreateServiceData = {
         name: '',
         description: '',
-        price: 0,
-        kitCost: 0,
-        taxRate: 0,
-        duration: 30,
-        recommendedReturnDays: 7,
+        price: undefined,
+        kitCost: undefined,
+        taxRate: undefined,
+        duration: undefined,
+        recommendedReturnDays: undefined,
         type: 'MANICURE_PEDICURE',
-        imageUrl: '',
+        image: '',
       };
       form.reset(defaultData);
     }
@@ -96,6 +97,7 @@ export function ServiceModal({
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
@@ -110,12 +112,20 @@ export function ServiceModal({
 
   const formId = 'service-form';
 
+  // Helper function to check if a value is a valid positive number
+  const isValidPositiveNumber = (value: unknown): boolean => {
+    if (value === null || value === undefined || value === '') return false;
+    const num = Number(value);
+    return !isNaN(num) && num > 0;
+  };
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={service ? 'Editar Servicio' : 'Crear Nuevo Servicio'}
       formId={formId}
+      size="xl"
+      className="w-[80vw] max-w-7xl"
       footer={
         <div className="flex justify-end space-x-2">
           <Button
@@ -139,157 +149,167 @@ export function ServiceModal({
       <form
         id={formId}
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-4"
+        className="space-y-6"
       >
-        {/* Nombre del servicio */}
-        <div>
-          <Label htmlFor="name">Nombre del Servicio *</Label>
-          <Input
-            id="name"
-            {...form.register('name')}
-            placeholder="Ej: Manicure tradicional"
-            error={form.formState.errors.name?.message}
-          />
-        </div>
-
-        {/* Descripción */}
-        <div>
-          <Label htmlFor="description">Descripción</Label>
-          <Textarea
-            id="description"
-            {...form.register('description')}
-            placeholder="Descripción detallada del servicio"
-            rows={3}
-            error={form.formState.errors.description?.message}
-          />
-        </div>
-
-        {/* Tipo de servicio */}
-        <div>
-          <Label htmlFor="type">Tipo de Servicio *</Label>
-          <Select
-            id="type"
-            {...form.register('type')}
-            error={form.formState.errors.type?.message}
-          >
-            <option value="">Seleccionar tipo</option>
-            {SERVICE_TYPES.map(type => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        {/* Precio */}
-        <div>
-          <Label htmlFor="price">Precio (COP) *</Label>
-          <Input
-            id="price"
-            type="number"
-            min="0"
-            step="1000"
-            {...form.register('price', { valueAsNumber: true })}
-            placeholder="18000"
-            error={form.formState.errors.price?.message}
-          />
-          {form.watch('price') > 0 && (
-            <p className="text-sm text-gray-600 mt-1">
-              {formatCurrency(form.watch('price'))}
-            </p>
-          )}
-        </div>
-
-        {/* Costo del kit */}
-        <div>
-          <Label htmlFor="kitCost">Costo del Kit (COP)</Label>
-          <Input
-            id="kitCost"
-            type="number"
-            min="0"
-            step="1000"
-            {...form.register('kitCost', { valueAsNumber: true })}
-            placeholder="5000"
-            error={form.formState.errors.kitCost?.message}
-          />
-          {form.watch('kitCost') && Number(form.watch('kitCost')) > 0 && (
-            <p className="text-sm text-gray-600 mt-1">
-              {formatCurrency(Number(form.watch('kitCost')))}
-            </p>
-          )}
-        </div>
-
-        {/* Impuesto */}
-        <div>
-          <Label htmlFor="taxRate">Impuesto (%)</Label>
-          <Input
-            id="taxRate"
-            type="number"
-            min="0"
-            max="100"
-            step="0.1"
-            {...form.register('taxRate', { valueAsNumber: true })}
-            placeholder="19"
-            error={form.formState.errors.taxRate?.message}
-          />
-          {form.watch('taxRate') && Number(form.watch('taxRate')) > 0 && (
-            <p className="text-sm text-gray-600 mt-1">
-              {Number(form.watch('taxRate'))}% (IVA)
-            </p>
-          )}
-        </div>
-
-        {/* Duración */}
-        <div>
-          <Label htmlFor="duration">Duración (minutos) *</Label>
-          <Input
-            id="duration"
-            type="number"
-            min="1"
-            {...form.register('duration', { valueAsNumber: true })}
-            placeholder="45"
-            error={form.formState.errors.duration?.message}
-          />
-          {form.watch('duration') > 0 && (
-            <p className="text-sm text-gray-600 mt-1">
-              {formatDuration(form.watch('duration'))}
-            </p>
-          )}
-        </div>
-
-        {/* Días de retorno recomendados */}
-        <div>
-          <Label htmlFor="recommendedReturnDays">
-            Días de Retorno Recomendados
-          </Label>
-          <Input
-            id="recommendedReturnDays"
-            type="number"
-            min="1"
-            {...form.register('recommendedReturnDays', {
-              valueAsNumber: true,
-            })}
-            placeholder="7"
-            error={form.formState.errors.recommendedReturnDays?.message}
-          />
-          {form.watch('recommendedReturnDays') &&
-            Number(form.watch('recommendedReturnDays')) > 0 && (
-              <p className="text-sm text-gray-600 mt-1">
-                {Number(form.watch('recommendedReturnDays'))} días
+        {/* Layout de dos columnas principales */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* Columna Izquierda - Solo Imagen */}
+          <div>
+            <Label>Imagen del Servicio</Label>
+            <ImageUpload
+              value={form.watch('image')}
+              onChange={base64 => form.setValue('image', base64 || '')}
+              maxSizeMB={2}
+              className="mt-2"
+            />
+            {form.formState.errors.image?.message && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                {form.formState.errors.image.message}
               </p>
             )}
-        </div>
+          </div>
 
-        {/* URL de imagen */}
-        <div>
-          <Label htmlFor="imageUrl">URL de Imagen</Label>
-          <Input
-            id="imageUrl"
-            type="url"
-            {...form.register('imageUrl')}
-            placeholder="https://ejemplo.com/imagen.jpg"
-            error={form.formState.errors.imageUrl?.message}
-          />
+          {/* Columna Derecha - Todos los demás campos */}
+          <div className="space-y-4">
+            {/* Nombre del servicio */}
+            <div>
+              <Label htmlFor="name">Nombre del Servicio *</Label>
+              <Input
+                id="name"
+                {...form.register('name')}
+                placeholder="Ej: Manicure tradicional"
+                error={form.formState.errors.name?.message}
+              />
+            </div>
+
+            {/* Tipo de servicio y Duración */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="type">Tipo de Servicio *</Label>
+                <Select
+                  id="type"
+                  {...form.register('type')}
+                  error={form.formState.errors.type?.message}
+                >
+                  <option value="">Seleccionar tipo</option>
+                  {SERVICE_TYPES.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="duration">Duración (minutos) *</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  min="1"
+                  {...form.register('duration', { valueAsNumber: true })}
+                  placeholder="45"
+                  error={form.formState.errors.duration?.message}
+                />
+                {isValidPositiveNumber(form.watch('duration')) && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {formatDuration(Number(form.watch('duration')))}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Descripción */}
+            <div>
+              <Label htmlFor="description">Descripción</Label>
+              <Textarea
+                id="description"
+                {...form.register('description')}
+                placeholder="Descripción detallada del servicio"
+                rows={3}
+                error={form.formState.errors.description?.message}
+              />
+            </div>
+
+            {/* Información de Precios */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="price">Precio (COP) *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="1000"
+                  {...form.register('price', { valueAsNumber: true })}
+                  placeholder="18000"
+                  error={form.formState.errors.price?.message}
+                />
+                {isValidPositiveNumber(form.watch('price')) && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {formatCurrency(Number(form.watch('price')))}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="kitCost">Costo del Kit (COP)</Label>
+                <Input
+                  id="kitCost"
+                  type="number"
+                  min="0"
+                  step="1000"
+                  {...form.register('kitCost', { valueAsNumber: true })}
+                  placeholder="5000"
+                  error={form.formState.errors.kitCost?.message}
+                />
+                {isValidPositiveNumber(form.watch('kitCost')) && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {formatCurrency(Number(form.watch('kitCost')))}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="taxRate">Impuesto (%)</Label>
+                <Input
+                  id="taxRate"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  {...form.register('taxRate', { valueAsNumber: true })}
+                  placeholder="19"
+                  error={form.formState.errors.taxRate?.message}
+                />
+                {isValidPositiveNumber(form.watch('taxRate')) && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {Number(form.watch('taxRate'))}% (IVA)
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Días de retorno recomendados */}
+            <div>
+              <Label htmlFor="recommendedReturnDays">
+                Días de Retorno Recomendados
+              </Label>
+              <Input
+                id="recommendedReturnDays"
+                type="number"
+                min="1"
+                {...form.register('recommendedReturnDays', {
+                  valueAsNumber: true,
+                })}
+                placeholder="7"
+                error={form.formState.errors.recommendedReturnDays?.message}
+              />
+              {isValidPositiveNumber(form.watch('recommendedReturnDays')) && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {Number(form.watch('recommendedReturnDays'))} días
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </form>
     </Modal>

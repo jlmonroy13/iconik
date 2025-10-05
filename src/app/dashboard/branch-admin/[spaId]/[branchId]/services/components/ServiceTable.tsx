@@ -2,6 +2,8 @@
 
 import { format } from 'date-fns';
 import { Pencil, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -12,6 +14,7 @@ import {
 } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { IconButton } from '@/components/ui/IconButton';
+import { ServiceImagePlaceholder } from '@/components/ui/ServiceImagePlaceholder';
 import type { ServiceWithBranch } from '@/types/services';
 import { SERVICE_TYPES } from '@/types/services';
 
@@ -19,18 +22,24 @@ interface ServiceTableProps {
   services: ServiceWithBranch[];
   onEdit: (service: ServiceWithBranch) => void;
   onDelete: (service: ServiceWithBranch) => void;
+  spaId: string;
+  branchId: string;
 }
 
 export function ServiceTable({
   services,
   onEdit,
   onDelete,
+  spaId,
+  branchId,
 }: ServiceTableProps) {
+  const router = useRouter();
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
@@ -73,6 +82,7 @@ export function ServiceTable({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Imagen</TableHead>
             <TableHead>Servicio</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Precio</TableHead>
@@ -85,7 +95,30 @@ export function ServiceTable({
         </TableHeader>
         <TableBody>
           {services.map(service => (
-            <TableRow key={service.id}>
+            <TableRow
+              key={service.id}
+              className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() =>
+                router.push(
+                  `/dashboard/branch-admin/${spaId}/${branchId}/services/${service.id}`
+                )
+              }
+            >
+              <TableCell>
+                {service.image ? (
+                  <div className="relative w-15 h-15 rounded-lg overflow-hidden">
+                    <Image
+                      src={service.image}
+                      alt={service.name}
+                      fill
+                      className="object-cover"
+                      sizes="60px"
+                    />
+                  </div>
+                ) : (
+                  <ServiceImagePlaceholder size="sm" />
+                )}
+              </TableCell>
               <TableCell>
                 <div>
                   <div className="font-medium">{service.name}</div>

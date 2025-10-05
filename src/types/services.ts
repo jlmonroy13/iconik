@@ -12,7 +12,7 @@ export type ServiceWithBranch = Pick<
   | 'duration'
   | 'recommendedReturnDays'
   | 'type'
-  | 'imageUrl'
+  | 'image'
   | 'isActive'
   | 'createdAt'
   | 'updatedAt'
