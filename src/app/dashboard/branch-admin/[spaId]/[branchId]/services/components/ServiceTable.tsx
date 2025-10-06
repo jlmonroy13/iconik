@@ -139,11 +139,6 @@ export function ServiceTable({
                   <div className="font-medium">
                     {formatCurrency(service.price)}
                   </div>
-                  {service.kitCost && service.kitCost > 0 && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Kit: {formatCurrency(service.kitCost)}
-                    </div>
-                  )}
                   {service.taxRate && service.taxRate > 0 && (
                     <div className="text-xs text-gray-500 dark:text-gray-400">
                       IVA: {service.taxRate}%

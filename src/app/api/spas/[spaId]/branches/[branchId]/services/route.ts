@@ -6,10 +6,14 @@ import { ServiceType } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { spaId: string; branchId: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ spaId: string; branchId: string }>;
+  }
 ) {
   try {
-    const { spaId, branchId } = params;
+    const { spaId, branchId } = await params;
     const { searchParams } = new URL(request.url);
 
     // Require BRANCH_ADMIN role and branch access
@@ -84,10 +88,14 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { spaId: string; branchId: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ spaId: string; branchId: string }>;
+  }
 ) {
   try {
-    const { spaId, branchId } = params;
+    const { spaId, branchId } = await params;
 
     // Require BRANCH_ADMIN role and branch access
     await requireBranchAccess(spaId, branchId);
@@ -155,10 +163,7 @@ export async function POST(
     console.error('Error creating service:', error);
 
     if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        { message: 'Datos inválidos', errors: error },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Datos inválidos' }, { status: 400 });
     }
 
     return NextResponse.json(

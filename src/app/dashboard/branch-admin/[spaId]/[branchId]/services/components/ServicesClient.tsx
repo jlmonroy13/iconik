@@ -125,11 +125,22 @@ export function ServicesClient({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al guardar el servicio');
+        let errorMessage = 'Error al guardar el servicio';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (_jsonError) {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
-      await response.json();
+      // Only parse JSON if there's content
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        await response.json();
+      }
 
       // Refresh the page to show updated data
       router.refresh();
@@ -159,8 +170,15 @@ export function ServicesClient({
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al eliminar el servicio');
+        let errorMessage = 'Error al eliminar el servicio';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (_jsonError) {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       // Refresh the page to show updated data

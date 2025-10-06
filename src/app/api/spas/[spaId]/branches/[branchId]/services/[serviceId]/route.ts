@@ -5,10 +5,14 @@ import { updateServiceSchema } from '@/types/forms';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { spaId: string; branchId: string; serviceId: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ spaId: string; branchId: string; serviceId: string }>;
+  }
 ) {
   try {
-    const { spaId, branchId, serviceId } = params;
+    const { spaId, branchId, serviceId } = await params;
 
     // Require BRANCH_ADMIN role and branch access
     await requireBranchAccess(spaId, branchId);
@@ -56,10 +60,14 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { spaId: string; branchId: string; serviceId: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ spaId: string; branchId: string; serviceId: string }>;
+  }
 ) {
   try {
-    const { spaId, branchId, serviceId } = params;
+    const { spaId, branchId, serviceId } = await params;
 
     // Require BRANCH_ADMIN role and branch access
     await requireBranchAccess(spaId, branchId);
@@ -142,10 +150,7 @@ export async function PUT(
     console.error('Error updating service:', error);
 
     if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        { message: 'Datos inválidos', errors: error },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Datos inválidos' }, { status: 400 });
     }
 
     return NextResponse.json(
@@ -157,10 +162,14 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { spaId: string; branchId: string; serviceId: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ spaId: string; branchId: string; serviceId: string }>;
+  }
 ) {
   try {
-    const { spaId, branchId, serviceId } = params;
+    const { spaId, branchId, serviceId } = await params;
 
     // Require BRANCH_ADMIN role and branch access
     await requireBranchAccess(spaId, branchId);

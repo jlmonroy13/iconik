@@ -440,6 +440,20 @@ async function main() {
       type: 'NAIL_EXTENSIONS' as const,
       recommendedReturnDays: 21,
     },
+    {
+      name: 'Kit de limpieza básico',
+      description: 'Kit de limpieza básico para manicure y pedicure',
+      price: 2500,
+      duration: 0,
+      type: 'SPA_TREATMENTS' as const,
+    },
+    {
+      name: 'Kit de limpieza premium',
+      description: 'Kit de limpieza premium con productos especializados',
+      price: 5000,
+      duration: 0,
+      type: 'SPA_TREATMENTS' as const,
+    },
   ];
 
   // Crear servicios para cada sede

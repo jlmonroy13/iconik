@@ -1,9 +1,8 @@
 import { formatCurrency } from '@/lib/utils/calculations';
-import { calculateCommissionWithKitCostTaxAndFees } from '@/lib/utils/calculations';
+import { calculateCommissionWithTaxAndFees } from '@/lib/utils/calculations';
 
 interface CommissionBreakdownProps {
   servicePrice: number;
-  kitCost?: number;
   taxRate?: number;
   commissionRate: number;
   discountAmount?: number;
@@ -14,7 +13,6 @@ interface CommissionBreakdownProps {
 
 export function CommissionBreakdown({
   servicePrice,
-  kitCost = 0,
   taxRate = 0,
   commissionRate,
   discountAmount = 0,
@@ -22,9 +20,8 @@ export function CommissionBreakdown({
   transactionFeeRate = 0,
   showDetails = true,
 }: CommissionBreakdownProps) {
-  const result = calculateCommissionWithKitCostTaxAndFees(
+  const result = calculateCommissionWithTaxAndFees(
     servicePrice,
-    kitCost,
     taxRate,
     commissionRate,
     discountAmount,
@@ -117,23 +114,6 @@ export function CommissionBreakdown({
               </div>
             </div>
 
-            {result.kitCost > 0 && (
-              <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-100" />
-                  <span>Costo del kit</span>
-                </div>
-                <div className="text-right">
-                  <div className="font-medium">
-                    {formatCurrency(result.kitCost)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {((result.kitCost / result.finalTotal) * 100).toFixed(1)}%
-                  </div>
-                </div>
-              </div>
-            )}
-
             {result.governmentTax > 0 && (
               <div className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2">
@@ -206,7 +186,7 @@ export function CommissionBreakdown({
           <strong>Comisión de la manicurista:</strong>{' '}
           {(commissionRate * 100).toFixed(0)}%
           <span className="text-xs ml-2">
-            (calculada solo sobre el precio del servicio:{' '}
+            (calculada sobre el precio del servicio:{' '}
             {formatCurrency(servicePrice)})
           </span>
         </div>

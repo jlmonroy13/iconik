@@ -46,11 +46,10 @@ export const createServiceSchema = z.object({
   name: baseNameSchema,
   description: z.string().optional(),
   price: z.number().min(0, 'El precio debe ser mayor a 0'),
-  kitCost: z.number().min(0, 'El costo del kit debe ser mayor a 0').optional(),
   taxRate: z
     .number()
-    .min(0)
-    .max(1, 'El impuesto debe estar entre 0 y 1')
+    .min(0, 'El impuesto debe ser mayor o igual a 0')
+    .max(100, 'El impuesto debe ser menor o igual a 100%')
     .optional(),
   duration: z.number().min(1, 'La duración debe ser al menos 1 minuto'),
   recommendedReturnDays: z

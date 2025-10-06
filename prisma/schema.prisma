@@ -617,8 +617,7 @@ model Service {
   name                  String
   description           String?
   price                 Float // Base service price
-  kitCost               Float? // Optional kit cost (goes directly to spa)
-  taxRate               Float? // Optional tax rate (e.g., 0.19 for 19% VAT)
+  taxRate               Float? // Optional tax rate (e.g., 19 for 19% VAT)
   duration              Int // Standard duration in minutes
   recommendedReturnDays Int? // Days recommended for client to return (e.g., 15 for traditional nails)
   image                 String? // Base64 encoded image
@@ -702,8 +701,7 @@ model AppointmentService {
   durationAvg       Int? // minutes - historical average for this manicurist + service combination
 
   price     Float // Base service price
-  kitCost   Float? // Optional kit cost (goes directly to spa)
-  taxRate   Float? // Optional tax rate (e.g., 0.19 for 19% VAT)
+  taxRate   Float? // Optional tax rate (e.g., 19 for 19% VAT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

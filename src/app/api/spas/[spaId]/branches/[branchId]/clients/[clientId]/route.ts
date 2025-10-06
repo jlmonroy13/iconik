@@ -5,10 +5,14 @@ import { updateClientSchema } from '@/types/forms';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { spaId: string; branchId: string; clientId: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ spaId: string; branchId: string; clientId: string }>;
+  }
 ) {
   try {
-    const { spaId, branchId, clientId } = params;
+    const { spaId, branchId, clientId } = await params;
 
     // Require BRANCH_ADMIN role and branch access
     await requireBranchAccess(spaId, branchId);
@@ -91,10 +95,7 @@ export async function PUT(
     console.error('Error updating client:', error);
 
     if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        { message: 'Datos inválidos', errors: error },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Datos inválidos' }, { status: 400 });
     }
 
     return NextResponse.json(
@@ -106,10 +107,14 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { spaId: string; branchId: string; clientId: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ spaId: string; branchId: string; clientId: string }>;
+  }
 ) {
   try {
-    const { spaId, branchId, clientId } = params;
+    const { spaId, branchId, clientId } = await params;
 
     // Require BRANCH_ADMIN role and branch access
     await requireBranchAccess(spaId, branchId);

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
@@ -93,7 +92,6 @@ export function ServiceDetailClient({ service }: ServiceDetailClientProps) {
         `/dashboard/branch-admin/${service.spaId}/${service.branchId}/services`
       );
     } catch (error) {
-      console.error('Error deleting service:', error);
       alert(
         error instanceof Error ? error.message : 'Error al eliminar el servicio'
       );
@@ -229,16 +227,6 @@ export function ServiceDetailClient({ service }: ServiceDetailClientProps) {
                     {formatCurrency(service.price)}
                   </p>
                 </div>
-                {service.kitCost && service.kitCost > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Costo del Kit
-                    </label>
-                    <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                      {formatCurrency(service.kitCost)}
-                    </p>
-                  </div>
-                )}
               </div>
 
               {service.taxRate && service.taxRate > 0 && (
@@ -314,7 +302,7 @@ export function ServiceDetailClient({ service }: ServiceDetailClientProps) {
                     Fecha de Creación
                   </label>
                   <p className="text-gray-600 dark:text-gray-400">
-                    {format(new Date(service.createdAt), 'PPP', { locale: es })}
+                    {format(new Date(service.createdAt), 'PPP')}
                   </p>
                 </div>
                 <div>
@@ -322,7 +310,7 @@ export function ServiceDetailClient({ service }: ServiceDetailClientProps) {
                     Última Actualización
                   </label>
                   <p className="text-gray-600 dark:text-gray-400">
-                    {format(new Date(service.updatedAt), 'PPP', { locale: es })}
+                    {format(new Date(service.updatedAt), 'PPP')}
                   </p>
                 </div>
               </div>
@@ -333,15 +321,14 @@ export function ServiceDetailClient({ service }: ServiceDetailClientProps) {
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        open={isDeleteDialogOpen}
+        onCancel={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDelete}
         title="Eliminar Servicio"
         description={`¿Estás seguro de que quieres eliminar el servicio "${service.name}"? Esta acción no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         isLoading={isDeleting}
-        variant="destructive"
       />
     </div>
   );

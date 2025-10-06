@@ -36,11 +36,10 @@ export function ServiceModal({
     defaultValues: {
       name: '',
       description: '',
-      price: undefined,
-      kitCost: undefined,
-      taxRate: undefined,
-      duration: undefined,
-      recommendedReturnDays: undefined,
+      price: 0,
+      taxRate: 0,
+      duration: 0,
+      recommendedReturnDays: 7,
       type: 'MANICURE_PEDICURE',
       image: '',
     },
@@ -53,7 +52,6 @@ export function ServiceModal({
         name: service.name,
         description: service.description || '',
         price: service.price,
-        kitCost: service.kitCost || 0,
         taxRate: service.taxRate || 0,
         duration: service.duration,
         recommendedReturnDays: service.recommendedReturnDays || 7,
@@ -65,11 +63,10 @@ export function ServiceModal({
       const defaultData: CreateServiceData = {
         name: '',
         description: '',
-        price: undefined,
-        kitCost: undefined,
-        taxRate: undefined,
-        duration: undefined,
-        recommendedReturnDays: undefined,
+        price: 0,
+        taxRate: 0,
+        duration: 0,
+        recommendedReturnDays: 7,
         type: 'MANICURE_PEDICURE',
         image: '',
       };
@@ -231,7 +228,7 @@ export function ServiceModal({
             </div>
 
             {/* Información de Precios */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="price">Precio (COP) *</Label>
                 <Input
@@ -246,24 +243,6 @@ export function ServiceModal({
                 {isValidPositiveNumber(form.watch('price')) && (
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {formatCurrency(Number(form.watch('price')))}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="kitCost">Costo del Kit (COP)</Label>
-                <Input
-                  id="kitCost"
-                  type="number"
-                  min="0"
-                  step="1000"
-                  {...form.register('kitCost', { valueAsNumber: true })}
-                  placeholder="5000"
-                  error={form.formState.errors.kitCost?.message}
-                />
-                {isValidPositiveNumber(form.watch('kitCost')) && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {formatCurrency(Number(form.watch('kitCost')))}
                   </p>
                 )}
               </div>

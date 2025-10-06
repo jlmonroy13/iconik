@@ -9,11 +9,11 @@ interface ClientsPageProps {
     spaId: string;
     branchId: string;
   }>;
-  searchParams: {
+  searchParams: Promise<{
     search?: string;
     page?: string;
     limit?: string;
-  };
+  }>;
 }
 
 export default async function ClientsPage({
@@ -21,7 +21,7 @@ export default async function ClientsPage({
   searchParams,
 }: ClientsPageProps) {
   const { spaId, branchId } = await params;
-  const { search, page = '1', limit = '10' } = searchParams;
+  const { search, page = '1', limit = '10' } = await searchParams;
 
   // Require BRANCH_ADMIN role and branch access
   const _user = await requireBranchAccessForPage(spaId, branchId);
@@ -110,7 +110,7 @@ export default async function ClientsPage({
         hasPrevPage,
         limit: limitNumber,
       }}
-      searchParams={searchParams}
+      searchParams={{ search, page, limit }}
     />
   );
 }

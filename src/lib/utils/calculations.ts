@@ -1,89 +1,16 @@
-import { ServiceType } from '@/generated/prisma';
-
 // =====================================================
 // CALCULATION UTILITIES
 // =====================================================
 
 /**
- * Determine if a service type should have kit cost
- * Only nail-related services have kit costs
- */
-export function shouldHaveKitCost(serviceType: ServiceType): boolean {
-  const servicesWithKitCost: ServiceType[] = [
-    'MANICURE',
-    'PEDICURE',
-    'NAIL_ART',
-    'GEL_POLISH',
-    'ACRYLIC_NAILS',
-    'NAIL_REPAIR',
-  ];
-
-  return servicesWithKitCost.includes(serviceType);
-}
-
-/**
- * Get default kit cost for service type
- */
-export function getDefaultKitCost(serviceType: ServiceType): number {
-  const defaultKitCosts: Record<ServiceType, number> = {
-    MANICURE: 1000,
-    PEDICURE: 1000,
-    NAIL_ART: 2000,
-    GEL_POLISH: 1500,
-    ACRYLIC_NAILS: 2000,
-    NAIL_REPAIR: 1000,
-    HAND_SPA: 0,
-    FOOT_SPA: 0,
-    OTHER: 0,
-  };
-
-  return defaultKitCosts[serviceType] || 0;
-}
-
-/**
- * Validate kit cost for service type
- */
-export function validateKitCost(
-  serviceType: ServiceType,
-  kitCost: number
-): {
-  isValid: boolean;
-  message?: string;
-} {
-  if (kitCost < 0) {
-    return {
-      isValid: false,
-      message: 'Kit cost cannot be negative',
-    };
-  }
-
-  if (!shouldHaveKitCost(serviceType) && kitCost > 0) {
-    return {
-      isValid: false,
-      message: 'This service type does not require a kit cost',
-    };
-  }
-
-  if (shouldHaveKitCost(serviceType) && kitCost === 0) {
-    return {
-      isValid: true,
-      message: 'Warning: This service type typically requires a kit cost',
-    };
-  }
-
-  return { isValid: true };
-}
-
-/**
- * Calculate total service cost including kit cost and tax
+ * Calculate total service cost including tax
  */
 export function calculateTotalServiceCost(
   price: number,
-  kitCost?: number,
   taxRate?: number
 ): number {
-  const subtotal = price + (kitCost || 0);
-  const taxAmount = taxRate ? subtotal * taxRate : 0;
+  const subtotal = price;
+  const taxAmount = taxRate ? subtotal * (taxRate / 100) : 0;
   return subtotal + taxAmount;
 }
 
@@ -91,41 +18,39 @@ export function calculateTotalServiceCost(
  * Format tax rate as percentage
  */
 export function formatTaxRate(taxRate: number): string {
-  return `${(taxRate * 100).toFixed(0)}%`;
+  return `${taxRate.toFixed(0)}%`;
 }
 
 /**
- * Format tax rate as decimal (e.g., 0.19 for 19%)
+ * Parse tax rate from string (e.g., "19%" returns 19)
  */
 export function parseTaxRate(taxRateString: string): number {
-  const percentage = parseFloat(taxRateString.replace('%', ''));
-  return percentage / 100;
+  return parseFloat(taxRateString.replace('%', ''));
 }
 
 /**
  * Calculate tax amount
+ * taxRate is now a percentage (e.g., 19 for 19%)
  */
 export function calculateTaxAmount(subtotal: number, taxRate?: number): number {
   if (!taxRate) return 0;
-  return subtotal * taxRate;
+  return subtotal * (taxRate / 100);
 }
 
 /**
- * Calculate subtotal (price + kit cost without tax)
+ * Calculate subtotal (price without tax)
  */
-export function calculateSubtotal(price: number, kitCost?: number): number {
-  return price + (kitCost || 0);
+export function calculateSubtotal(price: number): number {
+  return price;
 }
 
 /**
- * Calculate commission with kit cost and tax consideration
- * Commission is calculated ONLY on service price (not kit cost, not tax)
- * Kit cost goes directly to spa
+ * Calculate commission with tax consideration
+ * Commission is calculated ONLY on service price (not tax)
  * Tax goes to government
  */
-export function calculateCommissionWithKitCostAndTax(
+export function calculateCommissionWithTax(
   servicePrice: number,
-  kitCost: number = 0,
   taxRate: number = 0,
   commissionRate: number,
   discountAmount: number = 0,
@@ -133,7 +58,6 @@ export function calculateCommissionWithKitCostAndTax(
 ): {
   // Service breakdown
   servicePrice: number;
-  kitCost: number;
   subtotal: number;
   taxAmount: number;
   totalAmount: number;
@@ -153,15 +77,14 @@ export function calculateCommissionWithKitCostAndTax(
   discountAffectsCommission: boolean;
   finalTotal: number;
 } {
-  const finalKitCost = kitCost || 0;
   const finalTaxRate = taxRate || 0;
 
   // Service breakdown
-  const subtotal = servicePrice + finalKitCost;
+  const subtotal = servicePrice;
   const taxAmount = calculateTaxAmount(subtotal, finalTaxRate);
   const totalAmount = subtotal + taxAmount;
 
-  // Commission calculation (ONLY on service price, not kit cost, not tax)
+  // Commission calculation (ONLY on service price, not tax)
   const originalCommissionAmount = servicePrice * commissionRate;
 
   let finalCommissionAmount: number;
@@ -187,7 +110,6 @@ export function calculateCommissionWithKitCostAndTax(
   return {
     // Service breakdown
     servicePrice,
-    kitCost: finalKitCost,
     subtotal,
     taxAmount,
     totalAmount,
@@ -214,7 +136,6 @@ export function calculateCommissionWithKitCostAndTax(
  */
 export function calculateCommissionBreakdown(
   servicePrice: number,
-  kitCost: number = 0,
   taxRate: number = 0,
   commissionRate: number,
   discountAmount: number = 0,
@@ -234,9 +155,8 @@ export function calculateCommissionBreakdown(
     discount: number;
   };
 } {
-  const result = calculateCommissionWithKitCostAndTax(
+  const result = calculateCommissionWithTax(
     servicePrice,
-    kitCost,
     taxRate,
     commissionRate,
     discountAmount,
@@ -249,12 +169,6 @@ export function calculateCommissionBreakdown(
       amount: result.servicePrice,
       percentage: (result.servicePrice / result.totalAmount) * 100,
       color: 'bg-blue-100 text-blue-800',
-    },
-    {
-      label: 'Costo del kit',
-      amount: result.kitCost,
-      percentage: (result.kitCost / result.totalAmount) * 100,
-      color: 'bg-green-100 text-green-800',
     },
     {
       label: 'Impuestos',
@@ -320,13 +234,12 @@ export function calculateDiscountPercentage(
 }
 
 /**
- * Calculate total for multiple services with kit costs and taxes
+ * Calculate total for multiple services with taxes
  */
 export function calculateTotalForServices(
-  services: Array<{ price: number; kitCost?: number; taxRate?: number }>
+  services: Array<{ price: number; taxRate?: number }>
 ): {
   totalServicePrice: number;
-  totalKitCost: number;
   totalSubtotal: number;
   totalTaxAmount: number;
   totalAmount: number;
@@ -335,23 +248,17 @@ export function calculateTotalForServices(
     (sum, service) => sum + service.price,
     0
   );
-  const totalKitCost = services.reduce(
-    (sum, service) => sum + (service.kitCost || 0),
-    0
-  );
-  const totalSubtotal = totalServicePrice + totalKitCost;
+  const totalSubtotal = totalServicePrice;
 
   // Calculate tax for each service individually (in case different services have different tax rates)
   const totalTaxAmount = services.reduce((sum, service) => {
-    const serviceSubtotal = service.price + (service.kitCost || 0);
-    return sum + calculateTaxAmount(serviceSubtotal, service.taxRate);
+    return sum + calculateTaxAmount(service.price, service.taxRate);
   }, 0);
 
   const totalAmount = totalSubtotal + totalTaxAmount;
 
   return {
     totalServicePrice,
-    totalKitCost,
     totalSubtotal,
     totalTaxAmount,
     totalAmount,
@@ -359,27 +266,23 @@ export function calculateTotalForServices(
 }
 
 /**
- * Calculate commission with kit cost consideration (backward compatibility)
- * Kit cost goes directly to spa and doesn't affect manicurist commission
+ * Calculate commission (backward compatibility)
  */
-export function calculateCommissionWithKitCost(
+export function calculateCommission(
   servicePrice: number,
-  kitCost: number = 0,
   commissionRate: number,
   discountAmount: number = 0,
   discountAffectsCommission: boolean = false
 ): {
   originalServiceAmount: number;
   finalServiceAmount: number;
-  kitCost: number;
   originalCommissionAmount: number;
   finalCommissionAmount: number;
   finalSpaAmount: number;
   discountAffectsCommission: boolean;
 } {
-  const result = calculateCommissionWithKitCostAndTax(
+  const result = calculateCommissionWithTax(
     servicePrice,
-    kitCost,
     0, // No tax for backward compatibility
     commissionRate,
     discountAmount,
@@ -389,7 +292,6 @@ export function calculateCommissionWithKitCost(
   return {
     originalServiceAmount: result.totalAmount,
     finalServiceAmount: result.finalTotal,
-    kitCost: result.kitCost,
     originalCommissionAmount: result.originalCommissionAmount,
     finalCommissionAmount: result.finalCommissionAmount,
     finalSpaAmount: result.spaEarnings,
@@ -415,15 +317,13 @@ export function calculateNetAmount(amount: number, feeRate: number): number {
 }
 
 /**
- * Calculate commission with kit cost, tax, and transaction fees
- * Commission is calculated ONLY on service price (not kit cost, not tax, not fees)
- * Kit cost goes directly to spa
+ * Calculate commission with tax and transaction fees
+ * Commission is calculated ONLY on service price (not tax, not fees)
  * Tax goes to government
  * Transaction fees are deducted from spa earnings
  */
-export function calculateCommissionWithKitCostTaxAndFees(
+export function calculateCommissionWithTaxAndFees(
   servicePrice: number,
-  kitCost: number = 0,
   taxRate: number = 0,
   commissionRate: number,
   discountAmount: number = 0,
@@ -432,7 +332,6 @@ export function calculateCommissionWithKitCostTaxAndFees(
 ): {
   // Service breakdown
   servicePrice: number;
-  kitCost: number;
   subtotal: number;
   taxAmount: number;
   totalAmount: number;
@@ -454,16 +353,15 @@ export function calculateCommissionWithKitCostTaxAndFees(
   discountAffectsCommission: boolean;
   finalTotal: number;
 } {
-  const finalKitCost = kitCost || 0;
   const finalTaxRate = taxRate || 0;
   const finalTransactionFeeRate = transactionFeeRate || 0;
 
   // Service breakdown
-  const subtotal = servicePrice + finalKitCost;
+  const subtotal = servicePrice;
   const taxAmount = calculateTaxAmount(subtotal, finalTaxRate);
   const totalAmount = subtotal + taxAmount;
 
-  // Commission calculation (ONLY on service price, not kit cost, not tax, not fees)
+  // Commission calculation (ONLY on service price, not tax, not fees)
   const originalCommissionAmount = servicePrice * commissionRate;
 
   let finalCommissionAmount: number;
@@ -496,7 +394,6 @@ export function calculateCommissionWithKitCostTaxAndFees(
   return {
     // Service breakdown
     servicePrice,
-    kitCost: finalKitCost,
     subtotal,
     taxAmount,
     totalAmount,
