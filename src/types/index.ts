@@ -3,6 +3,7 @@ export * from './auth';
 export * from './forms';
 export * from './api';
 export * from './ui';
+export * from './manicurists';
 export type {
   Spa,
   Branch,

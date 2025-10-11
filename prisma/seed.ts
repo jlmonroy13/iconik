@@ -473,6 +473,242 @@ async function main() {
     console.log(`✅ Servicios creados para ${branch.name}`);
   }
 
+  // ===== CREAR MANICURISTAS =====
+  console.log('💅 Creando manicuristas...');
+
+  const manicurist1Spa1Branch1 = await prisma.manicurist.create({
+    data: {
+      name: 'María García',
+      phone: '+573001234567',
+      email: 'maria.garcia@spa1.com',
+      commission: 0.5, // 50%
+      isActive: true,
+      spaId: spa1.id,
+      branchId: spa1Branch1.id,
+    },
+  });
+
+  const manicurist2Spa1Branch1 = await prisma.manicurist.create({
+    data: {
+      name: 'Ana Martínez',
+      phone: '+573007654321',
+      email: 'ana.martinez@spa1.com',
+      commission: 0.45, // 45%
+      isActive: true,
+      spaId: spa1.id,
+      branchId: spa1Branch1.id,
+    },
+  });
+
+  const manicurist1Spa1Branch2 = await prisma.manicurist.create({
+    data: {
+      name: 'Sofía Torres',
+      phone: '+573009876543',
+      email: 'sofia.torres@spa1.com',
+      commission: 0.5, // 50%
+      isActive: true,
+      spaId: spa1.id,
+      branchId: spa1Branch2.id,
+    },
+  });
+
+  const manicurist1Spa2Branch1 = await prisma.manicurist.create({
+    data: {
+      name: 'Laura Rodríguez',
+      phone: '+573001111111',
+      email: 'laura.rodriguez@spa2.com',
+      commission: 0.5, // 50%
+      isActive: true,
+      spaId: spa2.id,
+      branchId: spa2Branch1.id,
+    },
+  });
+
+  console.log('✅ Manicuristas creadas exitosamente');
+
+  // ===== ASIGNAR SERVICIOS A MANICURISTAS =====
+  console.log('🎯 Asignando servicios a manicuristas...');
+
+  // Obtener todos los servicios creados
+  const allServices = await prisma.service.findMany();
+
+  // María García (Spa 1, Sede 1) - Puede hacer todos los servicios
+  const mariaServices = allServices.filter(
+    s => s.spaId === spa1.id && s.branchId === spa1Branch1.id
+  );
+
+  for (const service of mariaServices) {
+    await prisma.manicuristService.create({
+      data: {
+        manicuristId: manicurist1Spa1Branch1.id,
+        serviceId: service.id,
+        spaId: spa1.id,
+        branchId: spa1Branch1.id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(
+    `✅ Servicios asignados a ${manicurist1Spa1Branch1.name}: ${mariaServices.length}`
+  );
+
+  // Ana Martínez (Spa 1, Sede 1) - Solo hace servicios básicos (sin extensiones)
+  const anaServices = allServices.filter(
+    s =>
+      s.spaId === spa1.id &&
+      s.branchId === spa1Branch1.id &&
+      s.type !== 'NAIL_EXTENSIONS'
+  );
+
+  for (const service of anaServices) {
+    await prisma.manicuristService.create({
+      data: {
+        manicuristId: manicurist2Spa1Branch1.id,
+        serviceId: service.id,
+        spaId: spa1.id,
+        branchId: spa1Branch1.id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(
+    `✅ Servicios asignados a ${manicurist2Spa1Branch1.name}: ${anaServices.length}`
+  );
+
+  // Sofía Torres (Spa 1, Sede 2) - Especialista en extensiones
+  const sofiaServices = allServices.filter(
+    s =>
+      s.spaId === spa1.id &&
+      s.branchId === spa1Branch2.id &&
+      (s.type === 'NAIL_EXTENSIONS' ||
+        s.type === 'NAIL_MAINTENANCE' ||
+        s.type === 'MANICURE_PEDICURE')
+  );
+
+  for (const service of sofiaServices) {
+    await prisma.manicuristService.create({
+      data: {
+        manicuristId: manicurist1Spa1Branch2.id,
+        serviceId: service.id,
+        spaId: spa1.id,
+        branchId: spa1Branch2.id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(
+    `✅ Servicios asignados a ${manicurist1Spa1Branch2.name}: ${sofiaServices.length}`
+  );
+
+  // Laura Rodríguez (Spa 2, Sede 1) - Puede hacer todos los servicios
+  const lauraServices = allServices.filter(
+    s => s.spaId === spa2.id && s.branchId === spa2Branch1.id
+  );
+
+  for (const service of lauraServices) {
+    await prisma.manicuristService.create({
+      data: {
+        manicuristId: manicurist1Spa2Branch1.id,
+        serviceId: service.id,
+        spaId: spa2.id,
+        branchId: spa2Branch1.id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(
+    `✅ Servicios asignados a ${manicurist1Spa2Branch1.name}: ${lauraServices.length}`
+  );
+
+  // ===== CREAR HORARIOS PARA MANICURISTAS =====
+  console.log('⏰ Creando horarios para manicuristas...');
+
+  // María - Lunes a Sábado (09:00 - 18:00)
+  const mariaSchedule = [
+    { dayOfWeek: 1, startTime: '09:00', endTime: '18:00' }, // Lunes
+    { dayOfWeek: 2, startTime: '09:00', endTime: '18:00' }, // Martes
+    { dayOfWeek: 3, startTime: '09:00', endTime: '18:00' }, // Miércoles
+    { dayOfWeek: 4, startTime: '09:00', endTime: '18:00' }, // Jueves
+    { dayOfWeek: 5, startTime: '09:00', endTime: '18:00' }, // Viernes
+    { dayOfWeek: 6, startTime: '10:00', endTime: '14:00' }, // Sábado
+  ];
+
+  for (const schedule of mariaSchedule) {
+    await prisma.manicuristSchedule.create({
+      data: {
+        ...schedule,
+        manicuristId: manicurist1Spa1Branch1.id,
+        spaId: spa1.id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`✅ Horario creado para ${manicurist1Spa1Branch1.name}`);
+
+  // Ana - Lunes a Viernes (08:00 - 17:00)
+  const anaSchedule = [
+    { dayOfWeek: 1, startTime: '08:00', endTime: '17:00' }, // Lunes
+    { dayOfWeek: 2, startTime: '08:00', endTime: '17:00' }, // Martes
+    { dayOfWeek: 3, startTime: '08:00', endTime: '17:00' }, // Miércoles
+    { dayOfWeek: 4, startTime: '08:00', endTime: '17:00' }, // Jueves
+    { dayOfWeek: 5, startTime: '08:00', endTime: '17:00' }, // Viernes
+  ];
+
+  for (const schedule of anaSchedule) {
+    await prisma.manicuristSchedule.create({
+      data: {
+        ...schedule,
+        manicuristId: manicurist2Spa1Branch1.id,
+        spaId: spa1.id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`✅ Horario creado para ${manicurist2Spa1Branch1.name}`);
+
+  // Sofía - Miércoles a Domingo (10:00 - 19:00)
+  const sofiaSchedule = [
+    { dayOfWeek: 3, startTime: '10:00', endTime: '19:00' }, // Miércoles
+    { dayOfWeek: 4, startTime: '10:00', endTime: '19:00' }, // Jueves
+    { dayOfWeek: 5, startTime: '10:00', endTime: '19:00' }, // Viernes
+    { dayOfWeek: 6, startTime: '10:00', endTime: '19:00' }, // Sábado
+    { dayOfWeek: 0, startTime: '10:00', endTime: '15:00' }, // Domingo
+  ];
+
+  for (const schedule of sofiaSchedule) {
+    await prisma.manicuristSchedule.create({
+      data: {
+        ...schedule,
+        manicuristId: manicurist1Spa1Branch2.id,
+        spaId: spa1.id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`✅ Horario creado para ${manicurist1Spa1Branch2.name}`);
+
+  // Laura - Lunes a Sábado (09:00 - 18:00)
+  const lauraSchedule = [
+    { dayOfWeek: 1, startTime: '09:00', endTime: '18:00' }, // Lunes
+    { dayOfWeek: 2, startTime: '09:00', endTime: '18:00' }, // Martes
+    { dayOfWeek: 3, startTime: '09:00', endTime: '18:00' }, // Miércoles
+    { dayOfWeek: 4, startTime: '09:00', endTime: '18:00' }, // Jueves
+    { dayOfWeek: 5, startTime: '09:00', endTime: '18:00' }, // Viernes
+    { dayOfWeek: 6, startTime: '09:00', endTime: '14:00' }, // Sábado
+  ];
+
+  for (const schedule of lauraSchedule) {
+    await prisma.manicuristSchedule.create({
+      data: {
+        ...schedule,
+        manicuristId: manicurist1Spa2Branch1.id,
+        spaId: spa2.id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`✅ Horario creado para ${manicurist1Spa2Branch1.name}`);
+
   console.log('🎉 Datos iniciales creados exitosamente!');
   console.log('\n📋 Resumen de usuarios creados:');
   console.log('SUPER_ADMIN: jlmonroy13@gmail.com');

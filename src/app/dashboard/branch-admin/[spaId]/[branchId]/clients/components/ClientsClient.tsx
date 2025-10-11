@@ -16,6 +16,7 @@ import type {
   PaginationInfo,
   ClientSearchParams,
 } from '@/types/clients';
+import { deleteClient } from '../actions';
 
 interface ClientsClientProps {
   clients: ClientWithAppointmentCount[];
@@ -96,25 +97,20 @@ export function ClientsClient({
     if (!selectedClient) return;
 
     try {
-      const response = await fetch(
-        `/api/spas/${spaId}/branches/${branchId}/clients/${selectedClient.id}`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const result = await deleteClient(selectedClient.id, spaId, branchId);
 
-      if (response.ok) {
-        // Refresh the page to show updated data
+      if (result.success) {
         router.refresh();
         setIsDeleteDialogOpen(false);
         setSelectedClient(null);
       } else {
-        // eslint-disable-next-line no-console
-        console.error('Error deleting client');
+        console.error('Failed to delete client:', result.error);
+        // You could show an error toast here
+        alert(result.error || 'Error al eliminar cliente');
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Error deleting client:', error);
+      alert('Error inesperado al eliminar cliente');
     }
   };
 

@@ -72,13 +72,9 @@ export const updateServiceSchema = createServiceSchema.partial();
 export const createManicuristSchema = z.object({
   name: baseNameSchema,
   phone: basePhoneSchema,
-  email: baseEmailSchema.optional(),
-  commission: z
-    .number()
-    .min(0)
-    .max(1, 'La comisión debe estar entre 0 y 1')
-    .default(0.5),
-  isActive: z.boolean().default(true),
+  email: baseEmailSchema.optional().or(z.literal('')),
+  commission: z.number().min(0).max(1, 'La comisión debe estar entre 0 y 1'),
+  isActive: z.boolean(),
   branchId: z.string().optional(), // Optional for multi-branch manicurists
 });
 
@@ -135,6 +131,120 @@ export const createSpaSchema = z.object({
 
 export const updateSpaSchema = createSpaSchema.partial();
 
+// ============================================
+// MANICURIST SERVICES SCHEMAS
+// ============================================
+
+/**
+ * Schema for assigning services to a manicurist
+ */
+export const updateManicuristServicesSchema = z.object({
+  serviceIds: z.array(z.string().cuid()),
+});
+
+// ============================================
+// MANICURIST SCHEDULE SCHEMAS
+// ============================================
+
+/**
+ * Schema for a single schedule item (one day)
+ */
+export const scheduleItemSchema = z.object({
+  dayOfWeek: z.number().min(0).max(6),
+  isActive: z.boolean(),
+  startTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)'),
+  endTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)'),
+});
+
+/**
+ * Schema for updating full weekly schedule
+ */
+export const updateScheduleSchema = z.object({
+  schedules: z.array(scheduleItemSchema),
+});
+
+// ============================================
+// MANICURIST AVAILABILITY SCHEMAS
+// ============================================
+
+/**
+ * Schema for creating availability exception (day off)
+ */
+export const createAvailabilitySchema = z
+  .object({
+    date: z.string().min(1, 'La fecha es requerida'), // ISO date string (YYYY-MM-DD)
+    allDay: z.boolean(), // True = todo el día, False = rango de horas
+    startTime: z
+      .string()
+      .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)')
+      .optional(), // Required when allDay is false
+    endTime: z
+      .string()
+      .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)')
+      .optional(), // Required when allDay is false
+    reason: z.string().max(200, 'Máximo 200 caracteres').optional(),
+  })
+  .refine(
+    data => {
+      // If not all day, both startTime and endTime must be provided
+      if (!data.allDay) {
+        return !!data.startTime && !!data.endTime;
+      }
+      return true;
+    },
+    {
+      message:
+        'Debes especificar hora de inicio y fin cuando no es todo el día',
+      path: ['startTime'],
+    }
+  )
+  .refine(
+    data => {
+      // If times are provided, endTime must be after startTime
+      if (data.startTime && data.endTime) {
+        return data.endTime > data.startTime;
+      }
+      return true;
+    },
+    {
+      message: 'La hora de fin debe ser posterior a la hora de inicio',
+      path: ['endTime'],
+    }
+  );
+
+export const updateAvailabilitySchema = z
+  .object({
+    id: z.string().cuid(),
+    date: z.string().min(1, 'La fecha es requerida').optional(),
+    allDay: z.boolean().optional(),
+    startTime: z
+      .string()
+      .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)')
+      .optional(),
+    endTime: z
+      .string()
+      .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)')
+      .optional(),
+    reason: z.string().max(200, 'Máximo 200 caracteres').optional(),
+  })
+  .refine(
+    data => {
+      // If times are provided, endTime must be after startTime
+      if (data.startTime && data.endTime) {
+        return data.endTime > data.startTime;
+      }
+      return true;
+    },
+    {
+      message: 'La hora de fin debe ser posterior a la hora de inicio',
+      path: ['endTime'],
+    }
+  );
+
 // Type exports for use in components
 export type CreateBranchData = z.infer<typeof createBranchSchema>;
 export type UpdateBranchData = z.infer<typeof updateBranchSchema>;
@@ -148,3 +258,12 @@ export type CreateUserData = z.infer<typeof createUserSchema>;
 export type UpdateUserData = z.infer<typeof updateUserSchema>;
 export type CreateSpaData = z.infer<typeof createSpaSchema>;
 export type UpdateSpaData = z.infer<typeof updateSpaSchema>;
+
+// Manicurist-related type exports
+export type UpdateManicuristServicesData = z.infer<
+  typeof updateManicuristServicesSchema
+>;
+export type ScheduleItemData = z.infer<typeof scheduleItemSchema>;
+export type UpdateScheduleData = z.infer<typeof updateScheduleSchema>;
+export type CreateAvailabilityData = z.infer<typeof createAvailabilitySchema>;
+export type UpdateAvailabilityData = z.infer<typeof updateAvailabilitySchema>;

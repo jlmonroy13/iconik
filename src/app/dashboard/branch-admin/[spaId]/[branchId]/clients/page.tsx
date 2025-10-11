@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { requireBranchAccessForPage } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
+import { getClients } from './queries';
 import { ClientsClient } from './components/ClientsClient';
-import type { ClientWithAppointmentCount } from '@/types/clients';
 
 interface ClientsPageProps {
   params: Promise<{
@@ -36,76 +36,34 @@ export default async function ClientsPage({
     notFound();
   }
 
-  // Build where clause for filtering
-  const where = {
-    spaId,
-    branchId,
-    ...(search && {
-      OR: [
-        { name: { contains: search, mode: 'insensitive' as const } },
-        { email: { contains: search, mode: 'insensitive' as const } },
-        { phone: { contains: search, mode: 'insensitive' as const } },
-        { documentNumber: { contains: search, mode: 'insensitive' as const } },
-      ],
-    }),
-  };
-
   // Get pagination parameters
   const pageNumber = parseInt(page);
   const limitNumber = parseInt(limit);
-  const skip = (pageNumber - 1) * limitNumber;
 
   // Fetch clients with pagination
-  const [clientsData, totalCount] = await Promise.all([
-    prisma.client.findMany({
-      where,
-      skip,
-      take: limitNumber,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        documentType: true,
-        documentNumber: true,
-        phone: true,
-        email: true,
-        birthday: true,
-        notes: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            appointments: true,
-          },
-        },
-      },
-    }),
-    prisma.client.count({ where }),
-  ]);
-
-  // Transform to match the expected type
-  const clients: ClientWithAppointmentCount[] = clientsData.map(client => ({
-    ...client,
-    _count: {
-      appointments: client._count.appointments,
-    },
-  }));
+  const result = await getClients({
+    spaId,
+    branchId,
+    search,
+    page: pageNumber,
+    limit: limitNumber,
+  });
 
   // Calculate pagination info
-  const totalPages = Math.ceil(totalCount / limitNumber);
+  const totalPages = Math.ceil(result.totalCount / limitNumber);
   const hasNextPage = pageNumber < totalPages;
   const hasPrevPage = pageNumber > 1;
 
   return (
     <ClientsClient
-      clients={clients}
+      clients={result.clients}
       branch={branch}
       spaId={spaId}
       branchId={branchId}
       pagination={{
         currentPage: pageNumber,
         totalPages,
-        totalCount,
+        totalCount: result.totalCount,
         hasNextPage,
         hasPrevPage,
         limit: limitNumber,

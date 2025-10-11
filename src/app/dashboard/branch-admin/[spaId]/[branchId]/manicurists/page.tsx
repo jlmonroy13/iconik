@@ -1,47 +1,80 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { redirect } from 'next/navigation';
+import { auth } from '@/../../auth';
+import { canAccessSpa } from '@/lib/auth-utils';
+import { getManicurists } from './queries';
+import { getAllActiveServices } from '../services/queries';
+import { ManicuristsClient } from './components/ManicuristsClient';
+import type { ManicuristSearchParams } from '@/types/manicurists';
 
 interface ManicuristsPageProps {
-  params: Promise<{
-    spaId: string;
-    branchId: string;
-  }>;
+  params: Promise<{ spaId: string; branchId: string }>;
+  searchParams: Promise<ManicuristSearchParams>;
 }
 
-export default async function ManicuristsPage({}: ManicuristsPageProps) {
-  // const { spaId, branchId } = await params;
+export default async function ManicuristsPage({
+  params,
+  searchParams,
+}: ManicuristsPageProps) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  const { spaId, branchId } = await params;
+  const hasAccess = await canAccessSpa(spaId);
+  if (!hasAccess) {
+    redirect('/dashboard');
+  }
+
+  const filters = await searchParams;
+
+  // Fetch manicurists with pagination
+  const result = await getManicurists({
+    spaId,
+    branchId,
+    search: filters.search,
+    page: filters.page ? parseInt(filters.page) : 1,
+    limit: filters.limit ? parseInt(filters.limit) : 10,
+  });
+
+  // Fetch services for display
+  const allServices = await getAllActiveServices(spaId, branchId);
+
+  // Calculate pagination info
+  const pagination = {
+    currentPage: filters.page ? parseInt(filters.page) : 1,
+    totalPages: Math.ceil(
+      result.totalCount / (filters.limit ? parseInt(filters.limit) : 10)
+    ),
+    totalCount: result.totalCount,
+    hasNextPage:
+      (filters.page ? parseInt(filters.page) : 1) <
+      Math.ceil(
+        result.totalCount / (filters.limit ? parseInt(filters.limit) : 10)
+      ),
+    hasPrevPage: (filters.page ? parseInt(filters.page) : 1) > 1,
+    limit: filters.limit ? parseInt(filters.limit) : 10,
+  };
+
+  // Calculate stats
+  const stats = {
+    total: result.totalCount,
+    active: result.manicurists.filter(m => m.isActive).length,
+    inactive: result.manicurists.filter(m => !m.isActive).length,
+    withServices: result.manicurists.filter(
+      m => m._count.manicuristServices > 0
+    ).length,
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Gestión de Manicuristas
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Administra las manicuristas de esta sede
-        </p>
-      </div>
-
-      {/* Placeholder content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Manicuristas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">💅</div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Gestión de Manicuristas
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Aquí podrás gestionar todas las manicuristas de esta sede.
-            </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-              Funcionalidad en desarrollo...
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <ManicuristsClient
+      manicurists={result.manicurists}
+      pagination={pagination}
+      searchParams={filters}
+      spaId={spaId}
+      branchId={branchId}
+      totalServicesCount={allServices.length}
+      stats={stats}
+    />
   );
 }

@@ -71,6 +71,7 @@ model Spa {
   dianLogs                   DianLog[]
   branches                   Branch[]
   corporateSettings          SpaCorporateSettings?
+  manicuristServices         ManicuristService[]
 
   @@map("spas")
 }
@@ -284,6 +285,7 @@ model Manicurist {
   timeSlots           TimeSlot[]
   serviceDurations    ManicuristServiceDuration[]
   salesGoals          SalesGoal[]
+  manicuristServices  ManicuristService[]
 
   @@map("manicurists")
 }
@@ -325,6 +327,30 @@ model ManicuristAvailability {
 
   @@unique([manicuristId, date])
   @@map("manicurist_availability")
+}
+
+model ManicuristService {
+  id           String   @id @default(cuid())
+  manicuristId String
+  serviceId    String
+  
+  // Estado de la relación
+  isActive     Boolean  @default(true)
+  
+  // Metadata
+  spaId        String
+  branchId     String?  // Sede donde aplica esta relación (opcional para manicuristas multi-sede)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  manicurist Manicurist @relation(fields: [manicuristId], references: [id], onDelete: Cascade)
+  service    Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  spa        Spa        @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch     Branch?    @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  @@unique([manicuristId, serviceId])
+  @@map("manicurist_services")
 }
 
 model BookingLink {
@@ -636,6 +662,7 @@ model Service {
   salesGoals           SalesGoal[]
   bookingLinkServices  BookingLinkService[]
   invoiceItems         InvoiceItem[]
+  manicuristServices   ManicuristService[]
 }
 
 model Appointment {
@@ -1155,6 +1182,7 @@ model Branch {
   payments    Payment[]
   invoices    Invoice[]
   cashRegisters CashRegister[]
+  manicuristServices ManicuristService[]
 
   @@unique([spaId, code])
   @@map("branches")

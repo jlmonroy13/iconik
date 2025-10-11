@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/Label';
 import { DOCUMENT_TYPES } from '@/types/clients';
 import { createClientSchema, type CreateClientData } from '@/types/forms';
 import type { ClientWithAppointmentCount } from '@/types/clients';
+import { createClient, updateClient } from '../actions';
 
 interface ClientModalProps {
   isOpen: boolean;
@@ -88,34 +89,17 @@ export function ClientModal({
     setError(null);
 
     try {
-      const url =
+      const result =
         mode === 'create'
-          ? `/api/spas/${spaId}/branches/${branchId}/clients`
-          : `/api/spas/${spaId}/branches/${branchId}/clients/${client?.id}`;
+          ? await createClient(spaId, branchId, data)
+          : await updateClient(client!.id, spaId, branchId, data);
 
-      const method = mode === 'create' ? 'POST' : 'PUT';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          birthday: data.birthday
-            ? new Date(data.birthday).toISOString()
-            : null,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al guardar el cliente');
+      if (result.success) {
+        onClose();
+        router.refresh();
+      } else {
+        setError(result.error || 'Error al guardar el cliente');
       }
-
-      // Close modal and refresh page
-      onClose();
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error inesperado');
     } finally {
@@ -127,6 +111,23 @@ export function ClientModal({
     if (!isSubmitting) {
       onClose();
     }
+  };
+
+  // Calculate min and max dates for birthday
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getMinBirthdayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear() - 100; // 100 years ago
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   return (
@@ -218,8 +219,11 @@ export function ClientModal({
             <Input
               id="birthday"
               type="date"
+              min={getMinBirthdayDate()}
+              max={getTodayDate()}
               {...form.register('birthday')}
               error={form.formState.errors.birthday?.message}
+              className="text-gray-900 dark:text-white font-medium [&::-webkit-datetime-edit-fields-wrapper]:text-gray-900 [&::-webkit-datetime-edit-fields-wrapper]:dark:text-white [&::-webkit-calendar-picker-indicator]:opacity-100"
             />
           </div>
         </div>
