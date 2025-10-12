@@ -5,8 +5,11 @@ import { Search, Plus, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Option {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
+  value?: string;
+  label?: string;
+  searchText?: string;
 }
 
 interface SearchSelectProps {
@@ -18,6 +21,7 @@ interface SearchSelectProps {
   placeholder?: string;
   error?: string;
   disabled?: boolean;
+  required?: boolean;
 }
 
 export function SearchSelect({
@@ -29,19 +33,28 @@ export function SearchSelect({
   placeholder = 'Buscar...',
   error,
   disabled = false,
+  required: _required = false,
 }: SearchSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Helper functions to support both formats
+  const getOptionValue = (option: Option) => option.value ?? option.id ?? '';
+  const getOptionLabel = (option: Option) => option.label ?? option.name ?? '';
+  const getOptionSearchText = (option: Option) =>
+    option.searchText ?? option.label ?? option.name ?? '';
+
   // Filter options based on search term
   const filteredOptions = options.filter(option =>
-    option.name.toLowerCase().includes(searchTerm.toLowerCase())
+    getOptionSearchText(option).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Get selected option
-  const selectedOption = options.find(option => option.id === value);
+  const selectedOption = options.find(
+    option => getOptionValue(option) === value
+  );
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -133,7 +146,7 @@ export function SearchSelect({
                 : 'text-gray-500 dark:text-gray-400'
             )}
           >
-            {selectedOption ? selectedOption.name : placeholder}
+            {selectedOption ? getOptionLabel(selectedOption) : placeholder}
           </span>
           <ChevronDown
             className={cn(
@@ -167,18 +180,18 @@ export function SearchSelect({
               {filteredOptions.length > 0 ? (
                 filteredOptions.map(option => (
                   <button
-                    key={option.id}
+                    key={getOptionValue(option)}
                     type="button"
-                    onClick={() => handleOptionSelect(option.id)}
+                    onClick={() => handleOptionSelect(getOptionValue(option))}
                     className={cn(
                       'w-full px-3 py-2 text-sm text-left cursor-pointer',
                       'hover:bg-gray-100 dark:hover:bg-gray-800',
                       'focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800',
-                      value === option.id &&
+                      value === getOptionValue(option) &&
                         'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300'
                     )}
                   >
-                    {option.name}
+                    {getOptionLabel(option)}
                   </button>
                 ))
               ) : (

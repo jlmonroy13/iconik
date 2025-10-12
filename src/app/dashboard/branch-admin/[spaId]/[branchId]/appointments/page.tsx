@@ -1,49 +1,102 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { notFound } from 'next/navigation';
+import { requireBranchAccessForPage } from '@/lib/auth-utils';
+import { prisma } from '@/lib/prisma';
+import { getAppointments, getAppointmentFormData } from './queries';
+import { AppointmentsClient } from './components/AppointmentsClient';
+import type { AppointmentFilters } from '@/types';
 
 interface AppointmentsPageProps {
   params: Promise<{
     spaId: string;
     branchId: string;
   }>;
+  searchParams: Promise<{
+    page?: string;
+    limit?: string;
+    status?: string;
+    manicuristId?: string;
+    clientId?: string;
+    search?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }>;
 }
 
 export default async function AppointmentsPage({
   params,
+  searchParams,
 }: AppointmentsPageProps) {
-  const { spaId: _spaId, branchId: _branchId } = await params;
+  const { spaId, branchId } = await params;
+  const {
+    page = '1',
+    limit = '10',
+    status,
+    manicuristId,
+    clientId,
+    search,
+    dateFrom,
+    dateTo,
+  } = await searchParams;
+
+  // Require BRANCH_ADMIN role and branch access
+  await requireBranchAccessForPage(spaId, branchId);
+
+  // Verify branch exists
+  const branch = await prisma.branch.findUnique({
+    where: { id: branchId },
+    select: { id: true, name: true, spa: { select: { name: true } } },
+  });
+
+  if (!branch) {
+    notFound();
+  }
+
+  // Build filters
+  const filters: AppointmentFilters = {
+    status: (status as AppointmentFilters['status']) || 'ALL',
+    manicuristId: manicuristId || undefined,
+    clientId: clientId || undefined,
+    search: search || undefined,
+    dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+    dateTo: dateTo ? new Date(dateTo) : undefined,
+  };
+
+  // Get pagination parameters
+  const pageNumber = parseInt(page);
+  const limitNumber = parseInt(limit);
+
+  // Fetch appointments and form data in parallel
+  const [appointmentsResult, formData] = await Promise.all([
+    getAppointments({
+      spaId,
+      branchId,
+      filters,
+      page: pageNumber,
+      limit: limitNumber,
+    }),
+    getAppointmentFormData(spaId, branchId),
+  ]);
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(appointmentsResult.totalCount / limitNumber);
+  const hasNextPage = pageNumber < totalPages;
+  const hasPrevPage = pageNumber > 1;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Gestión de Citas
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Programa y administra las citas de esta sede
-        </p>
-      </div>
-
-      {/* Placeholder content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Calendario de Citas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📅</div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Gestión de Citas
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Aquí podrás programar y gestionar todas las citas de esta sede.
-            </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-              Funcionalidad en desarrollo...
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <AppointmentsClient
+      appointments={appointmentsResult.appointments}
+      formData={formData}
+      spaId={spaId}
+      branchId={branchId}
+      branchName={branch.name}
+      pagination={{
+        currentPage: pageNumber,
+        totalPages,
+        totalCount: appointmentsResult.totalCount,
+        hasNextPage,
+        hasPrevPage,
+        limit: limitNumber,
+      }}
+    />
   );
 }

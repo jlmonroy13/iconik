@@ -267,3 +267,97 @@ export type ScheduleItemData = z.infer<typeof scheduleItemSchema>;
 export type UpdateScheduleData = z.infer<typeof updateScheduleSchema>;
 export type CreateAvailabilityData = z.infer<typeof createAvailabilitySchema>;
 export type UpdateAvailabilityData = z.infer<typeof updateAvailabilitySchema>;
+
+// ============================================
+// APPOINTMENT SCHEMAS
+// ============================================
+
+/**
+ * Schema for a single service in an appointment
+ */
+export const appointmentServiceSchema = z.object({
+  serviceId: z.string().cuid('Servicio inválido'),
+  manicuristId: z.string().cuid('Manicurista inválida'),
+  price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
+  estimatedDuration: z
+    .number()
+    .min(1, 'La duración debe ser al menos 1 minuto'),
+});
+
+/**
+ * Schema for creating a new appointment
+ */
+export const createAppointmentSchema = z.object({
+  clientId: z.string().cuid('Cliente inválido'),
+  scheduledAt: z.string().datetime('Fecha y hora inválida'),
+  isScheduled: z.boolean().default(true),
+  notes: z.string().max(500, 'Máximo 500 caracteres').optional(),
+  services: z
+    .array(appointmentServiceSchema)
+    .min(1, 'Debe agregar al menos un servicio'),
+});
+
+/**
+ * Schema for updating an existing appointment
+ */
+export const updateAppointmentSchema = z.object({
+  clientId: z.string().cuid('Cliente inválido').optional(),
+  scheduledAt: z.string().datetime('Fecha y hora inválida').optional(),
+  notes: z.string().max(500, 'Máximo 500 caracteres').optional(),
+  status: z
+    .enum([
+      'PENDING_APPROVAL',
+      'SCHEDULED',
+      'IN_PROGRESS',
+      'COMPLETED',
+      'CANCELLED',
+      'NO_SHOW',
+    ])
+    .optional(),
+  services: z.array(appointmentServiceSchema).optional(),
+});
+
+/**
+ * Schema for updating appointment status only
+ */
+export const updateAppointmentStatusSchema = z.object({
+  status: z.enum([
+    'PENDING_APPROVAL',
+    'SCHEDULED',
+    'IN_PROGRESS',
+    'COMPLETED',
+    'CANCELLED',
+    'NO_SHOW',
+  ]),
+});
+
+/**
+ * Schema for cancelling an appointment
+ */
+export const cancelAppointmentSchema = z.object({
+  reason: z.string().max(500, 'Máximo 500 caracteres').optional(),
+});
+
+/**
+ * Schema for adding a service to an existing appointment
+ */
+export const addAppointmentServiceSchema = z.object({
+  serviceId: z.string().cuid('Servicio inválido'),
+  manicuristId: z.string().cuid('Manicurista inválida'),
+  price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
+  estimatedDuration: z
+    .number()
+    .min(1, 'La duración debe ser al menos 1 minuto'),
+});
+
+// Appointment-related type exports
+export type AppointmentServiceData = z.infer<typeof appointmentServiceSchema>;
+export type CreateAppointmentData = z.infer<typeof createAppointmentSchema>;
+export type UpdateAppointmentData = z.infer<typeof updateAppointmentSchema>;
+export type UpdateAppointmentStatusData = z.infer<
+  typeof updateAppointmentStatusSchema
+>;
+export type CancelAppointmentData = z.infer<typeof cancelAppointmentSchema>;
+export type AddAppointmentServiceData = z.infer<
+  typeof addAppointmentServiceSchema
+>;
