@@ -392,3 +392,30 @@ export const updateClientNoteSchema = z.object({
 // Client note type exports
 export type CreateClientNoteFormData = z.infer<typeof createClientNoteSchema>;
 export type UpdateClientNoteFormData = z.infer<typeof updateClientNoteSchema>;
+
+// ============================================
+// PAYMENT METHOD SCHEMAS
+// ============================================
+
+/**
+ * Schema for creating a payment method
+ */
+export const createPaymentMethodSchema = z.object({
+  name: baseNameSchema,
+  type: z.string().optional(),
+  icon: z.string().optional(),
+  transactionFee: z
+    .number()
+    .min(0, 'La comisión de transacción debe ser mayor o igual a 0')
+    .max(1, 'La comisión de transacción debe ser menor o igual a 100%'),
+  isActive: z.boolean().default(true),
+});
+
+/**
+ * Schema for updating a payment method
+ */
+export const updatePaymentMethodSchema = createPaymentMethodSchema.partial();
+
+// Payment method type exports
+export type CreatePaymentMethodData = z.infer<typeof createPaymentMethodSchema>;
+export type UpdatePaymentMethodData = z.infer<typeof updatePaymentMethodSchema>;

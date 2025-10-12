@@ -1,48 +1,124 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { notFound } from 'next/navigation';
+import { requireBranchAccessForPage } from '@/lib/auth-utils';
+import { prisma } from '@/lib/prisma';
+import {
+  getPayments,
+  getPaymentStats,
+  getPaymentMethodsWithTotals,
+} from './queries';
+import { PaymentsClient } from './components/PaymentsClient';
+import type { PaymentFilters } from '@/types/payments';
 
 interface PaymentsPageProps {
   params: Promise<{
     spaId: string;
     branchId: string;
   }>;
+  searchParams: Promise<{
+    page?: string;
+    limit?: string;
+    search?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    paymentMethodId?: string;
+    clientId?: string;
+    manicuristId?: string;
+    commissionStatus?: string;
+    minAmount?: string;
+    maxAmount?: string;
+  }>;
 }
 
-export default async function PaymentsPage({}: PaymentsPageProps) {
-  // const { spaId, branchId } = await params;
+export default async function PaymentsPage({
+  params,
+  searchParams,
+}: PaymentsPageProps) {
+  const { spaId, branchId } = await params;
+  const {
+    page = '1',
+    limit = '10',
+    search,
+    dateFrom,
+    dateTo,
+    paymentMethodId,
+    clientId,
+    manicuristId,
+    commissionStatus,
+    minAmount,
+    maxAmount,
+  } = await searchParams;
+
+  // Require BRANCH_ADMIN role and branch access
+  await requireBranchAccessForPage(spaId, branchId);
+
+  // Verify branch exists
+  const branch = await prisma.branch.findUnique({
+    where: { id: branchId },
+    select: { id: true, name: true, spa: { select: { name: true } } },
+  });
+
+  if (!branch) {
+    notFound();
+  }
+
+  // Build filters
+  const filters: PaymentFilters = {
+    search: search || undefined,
+    dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+    dateTo: dateTo ? new Date(dateTo) : undefined,
+    paymentMethodId: paymentMethodId || undefined,
+    clientId: clientId || undefined,
+    manicuristId: manicuristId || undefined,
+    commissionStatus:
+      (commissionStatus as PaymentFilters['commissionStatus']) || 'ALL',
+    minAmount: minAmount ? parseFloat(minAmount) : undefined,
+    maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
+  };
+
+  // Get pagination parameters
+  const pageNumber = parseInt(page);
+  const limitNumber = parseInt(limit);
+
+  // Fetch payments, stats, and payment methods in parallel
+  const [paymentsResult, stats, paymentMethods] = await Promise.all([
+    getPayments({
+      spaId,
+      branchId,
+      filters,
+      page: pageNumber,
+      limit: limitNumber,
+    }),
+    getPaymentStats({
+      spaId,
+      branchId,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+    }),
+    getPaymentMethodsWithTotals(spaId),
+  ]);
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(paymentsResult.totalCount / limitNumber);
+  const hasNextPage = pageNumber < totalPages;
+  const hasPrevPage = pageNumber > 1;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Gestión de Pagos
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Administra los pagos y transacciones de esta sede
-        </p>
-      </div>
-
-      {/* Placeholder content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Historial de Pagos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">💰</div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Gestión de Pagos
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Aquí podrás gestionar todos los pagos y transacciones de esta
-              sede.
-            </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-              Funcionalidad en desarrollo...
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <PaymentsClient
+      payments={paymentsResult.payments}
+      stats={stats}
+      paymentMethods={paymentMethods}
+      branch={branch}
+      spaId={spaId}
+      branchId={branchId}
+      pagination={{
+        currentPage: pageNumber,
+        totalPages,
+        totalCount: paymentsResult.totalCount,
+        hasNextPage,
+        hasPrevPage,
+        limit: limitNumber,
+      }}
+      filters={filters}
+    />
   );
 }
