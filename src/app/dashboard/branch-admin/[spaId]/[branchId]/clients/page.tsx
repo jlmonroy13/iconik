@@ -24,7 +24,7 @@ export default async function ClientsPage({
   const { search, page = '1', limit = '10' } = await searchParams;
 
   // Require BRANCH_ADMIN role and branch access
-  const _user = await requireBranchAccessForPage(spaId, branchId);
+  const user = await requireBranchAccessForPage(spaId, branchId);
 
   // Verify branch exists
   const branch = await prisma.branch.findUnique({
@@ -69,6 +69,7 @@ export default async function ClientsPage({
         limit: limitNumber,
       }}
       searchParams={{ search, page, limit }}
+      currentUserId={user.id}
     />
   );
 }

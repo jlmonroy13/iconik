@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ClientModal } from '@/app/dashboard/branch-admin/[spaId]/[branchId]/clients/components/ClientModal';
+import { ClientDetailModal } from '@/app/dashboard/branch-admin/[spaId]/[branchId]/clients/components/ClientDetailModal';
 import { ClientTable } from '@/app/dashboard/branch-admin/[spaId]/[branchId]/clients/components/ClientTable';
 import { Pagination } from '@/components/ui';
 import type {
@@ -25,6 +26,7 @@ interface ClientsClientProps {
   branchId: string;
   pagination: PaginationInfo;
   searchParams: ClientSearchParams;
+  currentUserId: string;
 }
 
 export function ClientsClient({
@@ -34,6 +36,7 @@ export function ClientsClient({
   branchId,
   pagination,
   searchParams,
+  currentUserId,
 }: ClientsClientProps) {
   const router = useRouter();
   const searchParamsHook = useSearchParams();
@@ -41,9 +44,11 @@ export function ClientsClient({
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] =
     useState<ClientWithAppointmentCount | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState(searchParams.search || '');
@@ -83,8 +88,19 @@ export function ClientsClient({
   };
 
   // Handle client actions
+  const handleViewDetail = (client: ClientWithAppointmentCount) => {
+    setSelectedClientId(client.id);
+    setIsDetailModalOpen(true);
+  };
+
   const handleEditClient = (client: ClientWithAppointmentCount) => {
     setSelectedClient(client);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditFromDetail = () => {
+    // Close detail modal and open edit modal with the same client
+    setIsDetailModalOpen(false);
     setIsEditModalOpen(true);
   };
 
@@ -269,6 +285,7 @@ export function ClientsClient({
             <>
               <ClientTable
                 clients={filteredClients}
+                onView={handleViewDetail}
                 onEdit={handleEditClient}
                 onDelete={handleDeleteClient}
               />
@@ -303,6 +320,20 @@ export function ClientsClient({
         branchId={branchId}
         mode="edit"
         client={selectedClient}
+      />
+
+      {/* Client Detail Modal */}
+      <ClientDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedClientId(null);
+        }}
+        clientId={selectedClientId}
+        spaId={spaId}
+        branchId={branchId}
+        currentUserId={currentUserId}
+        onEdit={handleEditFromDetail}
       />
 
       {/* Delete Confirmation Dialog */}

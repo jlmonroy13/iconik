@@ -3,10 +3,26 @@
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/../../auth';
 import { prisma } from '@/lib/prisma';
-import { createClientSchema, type CreateClientData } from '@/types/forms';
-import type { Client } from '@/generated/prisma';
+import {
+  createClientSchema,
+  type CreateClientData,
+  createClientNoteSchema,
+  updateClientNoteSchema,
+  type CreateClientNoteFormData,
+  type UpdateClientNoteFormData,
+} from '@/types/forms';
+import type { Client, ClientNote } from '@/generated/prisma';
 import type { ServerActionResult } from '@/types/api';
-import { checkClientDocumentExists, getClientById } from './queries';
+import type {
+  ClientDetailWithRelations,
+  ClientNoteWithCreator,
+} from '@/types/clients';
+import {
+  checkClientDocumentExists,
+  getClientById,
+  getClientWithDetails,
+  getClientNotes,
+} from './queries';
 
 // ============================================
 // CLIENT CRUD OPERATIONS
@@ -31,6 +47,32 @@ export async function fetchClientById(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Error al cargar cliente',
+    };
+  }
+}
+
+/**
+ * Fetch client details with full relations (for client detail modal)
+ */
+export async function fetchClientDetails(
+  clientId: string
+): Promise<ServerActionResult<ClientDetailWithRelations>> {
+  try {
+    const client = await getClientWithDetails(clientId);
+
+    if (!client) {
+      return { success: false, error: 'Cliente no encontrado' };
+    }
+
+    return { success: true, data: client };
+  } catch (error) {
+    console.error('Error fetching client details:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error al cargar detalles del cliente',
     };
   }
 }
@@ -271,6 +313,218 @@ export async function deleteClient(
       success: false,
       error:
         error instanceof Error ? error.message : 'Error al eliminar cliente',
+    };
+  }
+}
+
+// ============================================
+// CLIENT NOTES OPERATIONS
+// ============================================
+
+/**
+ * Fetch all notes for a client
+ */
+export async function fetchClientNotes(
+  clientId: string
+): Promise<ServerActionResult<ClientNoteWithCreator[]>> {
+  try {
+    const notes = await getClientNotes(clientId);
+    return { success: true, data: notes };
+  } catch (error) {
+    console.error('Error fetching client notes:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'Error al cargar las notas',
+    };
+  }
+}
+
+/**
+ * Create a new client note
+ */
+export async function createClientNote(
+  clientId: string,
+  spaId: string,
+  branchId: string,
+  data: CreateClientNoteFormData
+): Promise<ServerActionResult<ClientNote>> {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'BRANCH_ADMIN') {
+      return { success: false, error: 'No autorizado' };
+    }
+
+    // Verify access
+    if (session.user.branchId !== branchId) {
+      return { success: false, error: 'No tienes acceso a esta sede' };
+    }
+
+    // Validate data
+    const validatedData = createClientNoteSchema.parse(data);
+
+    // Verify client exists and belongs to this spa/branch
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { spaId: true, branchId: true },
+    });
+
+    if (!client) {
+      return { success: false, error: 'Cliente no encontrado' };
+    }
+
+    if (client.spaId !== spaId || client.branchId !== branchId) {
+      return { success: false, error: 'Cliente no pertenece a esta sede' };
+    }
+
+    // Create note
+    const note = await prisma.clientNote.create({
+      data: {
+        clientId,
+        content: validatedData.content,
+        isImportant: validatedData.isImportant || false,
+        createdBy: session.user.id,
+      },
+    });
+
+    revalidatePath(`/dashboard/branch-admin/${spaId}/${branchId}/clients`);
+
+    return { success: true, data: note };
+  } catch (error) {
+    console.error('Error creating client note:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Error al crear la nota',
+    };
+  }
+}
+
+/**
+ * Update an existing client note
+ */
+export async function updateClientNote(
+  noteId: string,
+  spaId: string,
+  branchId: string,
+  data: UpdateClientNoteFormData
+): Promise<ServerActionResult<ClientNote>> {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'BRANCH_ADMIN') {
+      return { success: false, error: 'No autorizado' };
+    }
+
+    // Verify access
+    if (session.user.branchId !== branchId) {
+      return { success: false, error: 'No tienes acceso a esta sede' };
+    }
+
+    // Verify note exists and user has permission to edit
+    const existingNote = await prisma.clientNote.findUnique({
+      where: { id: noteId },
+      include: { client: { select: { spaId: true, branchId: true } } },
+    });
+
+    if (!existingNote) {
+      return { success: false, error: 'Nota no encontrada' };
+    }
+
+    // Only the creator can edit their own note
+    if (existingNote.createdBy !== session.user.id) {
+      return {
+        success: false,
+        error: 'Solo puedes editar tus propias notas',
+      };
+    }
+
+    if (existingNote.client.spaId !== spaId) {
+      return { success: false, error: 'Nota no pertenece a este spa' };
+    }
+
+    // Validate data
+    const validatedData = updateClientNoteSchema.parse(data);
+
+    // Update note
+    const note = await prisma.clientNote.update({
+      where: { id: noteId },
+      data: {
+        ...(validatedData.content !== undefined && {
+          content: validatedData.content,
+        }),
+        ...(validatedData.isImportant !== undefined && {
+          isImportant: validatedData.isImportant,
+        }),
+      },
+    });
+
+    revalidatePath(`/dashboard/branch-admin/${spaId}/${branchId}/clients`);
+
+    return { success: true, data: note };
+  } catch (error) {
+    console.error('Error updating client note:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'Error al actualizar la nota',
+    };
+  }
+}
+
+/**
+ * Delete a client note
+ */
+export async function deleteClientNote(
+  noteId: string,
+  spaId: string,
+  branchId: string
+): Promise<ServerActionResult<void>> {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'BRANCH_ADMIN') {
+      return { success: false, error: 'No autorizado' };
+    }
+
+    // Verify access
+    if (session.user.branchId !== branchId) {
+      return { success: false, error: 'No tienes acceso a esta sede' };
+    }
+
+    // Verify note exists and user has permission to delete
+    const existingNote = await prisma.clientNote.findUnique({
+      where: { id: noteId },
+      include: { client: { select: { spaId: true, branchId: true } } },
+    });
+
+    if (!existingNote) {
+      return { success: false, error: 'Nota no encontrada' };
+    }
+
+    // Only the creator can delete their own note
+    if (existingNote.createdBy !== session.user.id) {
+      return {
+        success: false,
+        error: 'Solo puedes eliminar tus propias notas',
+      };
+    }
+
+    if (existingNote.client.spaId !== spaId) {
+      return { success: false, error: 'Nota no pertenece a este spa' };
+    }
+
+    // Delete note
+    await prisma.clientNote.delete({
+      where: { id: noteId },
+    });
+
+    revalidatePath(`/dashboard/branch-admin/${spaId}/${branchId}/clients`);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting client note:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'Error al eliminar la nota',
     };
   }
 }

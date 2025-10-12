@@ -1,7 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Eye } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -16,11 +16,17 @@ import type { ClientWithAppointmentCount } from '@/types/clients';
 
 interface ClientTableProps {
   clients: ClientWithAppointmentCount[];
+  onView: (client: ClientWithAppointmentCount) => void;
   onEdit: (client: ClientWithAppointmentCount) => void;
   onDelete: (client: ClientWithAppointmentCount) => void;
 }
 
-export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
+export function ClientTable({
+  clients,
+  onView,
+  onEdit,
+  onDelete,
+}: ClientTableProps) {
   const formatDate = (date: Date) => {
     return format(new Date(date), 'dd/MM/yyyy');
   };
@@ -125,6 +131,13 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end space-x-2">
+                  <IconButton
+                    onClick={() => onView(client)}
+                    variant="outline"
+                    size="sm"
+                    icon={<Eye className="w-4 h-4" />}
+                    title="Ver detalle"
+                  />
                   <IconButton
                     onClick={() => onEdit(client)}
                     variant="outline"

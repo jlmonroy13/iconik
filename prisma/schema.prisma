@@ -135,6 +135,7 @@ model User {
   cashRegisterShiftsOpened   CashRegisterShift[]          @relation("CashRegisterOpener")
   cashRegisterShiftsClosed   CashRegisterShift[]          @relation("CashRegisterCloser")
   cashRegisterTransactions   CashRegisterTransaction[]
+  clientNotes                ClientNote[]
 
   @@map("users")
 }
@@ -212,9 +213,27 @@ model Client {
   branch               Branch?                @relation(fields: [branchId], references: [id], onDelete: SetNull)
   appointments         Appointment[]
   clientServiceHistory ClientServiceHistory[]
+  clientNotes          ClientNote[]
   invoices             Invoice[]
 
   @@map("clients")
+}
+
+model ClientNote {
+  id        String   @id @default(cuid())
+  clientId  String
+  content   String   @db.Text
+  createdBy String   // User ID who created the note
+  isImportant Boolean @default(false) // Flag for important notes (allergies, warnings, etc.)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  client  Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  creator User   @relation(fields: [createdBy], references: [id])
+
+  @@index([clientId])
+  @@map("client_notes")
 }
 
 model ClientServiceHistory {
@@ -333,10 +352,10 @@ model ManicuristService {
   id           String   @id @default(cuid())
   manicuristId String
   serviceId    String
-  
+
   // Estado de la relación
   isActive     Boolean  @default(true)
-  
+
   // Metadata
   spaId        String
   branchId     String?  // Sede donde aplica esta relación (opcional para manicuristas multi-sede)

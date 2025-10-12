@@ -361,3 +361,34 @@ export type CancelAppointmentData = z.infer<typeof cancelAppointmentSchema>;
 export type AddAppointmentServiceData = z.infer<
   typeof addAppointmentServiceSchema
 >;
+
+// ============================================
+// CLIENT NOTE SCHEMAS
+// ============================================
+
+/**
+ * Schema for creating a client note
+ */
+export const createClientNoteSchema = z.object({
+  content: z
+    .string()
+    .min(1, 'El contenido de la nota es requerido')
+    .max(1000, 'Máximo 1000 caracteres'),
+  isImportant: z.boolean().optional().default(false),
+});
+
+/**
+ * Schema for updating a client note
+ */
+export const updateClientNoteSchema = z.object({
+  content: z
+    .string()
+    .min(1, 'El contenido de la nota es requerido')
+    .max(1000, 'Máximo 1000 caracteres')
+    .optional(),
+  isImportant: z.boolean().optional(),
+});
+
+// Client note type exports
+export type CreateClientNoteFormData = z.infer<typeof createClientNoteSchema>;
+export type UpdateClientNoteFormData = z.infer<typeof updateClientNoteSchema>;

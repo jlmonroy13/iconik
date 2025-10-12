@@ -1,5 +1,10 @@
 import { prisma } from '@/lib/prisma';
-import type { ClientWithAppointmentCount } from '@/types/clients';
+import type {
+  ClientWithAppointmentCount,
+  ClientDetailWithRelations,
+  ServiceCount,
+  ClientNoteWithCreator,
+} from '@/types/clients';
 
 /**
  * Search and pagination parameters for clients
@@ -148,4 +153,195 @@ export async function checkClientDocumentExists(
   });
 
   return !!existingClient;
+}
+
+// ============================================
+// CLIENT DETAIL WITH FULL RELATIONSHIPS
+// ============================================
+
+/**
+ * Calculate average monthly visits for a client
+ */
+function calculateAverageMonthlyVisits(
+  firstVisit: Date,
+  lastVisit: Date,
+  totalVisits: number
+): number {
+  const monthsDiff = Math.max(
+    1,
+    (lastVisit.getTime() - firstVisit.getTime()) / (1000 * 60 * 60 * 24 * 30)
+  );
+  return parseFloat((totalVisits / monthsDiff).toFixed(2));
+}
+
+/**
+ * Get client with full details including appointment history and statistics
+ * Used by: Client detail modal
+ */
+export async function getClientWithDetails(
+  clientId: string
+): Promise<ClientDetailWithRelations | null> {
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: {
+      appointments: {
+        include: {
+          services: {
+            include: {
+              service: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                },
+              },
+              manicurist: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { scheduledAt: 'desc' },
+        take: 50, // Last 50 appointments
+      },
+      _count: {
+        select: {
+          appointments: true,
+        },
+      },
+    },
+  });
+
+  if (!client) return null;
+
+  // Calculate total spent across all appointments
+  const totalSpent = client.appointments.reduce((sum, appointment) => {
+    const appointmentTotal = appointment.services.reduce(
+      (serviceSum, service) => serviceSum + service.price,
+      0
+    );
+    return sum + appointmentTotal;
+  }, 0);
+
+  // Calculate favorite services (top 5 most used)
+  const serviceMap = new Map<string, ServiceCount>();
+
+  client.appointments.forEach(appointment => {
+    appointment.services.forEach(appointmentService => {
+      const serviceId = appointmentService.service.id;
+      const serviceName = appointmentService.service.name;
+
+      const current = serviceMap.get(serviceId);
+      if (current) {
+        current.count++;
+      } else {
+        serviceMap.set(serviceId, {
+          serviceId,
+          serviceName,
+          count: 1,
+        });
+      }
+    });
+  });
+
+  const favoriteServices = Array.from(serviceMap.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  // Get last visit date
+  const lastVisit =
+    client.appointments.length > 0 ? client.appointments[0].scheduledAt : null;
+
+  // Calculate average monthly visits
+  let averageMonthlyVisits = 0;
+  if (client.appointments.length > 0) {
+    const firstAppointment =
+      client.appointments[client.appointments.length - 1];
+    const now = new Date();
+    averageMonthlyVisits = calculateAverageMonthlyVisits(
+      firstAppointment.scheduledAt,
+      now,
+      client.appointments.length
+    );
+  }
+
+  // Transform appointments to match type
+  const transformedAppointments = client.appointments.map(appointment => ({
+    id: appointment.id,
+    scheduledAt: appointment.scheduledAt,
+    status: appointment.status,
+    notes: appointment.notes,
+    totalAmount: appointment.services.reduce(
+      (sum, service) => sum + service.price,
+      0
+    ),
+    appointmentServices: appointment.services.map(service => ({
+      id: service.id,
+      price: service.price,
+      service: {
+        id: service.service.id,
+        name: service.service.name,
+        type: service.service.type,
+      },
+      manicurist: {
+        id: service.manicurist.id,
+        name: service.manicurist.name,
+      },
+    })),
+  }));
+
+  return {
+    id: client.id,
+    name: client.name,
+    documentType: client.documentType,
+    documentNumber: client.documentNumber,
+    phone: client.phone,
+    email: client.email,
+    birthday: client.birthday,
+    notes: client.notes,
+    createdAt: client.createdAt,
+    updatedAt: client.updatedAt,
+    _count: {
+      appointments: client._count.appointments,
+    },
+    appointments: transformedAppointments,
+    totalSpent,
+    lastVisit,
+    favoriteServices,
+    averageMonthlyVisits,
+  };
+}
+
+// ============================================
+// CLIENT NOTES QUERIES
+// ============================================
+
+/**
+ * Get all notes for a specific client
+ * Used by: Client detail modal
+ */
+export async function getClientNotes(
+  clientId: string
+): Promise<ClientNoteWithCreator[]> {
+  const notes = await prisma.clientNote.findMany({
+    where: { clientId },
+    include: {
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: [
+      { isImportant: 'desc' }, // Important notes first
+      { createdAt: 'desc' }, // Then by most recent
+    ],
+  });
+
+  return notes;
 }
