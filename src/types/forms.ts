@@ -419,3 +419,58 @@ export const updatePaymentMethodSchema = createPaymentMethodSchema.partial();
 // Payment method type exports
 export type CreatePaymentMethodData = z.infer<typeof createPaymentMethodSchema>;
 export type UpdatePaymentMethodData = z.infer<typeof updatePaymentMethodSchema>;
+
+// ============================================
+// BRANCH SETTINGS SCHEMAS
+// ============================================
+
+/**
+ * Schema for updating branch basic information
+ */
+export const updateBranchInfoSchema = z.object({
+  name: baseNameSchema.optional(),
+  description: z.string().max(500, 'Máximo 500 caracteres').optional(),
+  address: baseAddressSchema.optional(),
+  phone: basePhoneSchema,
+  email: baseEmailSchema.optional().or(z.literal('')),
+  openingTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)')
+    .optional()
+    .or(z.literal('')),
+  closingTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)')
+    .optional()
+    .or(z.literal('')),
+  isActive: z.boolean().optional(),
+  invoicePrefix: z
+    .string()
+    .max(10, 'Máximo 10 caracteres')
+    .regex(/^[A-Z0-9-]*$/, 'Solo letras mayúsculas, números y guiones')
+    .optional()
+    .or(z.literal('')),
+});
+
+/**
+ * Schema for updating branch advanced settings
+ */
+export const updateBranchSettingsSchema = z.object({
+  customTaxRate: z
+    .number()
+    .min(0, 'El impuesto debe ser mayor o igual a 0')
+    .max(100, 'El impuesto debe ser menor o igual a 100')
+    .optional(),
+  customOperatingHours: z.boolean().optional(),
+  enableAllServices: z.boolean().optional(),
+  enableAllManicurists: z.boolean().optional(),
+  allowNewClients: z.boolean().optional(),
+  allowWalkIns: z.boolean().optional(),
+  useSpaDianSettings: z.boolean().optional(),
+});
+
+// Branch settings type exports
+export type UpdateBranchInfoData = z.infer<typeof updateBranchInfoSchema>;
+export type UpdateBranchSettingsData = z.infer<
+  typeof updateBranchSettingsSchema
+>;

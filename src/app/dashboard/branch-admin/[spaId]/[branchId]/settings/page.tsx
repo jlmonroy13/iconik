@@ -1,4 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { notFound } from 'next/navigation';
+import { requireBranchAccessForPage } from '@/lib/auth-utils';
+import { getBranchSettings } from './queries';
+import { SettingsClient } from './components/SettingsClient';
 
 interface SettingsPageProps {
   params: Promise<{
@@ -7,42 +10,18 @@ interface SettingsPageProps {
   }>;
 }
 
-export default async function SettingsPage({}: SettingsPageProps) {
-  // const { spaId, branchId } = await params;
+export default async function SettingsPage({ params }: SettingsPageProps) {
+  const { spaId, branchId } = await params;
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Configuración de Sede
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Configura los parámetros específicos de esta sede
-        </p>
-      </div>
+  // Require BRANCH_ADMIN role and branch access
+  await requireBranchAccessForPage(spaId, branchId);
 
-      {/* Placeholder content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuración General</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">⚙️</div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Configuración de Sede
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Aquí podrás configurar todos los parámetros específicos de esta
-              sede.
-            </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-              Funcionalidad en desarrollo...
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  // Get branch with settings
+  const branch = await getBranchSettings(branchId);
+
+  if (!branch) {
+    notFound();
+  }
+
+  return <SettingsClient branch={branch} spaId={spaId} branchId={branchId} />;
 }
