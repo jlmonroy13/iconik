@@ -69,7 +69,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             active &&
               'border-pink-300 dark:border-pink-600 bg-pink-50 dark:bg-pink-900/10 ring-1 ring-pink-200 dark:ring-pink-800',
             isDate && isEmpty && 'text-gray-400 dark:text-gray-500',
-            isDate && active && !isEmpty && 'text-white dark:text-white',
+            isDate && !isEmpty && 'text-gray-900 dark:text-white',
             isDate && 'datetime-picker-hack',
             className
           )}

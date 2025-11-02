@@ -5,6 +5,8 @@ export { PaymentDetailModal } from './PaymentDetailModal';
 export { PaymentFiltersAdvanced } from './PaymentFiltersAdvanced';
 export { PaymentMethodModal } from './PaymentMethodModal';
 export { PaymentMethodsManager } from './PaymentMethodsManager';
+export { SpaAccountModal } from './SpaAccountModal';
+export { SpaAccountsManager } from './SpaAccountsManager';
 export { CommissionDashboard } from './CommissionDashboard';
 export { PaymentExport } from './PaymentExport';
 export { PaymentTrends } from './PaymentTrends';

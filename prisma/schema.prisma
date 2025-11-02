@@ -72,6 +72,7 @@ model Spa {
   branches                   Branch[]
   corporateSettings          SpaCorporateSettings?
   manicuristServices         ManicuristService[]
+  spaAccounts                SpaAccount[]
 
   @@map("spas")
 }
@@ -656,6 +657,34 @@ model CashRegisterTransaction {
   @@map("cash_register_transactions")
 }
 
+model SpaAccount {
+  id            String      @id @default(cuid())
+  name          String      // "Cuenta Bancolombia Ahorros", "Caja Principal", "Nequi Negocio"
+  description   String?     // Descripción adicional de la cuenta
+  type          AccountType // Tipo de cuenta
+  bank          String?     // "Bancolombia", "Davivienda", null para efectivo/digital wallets
+  accountNumber String?     // Número de cuenta bancaria
+  balance       Float       @default(0) // Saldo actual de la cuenta
+  currency      String      @default("COP") // Moneda
+  isActive      Boolean     @default(true) // Si la cuenta está activa
+
+  // Multi-tenant
+  spaId    String
+  branchId String? // Cuenta específica de una sede (null = cuenta corporativa del spa)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  spa                 Spa              @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  branch              Branch?          @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  paymentsReceived    Payment[]        @relation("PaymentAccount") // Pagos que llegaron a esta cuenta
+  expensePayments     ExpensePayment[] // Gastos pagados desde esta cuenta
+  paymentMethods      PaymentMethod[]  @relation("PaymentMethodAccount") // Métodos de pago que usan esta cuenta
+
+  @@map("spa_accounts")
+}
+
 model Service {
   id                    String      @id @default(cuid())
   type                  ServiceType // Type of service
@@ -768,11 +797,13 @@ model PaymentMethod {
   icon           String? // (optional) for UI
   transactionFee Float    @default(0) // Transaction fee percentage (e.g., 0.035 for 3.5%)
   spaId          String
+  spaAccountId   String? // Default account where payments with this method go
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   // Relations
   spa             Spa              @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  spaAccount      SpaAccount?      @relation("PaymentMethodAccount", fields: [spaAccountId], references: [id], onDelete: SetNull)
   payments        Payment[]
   expensePayments ExpensePayment[]
 }
@@ -781,7 +812,8 @@ model Payment {
   id                   String   @id @default(cuid())
   appointmentId        String?
   appointmentServiceId String?
-  paymentMethodId      String
+  paymentMethodId      String   // Método que usó el CLIENTE para pagar
+  spaAccountId         String?  // Cuenta del SPA donde llegó el dinero
   branchId             String?  // Sede donde se realizó el pago
   amount               Float
   paidAt               DateTime @default(now())
@@ -807,6 +839,7 @@ model Payment {
   appointment             Appointment?             @relation(fields: [appointmentId], references: [id])
   appointmentService      AppointmentService?      @relation(fields: [appointmentServiceId], references: [id])
   paymentMethod           PaymentMethod            @relation(fields: [paymentMethodId], references: [id])
+  spaAccount              SpaAccount?              @relation("PaymentAccount", fields: [spaAccountId], references: [id], onDelete: SetNull)
   commission              Commission?
   cashRegisterTransaction CashRegisterTransaction?
   invoicePayments         InvoicePayment[]
@@ -891,7 +924,8 @@ model ExpensePayment {
   expenseId       String
   amount          Float
   paidAt          DateTime @default(now())
-  paymentMethodId String
+  paymentMethodId String?  // DEPRECATED - mantener por compatibilidad temporal
+  spaAccountId    String   // Cuenta del SPA desde donde se pagó el gasto
   reference       String?
   notes           String?
   spaId           String
@@ -899,9 +933,10 @@ model ExpensePayment {
   updatedAt       DateTime @updatedAt
 
   // Relations
-  expense       Expense       @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
-  spa           Spa           @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  expense       Expense        @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  spaAccount    SpaAccount     @relation(fields: [spaAccountId], references: [id], onDelete: Restrict)
+  spa           Spa            @relation(fields: [spaId], references: [id], onDelete: Cascade)
 }
 
 // =====================================================
@@ -1202,6 +1237,7 @@ model Branch {
   invoices    Invoice[]
   cashRegisters CashRegister[]
   manicuristServices ManicuristService[]
+  spaAccounts SpaAccount[]     // Cuentas asignadas a esta sede
 
   @@unique([spaId, code])
   @@map("branches")
@@ -1465,4 +1501,11 @@ enum FiscalResponsibility {
   O_49 // O-49: No Responsable de IVA
   O_50 // O-50: Responsable de IVA por Factura
   // Nota: Para responsabilidades adicionales específicas, usar campo de texto libre
+}
+
+enum AccountType {
+  BANK_ACCOUNT   // Cuenta bancaria
+  CASH           // Caja física/efectivo
+  DIGITAL_WALLET // Billetera digital (Nequi, Daviplata, etc.)
+  CREDIT_CARD    // Tarjeta de crédito del negocio
 }

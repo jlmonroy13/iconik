@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -12,12 +12,18 @@ import {
   Textarea,
   Switch,
 } from '@/components/ui';
-import { createAppointmentSchema, type CreateClientData } from '@/types/forms';
+import { appointmentFormSchema, type CreateClientData } from '@/types/forms';
+import { z } from 'zod';
 import type {
   AppointmentWithDetails,
   AppointmentFormDropdownData,
 } from '@/types';
-import { createAppointment, updateAppointment } from '../actions';
+import {
+  createAppointment,
+  updateAppointment,
+  getAvailableManicurists,
+  getManicuristServices,
+} from '../actions';
 import { createClient } from '../../clients/actions';
 
 interface AppointmentModalProps {
@@ -171,20 +177,7 @@ function InlineClientModal({
   );
 }
 
-type AppointmentFormData = {
-  clientId: string;
-  scheduledAt: string;
-  isScheduled: boolean;
-  notes: string;
-  useSameManicurist: boolean;
-  primaryManicuristId: string;
-  services: Array<{
-    serviceId: string;
-    manicuristId: string;
-    price: number;
-    estimatedDuration: number;
-  }>;
-};
+type AppointmentFormData = z.input<typeof appointmentFormSchema>;
 
 export function AppointmentModal({
   isOpen,
@@ -198,6 +191,26 @@ export function AppointmentModal({
   const [error, setError] = useState<string | null>(null);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [clientsList, setClientsList] = useState(formData.clients);
+  // Map to store available manicurists for each service index
+  const [availableManicurists, setAvailableManicurists] = useState<
+    Record<number, Array<{ id: string; name: string }>>
+  >({});
+  // Map to track loading state for each service index
+  const [loadingManicurists, setLoadingManicurists] = useState<
+    Record<number, boolean>
+  >({});
+  // Store filtered services when using same manicurist
+  const [filteredServices, setFilteredServices] = useState<
+    Array<{
+      id: string;
+      name: string;
+      price: number;
+      duration: number;
+      type: string;
+    }>
+  >([]);
+  const [loadingManicuristServices, setLoadingManicuristServices] =
+    useState(false);
 
   const isEditing = !!appointment;
 
@@ -211,7 +224,7 @@ export function AppointmentModal({
     reset,
     formState: { errors },
   } = useForm<AppointmentFormData>({
-    resolver: zodResolver(createAppointmentSchema),
+    resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
       clientId: appointment?.client.id || '',
       scheduledAt: appointment
@@ -220,7 +233,7 @@ export function AppointmentModal({
       isScheduled: appointment?.isScheduled ?? true,
       notes: appointment?.notes || '',
       useSameManicurist: false,
-      primaryManicuristId: '',
+      primaryManicuristId: '' as string,
       services:
         appointment?.services.map(s => ({
           serviceId: s.service.id,
@@ -242,6 +255,7 @@ export function AppointmentModal({
   const watchUseSameManicurist = watch('useSameManicurist');
   const watchPrimaryManicurist = watch('primaryManicuristId');
   const watchIsScheduled = watch('isScheduled');
+  const watchScheduledAt = watch('scheduledAt');
 
   // Calculate totals
   const totalPrice =
@@ -253,20 +267,217 @@ export function AppointmentModal({
   const handleAddService = () => {
     append({
       serviceId: '',
-      manicuristId: watchUseSameManicurist ? watchPrimaryManicurist : '',
+      manicuristId: watchUseSameManicurist ? watchPrimaryManicurist || '' : '',
       price: 0,
       estimatedDuration: 0,
     });
   };
 
+  // Debounce helper for fetching available manicurists
+  const debounceTimerRef = useRef<Record<number, NodeJS.Timeout>>({});
+
+  // Fetch available manicurists for a specific service
+  const fetchAvailableManicurists = useCallback(
+    async (
+      index: number,
+      serviceId: string,
+      scheduledAt: string,
+      durationMinutes: number,
+      isScheduled: boolean
+    ) => {
+      if (!serviceId) {
+        setAvailableManicurists(prev => {
+          const updated = { ...prev };
+          delete updated[index];
+          return updated;
+        });
+        // Clear manicurist selection when service is cleared
+        setValue(`services.${index}.manicuristId`, '');
+        return;
+      }
+
+      setLoadingManicurists(prev => ({ ...prev, [index]: true }));
+
+      try {
+        const result = await getAvailableManicurists(
+          spaId,
+          branchId,
+          serviceId,
+          scheduledAt,
+          durationMinutes,
+          isScheduled,
+          appointment?.id
+        );
+
+        if (result.success && result.data) {
+          setAvailableManicurists(prev => ({
+            ...prev,
+            [index]: result.data!,
+          }));
+
+          // If current manicurist is not in available list, clear it
+          const currentManicuristId = watchServices?.[index]?.manicuristId;
+          if (
+            currentManicuristId &&
+            !result.data.some(m => m.id === currentManicuristId)
+          ) {
+            setValue(`services.${index}.manicuristId`, '');
+          }
+        } else {
+          setAvailableManicurists(prev => {
+            const updated = { ...prev };
+            delete updated[index];
+            return updated;
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching available manicurists:', err);
+        setAvailableManicurists(prev => {
+          const updated = { ...prev };
+          delete updated[index];
+          return updated;
+        });
+      } finally {
+        setLoadingManicurists(prev => ({ ...prev, [index]: false }));
+      }
+    },
+    [spaId, branchId, appointment?.id, watchServices, setValue]
+  );
+
+  // Fetch services for selected manicurist when using same manicurist
+  useEffect(() => {
+    const fetchManicuristServices = async () => {
+      if (watchUseSameManicurist && watchPrimaryManicurist) {
+        setLoadingManicuristServices(true);
+        try {
+          const result = await getManicuristServices(
+            watchPrimaryManicurist,
+            spaId,
+            branchId
+          );
+          if (result.success && result.data) {
+            setFilteredServices(result.data);
+            // Clear services that are not available for this manicurist
+            watchServices?.forEach((service, index) => {
+              if (
+                service.serviceId &&
+                !result.data!.some(s => s.id === service.serviceId)
+              ) {
+                setValue(`services.${index}.serviceId`, '');
+                setValue(`services.${index}.price`, 0);
+                setValue(`services.${index}.estimatedDuration`, 0);
+              }
+            });
+          } else {
+            setFilteredServices([]);
+          }
+        } catch (err) {
+          console.error('Error fetching manicurist services:', err);
+          setFilteredServices([]);
+        } finally {
+          setLoadingManicuristServices(false);
+        }
+      } else {
+        setFilteredServices([]);
+      }
+    };
+
+    fetchManicuristServices();
+  }, [
+    watchUseSameManicurist,
+    watchPrimaryManicurist,
+    spaId,
+    branchId,
+    watchServices,
+    setValue,
+  ]);
+
   // Handle service selection (auto-fill price and duration)
   const handleServiceSelect = (index: number, serviceId: string) => {
-    const service = formData.services.find(s => s.id === serviceId);
+    // Use filtered services if using same manicurist, otherwise use all services
+    const availableServices =
+      watchUseSameManicurist && filteredServices.length > 0
+        ? filteredServices
+        : formData.services;
+
+    const service = availableServices.find(s => s.id === serviceId);
     if (service) {
       setValue(`services.${index}.price`, service.price);
       setValue(`services.${index}.estimatedDuration`, service.duration);
+
+      // Fetch available manicurists for this service
+      const scheduledAt =
+        watchScheduledAt || format(new Date(), "yyyy-MM-dd'T'HH:mm");
+      const isScheduled = watchIsScheduled ?? true;
+
+      // Clear existing debounce timer for this index
+      if (debounceTimerRef.current[index]) {
+        clearTimeout(debounceTimerRef.current[index]);
+      }
+
+      // Debounce the fetch call
+      const timer = setTimeout(() => {
+        fetchAvailableManicurists(
+          index,
+          serviceId,
+          scheduledAt,
+          service.duration,
+          isScheduled
+        );
+      }, 300);
+
+      debounceTimerRef.current[index] = timer;
+    } else {
+      // Clear manicurists if service is cleared
+      setAvailableManicurists(prev => {
+        const updated = { ...prev };
+        delete updated[index];
+        return updated;
+      });
+      setValue(`services.${index}.manicuristId`, '');
     }
   };
+
+  // Effect to update available manicurists when date/time or walk-in status changes
+  useEffect(() => {
+    watchServices?.forEach((service, index) => {
+      if (service.serviceId && service.estimatedDuration) {
+        const scheduledAt =
+          watchScheduledAt || format(new Date(), "yyyy-MM-dd'T'HH:mm");
+        const isScheduled = watchIsScheduled;
+
+        // Clear existing debounce timer
+        if (debounceTimerRef.current[index]) {
+          clearTimeout(debounceTimerRef.current[index]);
+        }
+
+        // Debounce the fetch call
+        const timer = setTimeout(() => {
+          fetchAvailableManicurists(
+            index,
+            service.serviceId,
+            scheduledAt,
+            service.estimatedDuration,
+            isScheduled ?? true
+          );
+        }, 300);
+
+        debounceTimerRef.current[index] = timer;
+      }
+    });
+
+    // Cleanup timers on unmount
+    return () => {
+      Object.values(debounceTimerRef.current).forEach(timer => {
+        if (timer) clearTimeout(timer);
+      });
+    };
+  }, [
+    watchScheduledAt,
+    watchIsScheduled,
+    watchServices,
+    fetchAvailableManicurists,
+  ]);
 
   // Handle primary manicurist change (when using same for all)
   useEffect(() => {
@@ -305,12 +516,24 @@ export function AppointmentModal({
         return;
       }
 
+      // Extract only fields needed for server action (exclude UI-only fields)
+      const {
+        useSameManicurist: _useSameManicurist,
+        primaryManicuristId: _primaryManicuristId,
+        ...appointmentData
+      } = data;
+
       let result;
 
       if (isEditing) {
-        result = await updateAppointment(appointment.id, spaId, branchId, data);
+        result = await updateAppointment(
+          appointment.id,
+          spaId,
+          branchId,
+          appointmentData
+        );
       } else {
-        result = await createAppointment(spaId, branchId, data);
+        result = await createAppointment(spaId, branchId, appointmentData);
       }
 
       if (result.success) {
@@ -332,11 +555,46 @@ export function AppointmentModal({
     setClientsList(formData.clients);
   }, [formData.clients]);
 
+  // Load available manicurists when modal opens with existing appointment or services
+  useEffect(() => {
+    if (isOpen && watchServices && watchServices.length > 0) {
+      watchServices.forEach((service, index) => {
+        if (service.serviceId && service.estimatedDuration) {
+          const scheduledAt =
+            watchScheduledAt || format(new Date(), "yyyy-MM-dd'T'HH:mm");
+          const isScheduled = watchIsScheduled ?? true;
+
+          // Don't debounce initial load
+          fetchAvailableManicurists(
+            index,
+            service.serviceId,
+            scheduledAt,
+            service.estimatedDuration,
+            isScheduled
+          );
+        }
+      });
+    }
+  }, [
+    isOpen,
+    watchServices,
+    watchScheduledAt,
+    watchIsScheduled,
+    fetchAvailableManicurists,
+  ]);
+
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       reset();
       setError(null);
+      setAvailableManicurists({});
+      setLoadingManicurists({});
+      // Clear all timers
+      Object.values(debounceTimerRef.current).forEach(timer => {
+        if (timer) clearTimeout(timer);
+      });
+      debounceTimerRef.current = {};
     }
   }, [isOpen, reset]);
 
@@ -365,7 +623,7 @@ export function AppointmentModal({
         title={isEditing ? 'Editar Cita' : 'Nueva Cita'}
         size="xl"
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Error message */}
           {error && (
             <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
@@ -374,13 +632,13 @@ export function AppointmentModal({
           )}
 
           {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
               Información Básica
             </h3>
 
             {/* Client Selection */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-end gap-2">
                 <div className="flex-1">
                   <Controller
@@ -415,25 +673,27 @@ export function AppointmentModal({
             </div>
 
             {/* Walk-in Toggle */}
-            <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <div className="flex items-center gap-3">
+            <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+              <div className="flex items-center gap-2">
                 <Controller
                   name="isScheduled"
                   control={control}
                   render={({ field }) => (
                     <Switch
-                      checked={field.value}
+                      checked={field.value ?? true}
                       onCheckedChange={field.onChange}
                     />
                   )}
                 />
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Cita agendada{' '}
-                  {watchIsScheduled ? '(activado)' : '(desactivado - walk-in)'}
+                  {(watchIsScheduled ?? true)
+                    ? '(activado)'
+                    : '(desactivado - walk-in)'}
                 </label>
               </div>
               {!watchIsScheduled && (
-                <p className="text-sm text-amber-600 dark:text-amber-400 mt-3 flex items-start gap-2">
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-start gap-1.5">
                   <span>ℹ️</span>
                   <span>
                     <strong>Walk-in:</strong> La cita comenzará inmediatamente
@@ -451,6 +711,11 @@ export function AppointmentModal({
                 {...register('scheduledAt')}
                 error={errors.scheduledAt?.message}
                 required
+                min={
+                  !isEditing
+                    ? format(new Date(), "yyyy-MM-dd'T'HH:mm")
+                    : undefined
+                }
               />
             )}
 
@@ -460,14 +725,14 @@ export function AppointmentModal({
               placeholder="Notas adicionales sobre la cita..."
               {...register('notes')}
               error={errors.notes?.message}
-              rows={3}
+              rows={2}
             />
           </div>
 
           {/* Services Section */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                 Servicios
               </h3>
               <Button
@@ -482,14 +747,14 @@ export function AppointmentModal({
 
             {/* Same Manicurist Toggle */}
             {fields.length > 1 && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-center gap-3">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <div className="flex items-center gap-2">
                   <Controller
                     name="useSameManicurist"
                     control={control}
                     render={({ field }) => (
                       <Switch
-                        checked={field.value}
+                        checked={field.value ?? false}
                         onCheckedChange={field.onChange}
                       />
                     )}
@@ -500,7 +765,7 @@ export function AppointmentModal({
                 </div>
 
                 {watchUseSameManicurist && (
-                  <div className="mt-4">
+                  <div className="mt-2">
                     <Controller
                       name="primaryManicuristId"
                       control={control}
@@ -512,7 +777,7 @@ export function AppointmentModal({
                             value: m.id,
                             label: m.name,
                           }))}
-                          value={field.value}
+                          value={field.value || ''}
                           onChange={field.onChange}
                           required={watchUseSameManicurist}
                         />
@@ -525,8 +790,8 @@ export function AppointmentModal({
 
             {/* Services List */}
             {fields.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
-                <p className="text-gray-500 dark:text-gray-400 mb-4">
+              <div className="text-center py-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <p className="text-gray-500 dark:text-gray-400 mb-3 text-sm">
                   No hay servicios agregados a esta cita
                 </p>
                 <Button
@@ -539,14 +804,14 @@ export function AppointmentModal({
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {fields.map((field, index) => (
                   <div
                     key={field.id}
-                    className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4"
+                    className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-3"
                   >
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-gray-900 dark:text-white">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
                         Servicio {index + 1}
                       </h4>
                       <Button
@@ -559,29 +824,59 @@ export function AppointmentModal({
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* Service Selection */}
                       <Controller
                         name={`services.${index}.serviceId`}
                         control={control}
-                        render={({ field: selectField }) => (
-                          <SearchSelect
-                            label="Servicio"
-                            placeholder="Seleccionar servicio..."
-                            options={formData.services.map(s => ({
-                              value: s.id,
-                              label: `${s.name} - $${s.price.toLocaleString()}`,
-                              searchText: `${s.name} ${s.type}`,
-                            }))}
-                            value={selectField.value}
-                            onChange={value => {
-                              selectField.onChange(value);
-                              handleServiceSelect(index, value);
-                            }}
-                            error={errors.services?.[index]?.serviceId?.message}
-                            required
-                          />
-                        )}
+                        render={({ field: selectField }) => {
+                          // Use filtered services if using same manicurist, otherwise use all services
+                          const availableServices =
+                            watchUseSameManicurist &&
+                            filteredServices.length > 0
+                              ? filteredServices
+                              : formData.services;
+
+                          return (
+                            <SearchSelect
+                              label="Servicio"
+                              placeholder={
+                                loadingManicuristServices
+                                  ? 'Cargando servicios...'
+                                  : watchUseSameManicurist &&
+                                      filteredServices.length === 0
+                                    ? 'No hay servicios disponibles para esta manicurista'
+                                    : 'Seleccionar servicio...'
+                              }
+                              options={Array.from(
+                                new Map(
+                                  availableServices.map(s => [
+                                    s.id,
+                                    {
+                                      value: s.id,
+                                      label: `${s.name} - $${s.price.toLocaleString()}`,
+                                      searchText: `${s.name} ${s.type}`,
+                                    },
+                                  ])
+                                ).values()
+                              )}
+                              value={selectField.value}
+                              onChange={value => {
+                                selectField.onChange(value);
+                                handleServiceSelect(index, value);
+                              }}
+                              error={
+                                errors.services?.[index]?.serviceId?.message
+                              }
+                              required
+                              disabled={
+                                loadingManicuristServices ||
+                                (watchUseSameManicurist &&
+                                  filteredServices.length === 0)
+                              }
+                            />
+                          );
+                        }}
                       />
 
                       {/* Manicurist Selection (if not using same for all) */}
@@ -589,22 +884,40 @@ export function AppointmentModal({
                         <Controller
                           name={`services.${index}.manicuristId`}
                           control={control}
-                          render={({ field: selectField }) => (
-                            <SearchSelect
-                              label="Manicurista"
-                              placeholder="Seleccionar manicurista..."
-                              options={formData.manicurists.map(m => ({
-                                value: m.id,
-                                label: m.name,
-                              }))}
-                              value={selectField.value}
-                              onChange={selectField.onChange}
-                              error={
-                                errors.services?.[index]?.manicuristId?.message
-                              }
-                              required
-                            />
-                          )}
+                          render={({ field: selectField }) => {
+                            const serviceId = watchServices?.[index]?.serviceId;
+                            const isDisabled =
+                              !serviceId || loadingManicurists[index];
+                            const manicuristOptions =
+                              availableManicurists[index] || [];
+
+                            return (
+                              <SearchSelect
+                                label="Manicurista"
+                                placeholder={
+                                  isDisabled
+                                    ? serviceId
+                                      ? loadingManicurists[index]
+                                        ? 'Cargando manicuristas...'
+                                        : 'No hay manicuristas disponibles'
+                                      : 'Primero seleccione un servicio'
+                                    : 'Seleccionar manicurista...'
+                                }
+                                options={manicuristOptions.map(m => ({
+                                  value: m.id,
+                                  label: m.name,
+                                }))}
+                                value={selectField.value}
+                                onChange={selectField.onChange}
+                                error={
+                                  errors.services?.[index]?.manicuristId
+                                    ?.message
+                                }
+                                required
+                                disabled={isDisabled}
+                              />
+                            );
+                          }}
                         />
                       )}
 
@@ -640,44 +953,44 @@ export function AppointmentModal({
 
             {/* Totals */}
             {fields.length > 0 && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Total de Servicios
                     </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                       {fields.length}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Precio Total
                     </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                       ${totalPrice.toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Duración Total
                     </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                       {totalDuration} min
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Hora Estimada de Fin
                     </p>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                    <p className="text-base font-bold text-gray-900 dark:text-white">
                       {watchIsScheduled && watchServices.length > 0
                         ? format(
                             new Date(
                               new Date(watch('scheduledAt')).getTime() +
                                 totalDuration * 60000
                             ),
-                            'HH:mm'
+                            'h:mm a'
                           )
                         : '--:--'}
                     </p>
@@ -688,7 +1001,7 @@ export function AppointmentModal({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 pt-3 border-t">
             <Button
               type="button"
               variant="secondary"

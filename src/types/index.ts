@@ -6,6 +6,8 @@ export * from './ui';
 export * from './manicurists';
 export * from './appointments';
 export * from './payments';
+export * from './spaAccounts';
+export * from './expenses';
 export type {
   Spa,
   Branch,

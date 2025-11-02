@@ -291,10 +291,18 @@ export const createAppointmentSchema = z.object({
   clientId: z.string().cuid('Cliente inválido'),
   scheduledAt: z.string().datetime('Fecha y hora inválida'),
   isScheduled: z.boolean().default(true),
-  notes: z.string().max(500, 'Máximo 500 caracteres').optional(),
+  notes: z.string().max(500, 'Máximo 500 caracteres').default(''),
   services: z
     .array(appointmentServiceSchema)
     .min(1, 'Debe agregar al menos un servicio'),
+});
+
+/**
+ * Extended schema for appointment form (includes UI-only fields)
+ */
+export const appointmentFormSchema = createAppointmentSchema.extend({
+  useSameManicurist: z.boolean().default(false),
+  primaryManicuristId: z.string().default(''),
 });
 
 /**
@@ -473,4 +481,87 @@ export const updateBranchSettingsSchema = z.object({
 export type UpdateBranchInfoData = z.infer<typeof updateBranchInfoSchema>;
 export type UpdateBranchSettingsData = z.infer<
   typeof updateBranchSettingsSchema
+>;
+
+// =====================================================
+// SPA ACCOUNT SCHEMAS
+// =====================================================
+
+export const createSpaAccountSchema = z.object({
+  name: baseNameSchema,
+  description: z.string().optional(),
+  type: z.enum(['BANK_ACCOUNT', 'CASH', 'DIGITAL_WALLET', 'CREDIT_CARD'], {
+    required_error: 'El tipo de cuenta es requerido',
+  }),
+  bank: z.string().optional(),
+  accountNumber: z.string().optional(),
+  balance: z.number().min(0, 'El balance no puede ser negativo').default(0),
+  currency: z.string().default('COP'),
+  isActive: z.boolean().default(true),
+  branchId: z.string().optional(), // Optional for corporate accounts
+});
+
+export const updateSpaAccountSchema = createSpaAccountSchema.partial();
+
+// SpaAccount type exports
+export type CreateSpaAccountData = z.infer<typeof createSpaAccountSchema>;
+export type UpdateSpaAccountData = z.infer<typeof updateSpaAccountSchema>;
+
+// =====================================================
+// EXPENSE SCHEMAS
+// =====================================================
+
+export const createExpenseSchema = z.object({
+  name: baseNameSchema,
+  description: z.string().optional(),
+  amount: z.number().min(0, 'El monto debe ser mayor a 0'),
+  type: z.enum(['FIXED', 'VARIABLE'], {
+    required_error: 'El tipo de gasto es requerido',
+  }),
+  category: z.enum(
+    [
+      'RENT',
+      'SALARIES',
+      'MARKETING',
+      'SUPPLIES',
+      'UTILITIES',
+      'INSURANCE',
+      'MAINTENANCE',
+      'EQUIPMENT',
+      'SOFTWARE',
+      'PROFESSIONAL',
+      'TRAINING',
+      'TRAVEL',
+      'FOOD',
+      'CLEANING',
+      'SECURITY',
+      'OTHER',
+    ],
+    {
+      required_error: 'La categoría es requerida',
+    }
+  ),
+  frequency: z.enum(['MONTHLY', 'WEEKLY', 'DAILY', 'ONE_TIME'], {
+    required_error: 'La frecuencia es requerida',
+  }),
+  dueDate: z.string().optional(), // ISO date string
+  isActive: z.boolean().default(true),
+});
+
+export const updateExpenseSchema = createExpenseSchema.partial();
+
+export const createExpensePaymentSchema = z.object({
+  expenseId: z.string().cuid('ID de gasto inválido'),
+  spaAccountId: z.string().cuid('Debe seleccionar una cuenta'),
+  amount: z.number().min(0, 'El monto debe ser mayor a 0'),
+  paidAt: z.string().optional(), // ISO date string
+  reference: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+// Expense type exports
+export type CreateExpenseData = z.infer<typeof createExpenseSchema>;
+export type UpdateExpenseData = z.infer<typeof updateExpenseSchema>;
+export type CreateExpensePaymentData = z.infer<
+  typeof createExpensePaymentSchema
 >;

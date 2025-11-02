@@ -546,3 +546,152 @@ export async function getPaymentMethodsWithTotals(
     };
   });
 }
+
+// =====================================================
+// SPA ACCOUNTS QUERIES
+// =====================================================
+
+/**
+ * Get all spa accounts for a spa
+ */
+export async function getSpaAccounts(spaId: string) {
+  const accounts = await prisma.spaAccount.findMany({
+    where: { spaId },
+    include: {
+      branch: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+        },
+      },
+      _count: {
+        select: {
+          paymentsReceived: true,
+          expensePayments: true,
+        },
+      },
+    },
+    orderBy: { name: 'asc' },
+  });
+
+  return accounts;
+}
+
+/**
+ * Get spa accounts with statistics
+ */
+export async function getSpaAccountsWithStats(spaId: string) {
+  const accounts = await prisma.spaAccount.findMany({
+    where: { spaId },
+    include: {
+      branch: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+        },
+      },
+      _count: {
+        select: {
+          paymentsReceived: true,
+          expensePayments: true,
+        },
+      },
+      paymentsReceived: {
+        select: {
+          amount: true,
+        },
+      },
+      expensePayments: {
+        select: {
+          amount: true,
+        },
+      },
+    },
+    orderBy: { name: 'asc' },
+  });
+
+  // Calculate totals
+  return accounts.map(account => {
+    const totalReceived = account.paymentsReceived.reduce(
+      (sum, payment) => sum + payment.amount,
+      0
+    );
+    const totalPaid = account.expensePayments.reduce(
+      (sum, payment) => sum + payment.amount,
+      0
+    );
+    const netBalance = totalReceived - totalPaid;
+
+    // Remove raw payment arrays
+    const {
+      paymentsReceived: _received,
+      expensePayments: _paid,
+      ...accountWithoutPayments
+    } = account;
+
+    return {
+      ...accountWithoutPayments,
+      totalReceived,
+      totalPaid,
+      netBalance,
+    };
+  });
+}
+
+/**
+ * Get active spa accounts for dropdowns
+ */
+export async function getActiveSpaAccounts(spaId: string) {
+  const accounts = await prisma.spaAccount.findMany({
+    where: {
+      spaId,
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      bank: true,
+      accountNumber: true,
+      balance: true,
+      isActive: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+
+  return accounts;
+}
+
+/**
+ * Get single spa account by ID
+ */
+export async function getSpaAccountById(accountId: string) {
+  const account = await prisma.spaAccount.findUnique({
+    where: { id: accountId },
+    include: {
+      spa: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      branch: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+        },
+      },
+      _count: {
+        select: {
+          paymentsReceived: true,
+          expensePayments: true,
+        },
+      },
+    },
+  });
+
+  return account;
+}

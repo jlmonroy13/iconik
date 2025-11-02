@@ -101,19 +101,62 @@ export async function getManicuristById(manicuristId: string) {
 }
 
 /**
- * Get available manicurists for a specific service and date
- * Used by: appointment booking forms
+ * Helper function to convert time string (HH:mm) to minutes since midnight
+ */
+function timeStringToMinutes(timeString: string): number {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+/**
+ * Helper function to check if a time falls within a schedule range
+ */
+function isTimeWithinSchedule(
+  timeMinutes: number,
+  startTime: string,
+  endTime: string
+): boolean {
+  const startMinutes = timeStringToMinutes(startTime);
+  const endMinutes = timeStringToMinutes(endTime);
+  return timeMinutes >= startMinutes && timeMinutes <= endMinutes;
+}
+
+/**
+ * Get available manicurists for a specific service, date, and time
+ * This function checks:
+ * - Service assignment
+ * - Day of week schedule
+ * - Specific date availability exceptions
+ * - Time falls within working hours
+ * - Conflicts with existing appointments
  */
 export async function getAvailableManicuristsForService(
   spaId: string,
   branchId: string,
   serviceId: string,
-  date: Date
+  scheduledAt: Date,
+  durationMinutes: number,
+  excludeAppointmentId?: string
 ) {
-  const dayOfWeek = date.getDay();
-  const dateOnly = new Date(date.setHours(0, 0, 0, 0));
+  const dayOfWeek = scheduledAt.getDay();
+  // Create dateOnly without mutating the original date
+  const dateOnly = new Date(scheduledAt);
+  dateOnly.setHours(0, 0, 0, 0);
 
-  return await prisma.manicurist.findMany({
+  // Get time in minutes since midnight
+  const scheduledHour = scheduledAt.getHours();
+  const scheduledMinute = scheduledAt.getMinutes();
+  const scheduledTimeMinutes = scheduledHour * 60 + scheduledMinute;
+
+  // Calculate end time
+  const estimatedEndTime = new Date(
+    scheduledAt.getTime() + durationMinutes * 60000
+  );
+  const endTimeMinutes =
+    estimatedEndTime.getHours() * 60 + estimatedEndTime.getMinutes();
+
+  // First, get manicurists that match basic criteria
+  const manicurists = (await prisma.manicurist.findMany({
     where: {
       spaId,
       branchId,
@@ -147,16 +190,106 @@ export async function getAvailableManicuristsForService(
     },
     include: {
       schedules: {
-        where: { dayOfWeek },
+        where: { dayOfWeek, isActive: true },
       },
       availability: {
         where: { date: dateOnly },
       },
       manicuristServices: {
-        where: { serviceId },
+        where: { serviceId, isActive: true },
+      },
+      // Get conflicting appointments to filter them out
+      appointments: {
+        where: {
+          id: excludeAppointmentId ? { not: excludeAppointmentId } : undefined,
+          status: {
+            in: ['SCHEDULED', 'IN_PROGRESS'],
+          },
+          scheduledAt: {
+            gte: new Date(dateOnly),
+            lt: new Date(dateOnly.getTime() + 24 * 60 * 60 * 1000), // Next day
+          },
+        },
+        include: {
+          services: true,
+        },
       },
     },
+  })) as Array<{
+    id: string;
+    name: string;
+    commission: number;
+    isActive: boolean;
+    schedules: Array<{ startTime: string; endTime: string }>;
+    availability: Array<{
+      startTime: string | null;
+      endTime: string | null;
+      isAvailable: boolean;
+    }>;
+    appointments: Array<{
+      scheduledAt: Date;
+      services: Array<{ manicuristId: string; estimatedDuration: number }>;
+    }>;
+  }>;
+
+  // Filter manicurists based on time constraints and conflicts
+  const availableManicurists = manicurists.filter(manicurist => {
+    // Check if time falls within working hours
+    const schedule = manicurist.schedules[0];
+    const specificAvailability = manicurist.availability[0];
+
+    let startTime: string;
+    let endTime: string;
+
+    // Use specific availability if exists, otherwise use regular schedule
+    if (specificAvailability) {
+      startTime =
+        specificAvailability.startTime || schedule?.startTime || '00:00';
+      endTime = specificAvailability.endTime || schedule?.endTime || '23:59';
+    } else if (schedule) {
+      startTime = schedule.startTime;
+      endTime = schedule.endTime;
+    } else {
+      // No schedule found, skip this manicurist
+      return false;
+    }
+
+    // Check if scheduled time and end time fall within working hours
+    if (
+      !isTimeWithinSchedule(scheduledTimeMinutes, startTime, endTime) ||
+      !isTimeWithinSchedule(endTimeMinutes, startTime, endTime)
+    ) {
+      return false;
+    }
+
+    // Check for appointment conflicts
+    const hasConflict = manicurist.appointments.some(appointment => {
+      const aptStartTime = new Date(appointment.scheduledAt);
+      // Sum duration of all services for this manicurist in this appointment
+      const aptDuration = appointment.services
+        .filter(svc => svc.manicuristId === manicurist.id)
+        .reduce((sum, svc) => sum + svc.estimatedDuration, 0);
+      const aptEndTime = new Date(aptStartTime.getTime() + aptDuration * 60000);
+
+      // Check for time overlap
+      const overlap =
+        (scheduledAt >= aptStartTime && scheduledAt < aptEndTime) ||
+        (estimatedEndTime > aptStartTime && estimatedEndTime <= aptEndTime) ||
+        (scheduledAt <= aptStartTime && estimatedEndTime >= aptEndTime);
+
+      return overlap;
+    });
+
+    return !hasConflict;
   });
+
+  // Return only the basic fields needed for dropdown
+  return availableManicurists.map(m => ({
+    id: m.id,
+    name: m.name,
+    commission: m.commission,
+    isActive: m.isActive,
+  }));
 }
 
 /**

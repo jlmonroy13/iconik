@@ -5,6 +5,7 @@ import {
   getPayments,
   getPaymentStats,
   getPaymentMethodsWithTotals,
+  getSpaAccountsWithStats,
 } from './queries';
 import { PaymentsClient } from './components/PaymentsClient';
 import type { PaymentFilters } from '@/types/payments';
@@ -79,23 +80,34 @@ export default async function PaymentsPage({
   const pageNumber = parseInt(page);
   const limitNumber = parseInt(limit);
 
-  // Fetch payments, stats, and payment methods in parallel
-  const [paymentsResult, stats, paymentMethods] = await Promise.all([
-    getPayments({
-      spaId,
-      branchId,
-      filters,
-      page: pageNumber,
-      limit: limitNumber,
-    }),
-    getPaymentStats({
-      spaId,
-      branchId,
-      dateFrom: filters.dateFrom,
-      dateTo: filters.dateTo,
-    }),
-    getPaymentMethodsWithTotals(spaId),
-  ]);
+  // Fetch payments, stats, payment methods, spa accounts, and branches in parallel
+  const [paymentsResult, stats, paymentMethods, spaAccounts, branches] =
+    await Promise.all([
+      getPayments({
+        spaId,
+        branchId,
+        filters,
+        page: pageNumber,
+        limit: limitNumber,
+      }),
+      getPaymentStats({
+        spaId,
+        branchId,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+      }),
+      getPaymentMethodsWithTotals(spaId),
+      getSpaAccountsWithStats(spaId),
+      prisma.branch.findMany({
+        where: { spaId },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+        },
+        orderBy: { name: 'asc' },
+      }),
+    ]);
 
   // Calculate pagination info
   const totalPages = Math.ceil(paymentsResult.totalCount / limitNumber);
@@ -107,6 +119,8 @@ export default async function PaymentsPage({
       payments={paymentsResult.payments}
       stats={stats}
       paymentMethods={paymentMethods}
+      spaAccounts={spaAccounts}
+      branches={branches}
       branch={branch}
       spaId={spaId}
       branchId={branchId}

@@ -190,10 +190,11 @@ export async function getAppointmentFormData(
       },
     }),
 
-    // Get services for this spa
+    // Get services for this spa/branch
     prisma.service.findMany({
       where: {
         spaId,
+        ...(branchId && { branchId }),
         isActive: true,
       },
       select: {

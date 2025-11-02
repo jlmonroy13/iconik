@@ -10,6 +10,100 @@ import {
   cancelAppointmentSchema,
   addAppointmentServiceSchema,
 } from '@/types/forms';
+import { getAvailableManicuristsForService } from '../manicurists/queries';
+
+/**
+ * Get services assigned to a specific manicurist
+ */
+export async function getManicuristServices(
+  manicuristId: string,
+  spaId: string,
+  branchId?: string
+): Promise<
+  ServerActionResult<
+    Array<{
+      id: string;
+      name: string;
+      price: number;
+      duration: number;
+      type: string;
+    }>
+  >
+> {
+  try {
+    // Verify manicurist exists
+    const manicurist = await prisma.manicurist.findUnique({
+      where: { id: manicuristId },
+      select: { id: true, spaId: true, branchId: true },
+    });
+
+    if (!manicurist) {
+      return {
+        success: false,
+        error: 'Manicurista no encontrada',
+      };
+    }
+
+    // Get services directly from ManicuristService with proper filtering
+    const manicuristServices = await prisma.manicuristService.findMany({
+      where: {
+        manicuristId,
+        isActive: true,
+        spaId,
+        ...(branchId && { branchId }),
+      },
+      include: {
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+            type: true,
+            isActive: true,
+            spaId: true,
+            branchId: true,
+          },
+        },
+      },
+    });
+
+    // Filter services that are active and match branch if specified
+    const services = manicuristServices
+      .map(ms => ms.service)
+      .filter(
+        (service): service is NonNullable<typeof service> =>
+          service !== null &&
+          service.isActive === true &&
+          service.spaId === spaId &&
+          (!branchId || !service.branchId || service.branchId === branchId)
+      )
+      .map(service => ({
+        id: service.id,
+        name: service.name,
+        price: service.price,
+        duration: service.duration,
+        type: service.type,
+      }));
+
+    return {
+      success: true,
+      data: services,
+    };
+  } catch (error) {
+    console.error('Error getting manicurist services:', error);
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message || 'Error al obtener servicios de la manicurista',
+      };
+    }
+    return {
+      success: false,
+      error: 'Error inesperado al obtener servicios de la manicurista',
+    };
+  }
+}
 
 // =====================================================
 // SERVER ACTIONS
@@ -492,6 +586,66 @@ export async function addServiceToAppointment(
     return {
       success: false,
       error: 'Error inesperado al agregar el servicio',
+    };
+  }
+}
+
+/**
+ * Get available manicurists for a service, date, and time
+ * This filters manicurists based on:
+ * - Service assignment
+ * - Schedule availability
+ * - Time conflicts with existing appointments
+ */
+export async function getAvailableManicurists(
+  spaId: string,
+  branchId: string,
+  serviceId: string,
+  scheduledAt: string, // ISO string
+  durationMinutes: number,
+  isScheduled: boolean,
+  excludeAppointmentId?: string
+): Promise<
+  ServerActionResult<
+    Array<{
+      id: string;
+      name: string;
+      commission: number;
+      isActive: boolean;
+    }>
+  >
+> {
+  try {
+    // For walk-in, use current time
+    const scheduledDate = isScheduled ? new Date(scheduledAt) : new Date();
+
+    // Get available manicurists
+    const manicurists = await getAvailableManicuristsForService(
+      spaId,
+      branchId,
+      serviceId,
+      scheduledDate,
+      durationMinutes,
+      excludeAppointmentId
+    );
+
+    return {
+      success: true,
+      data: manicurists,
+    };
+  } catch (error) {
+    console.error('Error getting available manicurists:', error);
+
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message || 'Error al obtener manicuristas disponibles',
+      };
+    }
+
+    return {
+      success: false,
+      error: 'Error inesperado al obtener manicuristas disponibles',
     };
   }
 }

@@ -481,3 +481,324 @@ export async function togglePaymentMethodStatus(
     };
   }
 }
+
+// ============================================
+// SPA ACCOUNT OPERATIONS
+// ============================================
+
+/**
+ * Create a new spa account
+ */
+export async function createSpaAccount(
+  spaId: string,
+  data: {
+    name: string;
+    description?: string;
+    type: 'BANK_ACCOUNT' | 'CASH' | 'DIGITAL_WALLET' | 'CREDIT_CARD';
+    bank?: string;
+    accountNumber?: string;
+    balance: number;
+    currency?: string;
+    isActive: boolean;
+    branchId?: string;
+  }
+): Promise<ServerActionResult<{ id: string; name: string }>> {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'BRANCH_ADMIN') {
+      return { success: false, error: 'No autorizado' };
+    }
+
+    // Verify user has access to this spa
+    if (session.user.spaId !== spaId) {
+      return { success: false, error: 'No tienes acceso a este spa' };
+    }
+
+    // Check if an account with the same name already exists for this spa
+    const existingAccount = await prisma.spaAccount.findFirst({
+      where: {
+        spaId,
+        name: data.name,
+      },
+    });
+
+    if (existingAccount) {
+      return {
+        success: false,
+        error: 'Ya existe una cuenta con este nombre',
+      };
+    }
+
+    // Create spa account
+    const spaAccount = await prisma.spaAccount.create({
+      data: {
+        spaId,
+        name: data.name,
+        description: data.description || null,
+        type: data.type,
+        bank: data.bank || null,
+        accountNumber: data.accountNumber || null,
+        balance: data.balance,
+        currency: data.currency || 'COP',
+        isActive: data.isActive,
+        branchId: data.branchId || null,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    revalidatePath(`/dashboard/branch-admin/${spaId}/*/payments`);
+
+    return { success: true, data: spaAccount };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error al crear cuenta del spa',
+    };
+  }
+}
+
+/**
+ * Update an existing spa account
+ */
+export async function updateSpaAccount(
+  accountId: string,
+  spaId: string,
+  data: {
+    name?: string;
+    description?: string;
+    type?: 'BANK_ACCOUNT' | 'CASH' | 'DIGITAL_WALLET' | 'CREDIT_CARD';
+    bank?: string;
+    accountNumber?: string;
+    balance?: number;
+    currency?: string;
+    isActive?: boolean;
+    branchId?: string;
+  }
+): Promise<ServerActionResult<{ id: string; name: string }>> {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'BRANCH_ADMIN') {
+      return { success: false, error: 'No autorizado' };
+    }
+
+    // Verify user has access to this spa
+    if (session.user.spaId !== spaId) {
+      return { success: false, error: 'No tienes acceso a este spa' };
+    }
+
+    // Verify account exists and belongs to this spa
+    const existingAccount = await prisma.spaAccount.findUnique({
+      where: { id: accountId },
+      select: { spaId: true },
+    });
+
+    if (!existingAccount) {
+      return { success: false, error: 'Cuenta no encontrada' };
+    }
+
+    if (existingAccount.spaId !== spaId) {
+      return {
+        success: false,
+        error: 'Cuenta no pertenece a este spa',
+      };
+    }
+
+    // If name is being changed, check if another account with the same name exists
+    if (data.name) {
+      const duplicateAccount = await prisma.spaAccount.findFirst({
+        where: {
+          spaId,
+          name: data.name,
+          id: { not: accountId },
+        },
+      });
+
+      if (duplicateAccount) {
+        return {
+          success: false,
+          error: 'Ya existe otra cuenta con este nombre',
+        };
+      }
+    }
+
+    // Update spa account
+    const spaAccount = await prisma.spaAccount.update({
+      where: { id: accountId },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && {
+          description: data.description || null,
+        }),
+        ...(data.type !== undefined && { type: data.type }),
+        ...(data.bank !== undefined && { bank: data.bank || null }),
+        ...(data.accountNumber !== undefined && {
+          accountNumber: data.accountNumber || null,
+        }),
+        ...(data.balance !== undefined && { balance: data.balance }),
+        ...(data.currency !== undefined && { currency: data.currency }),
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+        ...(data.branchId !== undefined && { branchId: data.branchId || null }),
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    revalidatePath(`/dashboard/branch-admin/${spaId}/*/payments`);
+
+    return { success: true, data: spaAccount };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error al actualizar cuenta del spa',
+    };
+  }
+}
+
+/**
+ * Delete a spa account
+ */
+export async function deleteSpaAccount(
+  accountId: string,
+  spaId: string
+): Promise<ServerActionResult<void>> {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'BRANCH_ADMIN') {
+      return { success: false, error: 'No autorizado' };
+    }
+
+    // Verify user has access to this spa
+    if (session.user.spaId !== spaId) {
+      return { success: false, error: 'No tienes acceso a este spa' };
+    }
+
+    // Verify account exists and belongs to this spa
+    const existingAccount = await prisma.spaAccount.findUnique({
+      where: { id: accountId },
+      select: {
+        spaId: true,
+        _count: {
+          select: {
+            paymentsReceived: true,
+            expensePayments: true,
+          },
+        },
+      },
+    });
+
+    if (!existingAccount) {
+      return { success: false, error: 'Cuenta no encontrada' };
+    }
+
+    if (existingAccount.spaId !== spaId) {
+      return {
+        success: false,
+        error: 'Cuenta no pertenece a este spa',
+      };
+    }
+
+    // Check if account has been used
+    if (
+      existingAccount._count.paymentsReceived > 0 ||
+      existingAccount._count.expensePayments > 0
+    ) {
+      return {
+        success: false,
+        error:
+          'No se puede eliminar una cuenta que ha sido usada. Considere desactivarla en su lugar.',
+      };
+    }
+
+    // Delete spa account
+    await prisma.spaAccount.delete({
+      where: { id: accountId },
+    });
+
+    revalidatePath(`/dashboard/branch-admin/${spaId}/*/payments`);
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error al eliminar cuenta del spa',
+    };
+  }
+}
+
+/**
+ * Toggle spa account active status
+ */
+export async function toggleSpaAccountStatus(
+  accountId: string,
+  spaId: string
+): Promise<ServerActionResult<{ id: string; isActive: boolean }>> {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'BRANCH_ADMIN') {
+      return { success: false, error: 'No autorizado' };
+    }
+
+    // Verify user has access to this spa
+    if (session.user.spaId !== spaId) {
+      return { success: false, error: 'No tienes acceso a este spa' };
+    }
+
+    // Verify account exists and belongs to this spa
+    const existingAccount = await prisma.spaAccount.findUnique({
+      where: { id: accountId },
+      select: {
+        spaId: true,
+        isActive: true,
+      },
+    });
+
+    if (!existingAccount) {
+      return { success: false, error: 'Cuenta no encontrada' };
+    }
+
+    if (existingAccount.spaId !== spaId) {
+      return {
+        success: false,
+        error: 'Cuenta no pertenece a este spa',
+      };
+    }
+
+    // Toggle active status
+    const spaAccount = await prisma.spaAccount.update({
+      where: { id: accountId },
+      data: {
+        isActive: !existingAccount.isActive,
+      },
+      select: {
+        id: true,
+        isActive: true,
+      },
+    });
+
+    revalidatePath(`/dashboard/branch-admin/${spaId}/*/payments`);
+
+    return { success: true, data: spaAccount };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error al cambiar estado de la cuenta',
+    };
+  }
+}
