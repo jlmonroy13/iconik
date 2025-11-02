@@ -13,6 +13,9 @@ import {
   isSameMonth,
   isSameDay,
   isToday,
+  isWithinInterval,
+  startOfDay,
+  endOfDay,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui';
@@ -22,12 +25,16 @@ interface AppointmentCalendarProps {
   appointments: AppointmentWithDetails[];
   selectedDate?: Date;
   onDateSelect: (date: Date) => void;
+  dateFrom?: Date;
+  dateTo?: Date;
 }
 
 export function AppointmentCalendar({
   appointments,
   selectedDate,
   onDateSelect,
+  dateFrom,
+  dateTo,
 }: AppointmentCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -56,13 +63,13 @@ export function AppointmentCalendar({
     ).length;
   };
 
-  // Get indicator color based on appointment count
-  const getIndicatorColor = (count: number) => {
+  // Get indicator border color based on appointment count
+  const getIndicatorBorderColor = (count: number) => {
     if (count === 0) return null;
-    if (count <= 2) return 'bg-green-400';
-    if (count <= 4) return 'bg-blue-400';
-    if (count <= 6) return 'bg-amber-400';
-    return 'bg-red-400';
+    if (count <= 2) return 'border-b-2 border-green-400';
+    if (count <= 4) return 'border-b-2 border-blue-400';
+    if (count <= 6) return 'border-b-2 border-amber-400';
+    return 'border-b-2 border-red-400';
   };
 
   // Navigate months
@@ -128,40 +135,108 @@ export function AppointmentCalendar({
       <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((day, index) => {
           const appointmentCount = getAppointmentCountForDay(day);
-          const indicatorColor = getIndicatorColor(appointmentCount);
+          const indicatorBorderColor =
+            getIndicatorBorderColor(appointmentCount);
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isTodayDate = isToday(day);
           const isSelected = selectedDate && isSameDay(day, selectedDate);
+
+          // Check if day is in filter range and determine position
+          const isInFilterRange =
+            dateFrom &&
+            dateTo &&
+            isWithinInterval(day, {
+              start: startOfDay(dateFrom),
+              end: endOfDay(dateTo),
+            });
+
+          // Determine if it's the start or end of a consecutive range
+          const prevDay = addDays(day, -1);
+          const nextDay = addDays(day, 1);
+
+          const isFilterRangeStart =
+            isInFilterRange &&
+            (!dateFrom ||
+              isSameDay(day, dateFrom) ||
+              !isWithinInterval(prevDay, {
+                start: startOfDay(dateFrom),
+                end: endOfDay(dateTo),
+              }));
+
+          const isFilterRangeEnd =
+            isInFilterRange &&
+            (!dateTo ||
+              isSameDay(day, dateTo) ||
+              !isWithinInterval(nextDay, {
+                start: startOfDay(dateFrom),
+                end: endOfDay(dateTo),
+              }));
+
+          // Determine classes based on state
+          const baseClasses = `
+            relative aspect-square p-2 text-sm transition-colors
+            ${!isCurrentMonth ? 'text-gray-600 dark:text-gray-600' : 'text-gray-100 dark:text-gray-100'}
+          `;
+
+          let dayClasses = baseClasses;
+
+          if (isSelected) {
+            // Selected day: blue background with border
+            dayClasses +=
+              ' rounded-lg bg-blue-600/30 dark:bg-blue-600/30 border-2 border-blue-400 dark:border-blue-400';
+          } else if (isTodayDate) {
+            // Today (not selected): subtle background with green/emerald border
+            dayClasses +=
+              ' rounded-lg font-bold bg-emerald-500/20 dark:bg-emerald-500/20 border-2 border-emerald-400 dark:border-emerald-400';
+          } else if (isInFilterRange) {
+            // In filter range: light gray background, unified between consecutive days
+            dayClasses += ' bg-gray-500/20 dark:bg-gray-500/20';
+            // Round corners only on start and end of range
+            if (isFilterRangeStart && isFilterRangeEnd) {
+              // Single day in range
+              dayClasses += ' rounded-lg';
+            } else if (isFilterRangeStart) {
+              // Start of range - round left corners only, extend right margin
+              dayClasses += ' rounded-l-lg rounded-r-none -mr-[2px]';
+            } else if (isFilterRangeEnd) {
+              // End of range - round right corners only, extend left margin
+              dayClasses += ' rounded-r-lg rounded-l-none -ml-[2px]';
+            } else {
+              // Middle of range - no rounded corners, extend both sides
+              dayClasses += ' rounded-none -mx-[2px]';
+            }
+          } else {
+            // Regular day: hover effect with rounded corners
+            dayClasses += ' rounded-lg';
+            dayClasses += isCurrentMonth
+              ? ' hover:bg-gray-700 dark:hover:bg-gray-700'
+              : ' hover:bg-gray-700/50 dark:hover:bg-gray-700/50';
+          }
+
+          // Add bottom border indicator for appointments (works with filter range background)
+          if (
+            indicatorBorderColor &&
+            appointmentCount > 0 &&
+            !isSelected &&
+            !isTodayDate
+          ) {
+            dayClasses += ` ${indicatorBorderColor}`;
+          }
 
           return (
             <button
               key={index}
               type="button"
               onClick={() => onDateSelect(day)}
-              className={`
-                relative aspect-square p-2 rounded-lg text-sm transition-colors
-                ${!isCurrentMonth ? 'text-gray-600 dark:text-gray-600' : 'text-gray-100 dark:text-gray-100'}
-                ${isTodayDate ? 'font-bold border-2 border-blue-400 dark:border-blue-400' : ''}
-                ${isSelected ? 'bg-blue-600/30 dark:bg-blue-600/30 border-2 border-blue-400 dark:border-blue-400' : 'hover:bg-gray-700 dark:hover:bg-gray-700'}
-                ${!isCurrentMonth && !isSelected ? 'hover:bg-gray-700/50 dark:hover:bg-gray-700/50' : ''}
-              `}
+              className={dayClasses}
             >
               {/* Day number */}
               <div className="flex flex-col items-center justify-center h-full">
-                <span>{format(day, 'd')}</span>
-
-                {/* Appointment indicator */}
-                {indicatorColor && appointmentCount > 0 && (
-                  <div className="mt-1 flex items-center justify-center">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${indicatorColor}`}
-                    />
-                    {appointmentCount > 1 && (
-                      <span className="ml-1 text-[10px] font-medium text-gray-300 dark:text-gray-300">
-                        {appointmentCount}
-                      </span>
-                    )}
-                  </div>
+                <span className="leading-none">{format(day, 'd')}</span>
+                {appointmentCount > 1 && appointmentCount > 0 && (
+                  <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 mt-0.5">
+                    {appointmentCount}
+                  </span>
                 )}
               </div>
             </button>
@@ -176,19 +251,19 @@ export function AppointmentCalendar({
         </p>
         <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 dark:text-gray-400">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-400" />
+            <div className="w-8 h-0.5 bg-green-400 border-b-2 border-green-400" />
             <span>1-2 citas</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-400" />
+            <div className="w-8 h-0.5 bg-blue-400 border-b-2 border-blue-400" />
             <span>3-4 citas</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-400" />
+            <div className="w-8 h-0.5 bg-amber-400 border-b-2 border-amber-400" />
             <span>5-6 citas</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-400" />
+            <div className="w-8 h-0.5 bg-red-400 border-b-2 border-red-400" />
             <span>7+ citas</span>
           </div>
         </div>

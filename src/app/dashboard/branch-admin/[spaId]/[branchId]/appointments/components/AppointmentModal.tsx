@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import {
   Modal,
@@ -187,6 +188,7 @@ export function AppointmentModal({
   spaId,
   branchId,
 }: AppointmentModalProps) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -330,8 +332,8 @@ export function AppointmentModal({
             return updated;
           });
         }
-      } catch (err) {
-        console.error('Error fetching available manicurists:', err);
+      } catch (_err) {
+        // Error fetching available manicurists - clear the value
         setAvailableManicurists(prev => {
           const updated = { ...prev };
           delete updated[index];
@@ -371,8 +373,8 @@ export function AppointmentModal({
           } else {
             setFilteredServices([]);
           }
-        } catch (err) {
-          console.error('Error fetching manicurist services:', err);
+        } catch (_err) {
+          // Error fetching manicurist services - clear services
           setFilteredServices([]);
         } finally {
           setLoadingManicuristServices(false);
@@ -539,6 +541,8 @@ export function AppointmentModal({
       if (result.success) {
         reset();
         onClose();
+        // Refresh the page to show the new appointment
+        router.refresh();
       } else {
         setError(result.error || 'Error al guardar la cita');
       }

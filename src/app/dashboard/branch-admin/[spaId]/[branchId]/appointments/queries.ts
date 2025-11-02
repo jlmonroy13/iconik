@@ -95,7 +95,7 @@ export async function getAppointments({
       skip,
       take: limit,
       orderBy: {
-        scheduledAt: 'desc',
+        scheduledAt: 'asc',
       },
       include: {
         client: true,
@@ -425,6 +425,74 @@ export function getDateRangeFromQuickFilter(
     default:
       return null;
   }
+}
+
+/**
+ * Helper function to detect which quick filter matches a date range
+ */
+export function getQuickFilterFromDateRange(
+  dateFrom?: Date,
+  dateTo?: Date
+): QuickDateFilter {
+  if (!dateFrom || !dateTo) {
+    return 'custom';
+  }
+
+  const fromStart = startOfDay(dateFrom);
+  const toEnd = endOfDay(dateTo);
+
+  // Check today
+  const todayRange = getDateRangeFromQuickFilter('today');
+  if (
+    todayRange &&
+    fromStart.getTime() === startOfDay(todayRange.dateFrom).getTime() &&
+    toEnd.getTime() === endOfDay(todayRange.dateTo).getTime()
+  ) {
+    return 'today';
+  }
+
+  // Check tomorrow
+  const tomorrowRange = getDateRangeFromQuickFilter('tomorrow');
+  if (
+    tomorrowRange &&
+    fromStart.getTime() === startOfDay(tomorrowRange.dateFrom).getTime() &&
+    toEnd.getTime() === endOfDay(tomorrowRange.dateTo).getTime()
+  ) {
+    return 'tomorrow';
+  }
+
+  // Check this week
+  const thisWeekRange = getDateRangeFromQuickFilter('this-week');
+  if (
+    thisWeekRange &&
+    fromStart.getTime() === startOfDay(thisWeekRange.dateFrom).getTime() &&
+    toEnd.getTime() === endOfDay(thisWeekRange.dateTo).getTime()
+  ) {
+    return 'this-week';
+  }
+
+  // Check next week
+  const nextWeekRange = getDateRangeFromQuickFilter('next-week');
+  if (
+    nextWeekRange &&
+    fromStart.getTime() === startOfDay(nextWeekRange.dateFrom).getTime() &&
+    toEnd.getTime() === endOfDay(nextWeekRange.dateTo).getTime()
+  ) {
+    return 'next-week';
+  }
+
+  // Check this month
+  const thisMonthRange = getDateRangeFromQuickFilter('this-month');
+  if (
+    thisMonthRange &&
+    fromStart.getTime() === startOfDay(thisMonthRange.dateFrom).getTime() &&
+    toEnd.getTime() === endOfDay(thisMonthRange.dateTo).getTime()
+  ) {
+    return 'this-month';
+  }
+
+  // Default to custom
+  return 'custom';
 }
 
 /**

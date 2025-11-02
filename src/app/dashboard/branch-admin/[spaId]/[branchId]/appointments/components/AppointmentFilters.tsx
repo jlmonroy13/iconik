@@ -16,22 +16,37 @@ import type {
   QuickDateFilter,
   AppointmentFormDropdownData,
 } from '@/types';
-import { getDateRangeFromQuickFilter } from '../queries';
+import {
+  getDateRangeFromQuickFilter,
+  getQuickFilterFromDateRange,
+} from '../queries';
 import { format } from 'date-fns';
+import { useEffect } from 'react';
 
 interface AppointmentFiltersProps {
   filters: FilterType;
   onFiltersChange: (filters: FilterType) => void;
   formData: AppointmentFormDropdownData;
+  onClearCalendarSelection?: () => void;
 }
 
 export function AppointmentFilters({
   filters,
   onFiltersChange,
   formData,
+  onClearCalendarSelection,
 }: AppointmentFiltersProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [quickFilter, setQuickFilter] = useState<QuickDateFilter>('custom');
+
+  // Sync quickFilter when filters.dateFrom/dateTo change externally (e.g., from calendar)
+  useEffect(() => {
+    const detectedFilter = getQuickFilterFromDateRange(
+      filters.dateFrom,
+      filters.dateTo
+    );
+    setQuickFilter(detectedFilter);
+  }, [filters.dateFrom, filters.dateTo]);
 
   // Quick date filter options
   const quickDateFilters: Array<{ value: QuickDateFilter; label: string }> = [
@@ -57,6 +72,11 @@ export function AppointmentFilters({
   // Handle quick date filter change
   const handleQuickFilterChange = (filter: QuickDateFilter) => {
     setQuickFilter(filter);
+
+    // Clear calendar selection when a quick filter is selected
+    if (onClearCalendarSelection) {
+      onClearCalendarSelection();
+    }
 
     if (filter === 'custom') {
       // Clear date filters for custom

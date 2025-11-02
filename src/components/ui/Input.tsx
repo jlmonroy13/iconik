@@ -83,9 +83,19 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {(type === 'date' || type === 'datetime-local' || type === 'time') && (
           <span className="pointer-events-none flex items-center absolute right-3 bottom-3">
             {type === 'time' ? (
-              <Clock className="h-4 w-4 text-white" />
+              <Clock
+                className={cn('h-4 w-4', {
+                  'text-white': !error,
+                  'text-red-500 dark:text-red-400': !!error,
+                })}
+              />
             ) : (
-              <Calendar className="h-4 w-4 text-white" />
+              <Calendar
+                className={cn('h-4 w-4', {
+                  'text-white': !error,
+                  'text-red-500 dark:text-red-400': !!error,
+                })}
+              />
             )}
           </span>
         )}

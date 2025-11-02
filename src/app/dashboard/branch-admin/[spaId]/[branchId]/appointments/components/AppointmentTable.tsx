@@ -3,7 +3,28 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Table, Badge, ItemActions, ConfirmDialog } from '@/components/ui';
+import {
+  Eye,
+  Pencil,
+  X,
+  Trash2,
+  CheckCircle,
+  UserX,
+  Play,
+  CheckCheck,
+} from 'lucide-react';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmptyState,
+  Badge,
+  ItemActions,
+  ConfirmDialog,
+} from '@/components/ui';
 import type { AppointmentWithDetails, AppointmentStatus } from '@/types';
 import {
   updateAppointmentStatus,
@@ -77,8 +98,7 @@ export function AppointmentTable({
       if (!result.success) {
         alert(result.error || 'Error al cambiar el estado');
       }
-    } catch (error) {
-      console.error('Error changing status:', error);
+    } catch (_error) {
       alert('Error inesperado al cambiar el estado');
     } finally {
       setActionLoading(null);
@@ -108,8 +128,7 @@ export function AppointmentTable({
           if (!result.success) {
             alert(result.error || 'Error al cancelar la cita');
           }
-        } catch (error) {
-          console.error('Error cancelling appointment:', error);
+        } catch (_error) {
           alert('Error inesperado al cancelar la cita');
         } finally {
           setActionLoading(null);
@@ -139,8 +158,7 @@ export function AppointmentTable({
           if (!result.success) {
             alert(result.error || 'Error al eliminar la cita');
           }
-        } catch (error) {
-          console.error('Error deleting appointment:', error);
+        } catch (_error) {
           alert('Error inesperado al eliminar la cita');
         } finally {
           setActionLoading(null);
@@ -152,8 +170,9 @@ export function AppointmentTable({
   // Get available status transitions for current status
   const getStatusActions = (currentStatus: AppointmentStatus) => {
     const transitions: Record<AppointmentStatus, AppointmentStatus[]> = {
-      PENDING_APPROVAL: ['SCHEDULED', 'CANCELLED'],
-      SCHEDULED: ['IN_PROGRESS', 'NO_SHOW', 'CANCELLED'],
+      // Removed 'CANCELLED' from transitions - handled separately via handleCancel
+      PENDING_APPROVAL: ['SCHEDULED'],
+      SCHEDULED: ['IN_PROGRESS', 'NO_SHOW'],
       IN_PROGRESS: ['COMPLETED', 'CANCELLED'],
       COMPLETED: [],
       CANCELLED: [],
@@ -161,17 +180,27 @@ export function AppointmentTable({
     };
 
     const statusLabels: Record<AppointmentStatus, string> = {
-      PENDING_APPROVAL: 'Pendiente',
-      SCHEDULED: 'Agendar',
-      IN_PROGRESS: 'Iniciar',
+      PENDING_APPROVAL: 'Aprobar y Agendar',
+      SCHEDULED: 'Iniciar',
+      IN_PROGRESS: 'Completar',
       COMPLETED: 'Completar',
       CANCELLED: 'Cancelar',
       NO_SHOW: 'No Asistió',
     };
 
+    const statusIcons: Record<AppointmentStatus, React.ReactNode> = {
+      PENDING_APPROVAL: <CheckCheck className="w-4 h-4" />,
+      SCHEDULED: <Play className="w-4 h-4" />,
+      IN_PROGRESS: <CheckCircle className="w-4 h-4" />,
+      COMPLETED: <CheckCircle className="w-4 h-4" />,
+      CANCELLED: <X className="w-4 h-4" />,
+      NO_SHOW: <UserX className="w-4 h-4" />,
+    };
+
     return transitions[currentStatus].map(status => ({
       status,
       label: statusLabels[status],
+      icon: statusIcons[status],
     }));
   };
 
@@ -195,16 +224,18 @@ export function AppointmentTable({
       accessor: 'scheduledAt' as const,
       cell: (appointment: AppointmentWithDetails) => (
         <div>
-          <div className="font-medium text-gray-900">
+          <div className="font-medium text-gray-900 dark:text-white">
             {format(new Date(appointment.scheduledAt), 'dd MMM yyyy', {
               locale: es,
             })}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             {format(new Date(appointment.scheduledAt), 'HH:mm')}
           </div>
           {!appointment.isScheduled && (
-            <div className="text-xs text-amber-600 mt-1">Walk-in</div>
+            <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              Walk-in
+            </div>
           )}
         </div>
       ),
@@ -214,10 +245,10 @@ export function AppointmentTable({
       accessor: 'client' as const,
       cell: (appointment: AppointmentWithDetails) => (
         <div>
-          <div className="font-medium text-gray-900">
+          <div className="font-medium text-gray-900 dark:text-white">
             {appointment.client.name}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             {appointment.client.phone}
           </div>
         </div>
@@ -227,14 +258,15 @@ export function AppointmentTable({
       header: 'Servicios',
       accessor: 'services' as const,
       cell: (appointment: AppointmentWithDetails) => (
-        <div className="space-y-1">
+        <div className="space-y-2">
           {appointment.services.map((service, index) => (
             <div key={index} className="text-sm">
-              <span className="text-gray-900">{service.service.name}</span>
-              <span className="text-gray-500">
-                {' '}
-                • {service.manicurist.name}
-              </span>
+              <div className="text-gray-900 dark:text-white font-medium">
+                {service.service.name}
+              </div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">
+                {service.manicurist.name}
+              </div>
             </div>
           ))}
         </div>
@@ -253,10 +285,12 @@ export function AppointmentTable({
         const { totalPrice, totalDuration } = getAppointmentTotals(appointment);
         return (
           <div>
-            <div className="font-medium text-gray-900">
+            <div className="font-medium text-gray-900 dark:text-white">
               ${totalPrice.toLocaleString()}
             </div>
-            <div className="text-sm text-gray-500">{totalDuration} min</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {totalDuration} min
+            </div>
           </div>
         );
       },
@@ -271,6 +305,7 @@ export function AppointmentTable({
         const actions = [
           {
             label: 'Ver Detalles',
+            icon: <Eye className="w-4 h-4" />,
             onClick: () => onView(appointment),
           },
           ...(appointment.status !== 'COMPLETED' &&
@@ -279,12 +314,14 @@ export function AppointmentTable({
             ? [
                 {
                   label: 'Editar',
+                  icon: <Pencil className="w-4 h-4" />,
                   onClick: () => onEdit(appointment),
                 },
               ]
             : []),
           ...statusActions.map(sa => ({
             label: sa.label,
+            icon: sa.icon,
             onClick: () => handleStatusChange(appointment.id, sa.status),
           })),
           ...(appointment.status === 'SCHEDULED' ||
@@ -292,6 +329,7 @@ export function AppointmentTable({
             ? [
                 {
                   label: 'Cancelar',
+                  icon: <X className="w-4 h-4" />,
                   onClick: () => handleCancel(appointment.id),
                   variant: 'danger' as const,
                 },
@@ -301,6 +339,7 @@ export function AppointmentTable({
             ? [
                 {
                   label: 'Eliminar',
+                  icon: <Trash2 className="w-4 h-4" />,
                   onClick: () => handleDelete(appointment.id),
                   variant: 'danger' as const,
                 },
@@ -313,14 +352,54 @@ export function AppointmentTable({
     },
   ];
 
+  if (appointments.length === 0) {
+    return (
+      <>
+        <TableEmptyState
+          title="No se encontraron citas"
+          description="Crea tu primera cita para empezar"
+        />
+
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+          onConfirm={confirmDialog.onConfirm}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmText="Confirmar"
+          cancelText="Cancelar"
+          variant="danger"
+        />
+      </>
+    );
+  }
+
   return (
     <>
-      <Table
-        data={appointments}
-        columns={columns}
-        emptyMessage="No se encontraron citas"
-        emptyDescription="Crea tu primera cita para empezar"
-      />
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {columns.map((column, colIndex) => (
+              <TableHead key={`header-${colIndex}-${column.header}`}>
+                {column.header}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {appointments.map((appointment, index) => (
+            <TableRow key={appointment.id} isAlternate={index % 2 !== 0}>
+              {columns.map((column, colIndex) => (
+                <TableCell
+                  key={`${appointment.id}-${colIndex}-${column.header}`}
+                >
+                  {column.cell(appointment)}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}

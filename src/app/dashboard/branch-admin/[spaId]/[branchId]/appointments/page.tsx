@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getAppointments, getAppointmentFormData } from './queries';
 import { AppointmentsClient } from './components/AppointmentsClient';
 import type { AppointmentFilters } from '@/types';
+import { startOfDay, endOfDay } from 'date-fns';
 
 interface AppointmentsPageProps {
   params: Promise<{
@@ -52,13 +53,14 @@ export default async function AppointmentsPage({
   }
 
   // Build filters
+  // Parse dates and ensure they cover the full day using startOfDay/endOfDay
   const filters: AppointmentFilters = {
     status: (status as AppointmentFilters['status']) || 'ALL',
     manicuristId: manicuristId || undefined,
     clientId: clientId || undefined,
     search: search || undefined,
-    dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-    dateTo: dateTo ? new Date(dateTo) : undefined,
+    dateFrom: dateFrom ? startOfDay(new Date(dateFrom)) : undefined,
+    dateTo: dateTo ? endOfDay(new Date(dateTo)) : undefined,
   };
 
   // Get pagination parameters

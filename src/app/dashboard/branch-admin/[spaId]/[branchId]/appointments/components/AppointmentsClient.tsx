@@ -152,6 +152,7 @@ export function AppointmentsClient({
     setSelectedDate(date);
 
     // Update filters to show appointments for selected date
+    // This will automatically sync the quick filter button via useEffect in AppointmentFilters
     handleFiltersChange({
       ...currentFilters,
       dateFrom: startOfDay(date),
@@ -173,54 +174,55 @@ export function AppointmentsClient({
         filters={currentFilters}
         onFiltersChange={handleFiltersChange}
         formData={formData}
+        onClearCalendarSelection={() => setSelectedDate(undefined)}
       />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Stats Cards - Compact */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3!">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📋</span>
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                   Total de Citas
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {pagination.totalCount}
                 </p>
               </div>
-              <div className="text-3xl">📋</div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3!">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📄</span>
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                   En esta página
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {appointments.length}
                 </p>
               </div>
-              <div className="text-3xl">📄</div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3!">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📑</span>
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                   Páginas
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {pagination.currentPage} / {pagination.totalPages || 1}
                 </p>
               </div>
-              <div className="text-3xl">📑</div>
             </div>
           </CardContent>
         </Card>
@@ -285,11 +287,16 @@ export function AppointmentsClient({
           {pagination.totalPages > 1 && (
             <div className="mt-4">
               <Pagination
-                currentPage={pagination.currentPage}
-                totalPages={pagination.totalPages}
+                pagination={{
+                  currentPage: pagination.currentPage,
+                  totalPages: pagination.totalPages,
+                  totalCount: pagination.totalCount,
+                  hasNextPage: pagination.hasNextPage,
+                  hasPrevPage: pagination.hasPrevPage,
+                  limit: pagination.limit,
+                }}
                 onPageChange={handlePageChange}
-                totalItems={pagination.totalCount}
-                itemsPerPage={pagination.limit}
+                itemName="citas"
               />
             </div>
           )}
@@ -301,6 +308,8 @@ export function AppointmentsClient({
             appointments={appointments}
             selectedDate={selectedDate}
             onDateSelect={handleDateSelect}
+            dateFrom={currentFilters.dateFrom}
+            dateTo={currentFilters.dateTo}
           />
         </div>
       </div>

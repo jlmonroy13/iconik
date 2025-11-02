@@ -289,7 +289,33 @@ export const appointmentServiceSchema = z.object({
  */
 export const createAppointmentSchema = z.object({
   clientId: z.string().cuid('Cliente inválido'),
-  scheduledAt: z.string().datetime('Fecha y hora inválida'),
+  scheduledAt: z
+    .string()
+    .refine(
+      val => {
+        // Accept datetime-local format (yyyy-MM-ddTHH:mm) or ISO format
+        if (!val) return false;
+        // Check if it's a valid datetime-local format or ISO datetime
+        const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+        const isoDatetimeRegex =
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/;
+        return datetimeLocalRegex.test(val) || isoDatetimeRegex.test(val);
+      },
+      {
+        message: 'Fecha y hora inválida',
+      }
+    )
+    .transform(val => {
+      // Convert datetime-local format to ISO format
+      // datetime-local doesn't include timezone, so we treat it as local time
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
+        // Parse as local time and convert to ISO string
+        // This preserves the date/time the user selected
+        const localDate = new Date(val);
+        return localDate.toISOString();
+      }
+      return val;
+    }),
   isScheduled: z.boolean().default(true),
   notes: z.string().max(500, 'Máximo 500 caracteres').default(''),
   services: z
@@ -310,7 +336,30 @@ export const appointmentFormSchema = createAppointmentSchema.extend({
  */
 export const updateAppointmentSchema = z.object({
   clientId: z.string().cuid('Cliente inválido').optional(),
-  scheduledAt: z.string().datetime('Fecha y hora inválida').optional(),
+  scheduledAt: z
+    .string()
+    .refine(
+      val => {
+        if (!val) return true; // Optional field
+        // Accept datetime-local format (yyyy-MM-ddTHH:mm) or ISO format
+        const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+        const isoDatetimeRegex =
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/;
+        return datetimeLocalRegex.test(val) || isoDatetimeRegex.test(val);
+      },
+      {
+        message: 'Fecha y hora inválida',
+      }
+    )
+    .transform(val => {
+      if (!val) return val;
+      // Convert datetime-local format to ISO format
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
+        return new Date(val).toISOString();
+      }
+      return val;
+    })
+    .optional(),
   notes: z.string().max(500, 'Máximo 500 caracteres').optional(),
   status: z
     .enum([
