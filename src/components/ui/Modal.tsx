@@ -28,7 +28,7 @@ interface ModalProps {
   className?: string;
   footer?: React.ReactNode;
   formId?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
 export function Modal({
@@ -48,7 +48,7 @@ export function Modal({
     setIsClient(true);
   }, []);
 
-  // Close on escape key
+  // Close on escape key and disable body scroll
   React.useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -58,12 +58,22 @@ export function Modal({
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
+      // Disable scroll on body and html, and add class for main content
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      document.documentElement.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      // Re-enable scroll on body and html, and remove class
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+      document.documentElement.style.overflow = '';
+      document.body.classList.remove('modal-open');
     };
   }, [isOpen, onClose]);
 
@@ -80,12 +90,13 @@ export function Modal({
       {/* Modal */}
       <div
         className={cn(
-          'relative z-50 w-full rounded-lg bg-white shadow-lg dark:bg-gray-800 max-h-[90vh] flex flex-col',
+          'relative z-50 w-full rounded-lg bg-white shadow-lg dark:bg-gray-800 h-[90vh] flex flex-col',
           {
             'max-w-sm': size === 'sm',
             'max-w-lg': size === 'md',
             'max-w-2xl': size === 'lg',
             'max-w-4xl': size === 'xl',
+            'max-w-6xl': size === '2xl',
           },
           'animate-in fade-in-0 zoom-in-95',
           className
@@ -112,8 +123,8 @@ export function Modal({
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 pt-4">{children}</div>
+        {/* Content - no scroll, scroll is handled by children */}
+        <div className="flex-1 overflow-hidden p-6 pt-4">{children}</div>
 
         {/* Fixed Footer */}
         {footer && (

@@ -305,6 +305,26 @@ export const createAppointmentSchema = z.object({
         message: 'Fecha y hora inválida',
       }
     )
+    .refine(
+      val => {
+        // Validate that date is not in the past (for new appointments)
+        if (!val) return false;
+        // Parse the datetime-local format
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
+          const selectedDate = new Date(val);
+          const now = new Date();
+          return selectedDate >= now;
+        }
+        // For ISO format, also validate
+        const selectedDate = new Date(val);
+        const now = new Date();
+        return selectedDate >= now;
+      },
+      {
+        message:
+          'La fecha y hora deben ser posteriores a la fecha y hora actuales',
+      }
+    )
     .transform(val => {
       // Convert datetime-local format to ISO format
       // datetime-local doesn't include timezone, so we treat it as local time
@@ -325,11 +345,78 @@ export const createAppointmentSchema = z.object({
 
 /**
  * Extended schema for appointment form (includes UI-only fields)
+ * Note: The date validation that requires future dates is handled in the component
+ * using a separate validation, as we don't want to block editing past appointments
  */
-export const appointmentFormSchema = createAppointmentSchema.extend({
-  useSameManicurist: z.boolean().default(false),
-  primaryManicuristId: z.string().default(''),
-});
+export const appointmentFormSchema = createAppointmentSchema
+  .omit({ scheduledAt: true })
+  .extend({
+    scheduledAt: z
+      .string()
+      .refine(
+        val => {
+          // Accept datetime-local format (yyyy-MM-ddTHH:mm) or ISO format
+          if (!val) return false;
+          // Check if it's a valid datetime-local format or ISO datetime
+          const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+          const isoDatetimeRegex =
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/;
+          return datetimeLocalRegex.test(val) || isoDatetimeRegex.test(val);
+        },
+        {
+          message: 'Fecha y hora inválida',
+        }
+      )
+      .transform(val => {
+        // Convert datetime-local format to ISO format
+        // datetime-local doesn't include timezone, so we treat it as local time
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
+          // Parse as local time and convert to ISO string
+          // This preserves the date/time the user selected
+          const localDate = new Date(val);
+          return localDate.toISOString();
+        }
+        return val;
+      }),
+    useSameManicurist: z.boolean().default(false),
+    primaryManicuristId: z.string().default(''),
+    // Discount fields (UI-only, not persisted in Appointment)
+    applyDiscount: z.boolean().default(false),
+    discountType: z.enum(['amount', 'percentage']).optional(),
+    discountAmount: z
+      .number()
+      .min(0, 'El descuento debe ser mayor o igual a 0')
+      .optional(),
+    discountPercentage: z
+      .number()
+      .min(0, 'El porcentaje debe ser mayor o igual a 0')
+      .max(100, 'El porcentaje no puede ser mayor a 100')
+      .optional(),
+    discountReason: z.string().max(200, 'Máximo 200 caracteres').optional(),
+    discountAffectsCommission: z.boolean().default(false),
+  })
+  .refine(
+    data => {
+      // If applyDiscount is true, either discountAmount or discountPercentage must be provided
+      if (data.applyDiscount) {
+        if (data.discountType === 'amount') {
+          return data.discountAmount !== undefined && data.discountAmount > 0;
+        } else if (data.discountType === 'percentage') {
+          return (
+            data.discountPercentage !== undefined &&
+            data.discountPercentage > 0 &&
+            data.discountPercentage <= 100
+          );
+        }
+      }
+      return true;
+    },
+    {
+      message:
+        'Debes especificar un monto o porcentaje de descuento cuando está activado',
+      path: ['discountAmount'],
+    }
+  );
 
 /**
  * Schema for updating an existing appointment

@@ -1,13 +1,30 @@
 // Re-export all types from their respective modules
 export * from './auth';
-export * from './forms';
 export * from './api';
 export * from './ui';
 export * from './manicurists';
-export * from './appointments';
 export * from './payments';
 export * from './spaAccounts';
 export * from './expenses';
+
+// Export forms types first (these take precedence)
+export * from './forms';
+
+// Export appointments types (excluding duplicates already in forms)
+export type {
+  AppointmentWithDetails,
+  AppointmentListItem,
+  AppointmentStatus,
+  AppointmentFilters,
+  QuickDateFilter,
+  AppointmentServiceFormData,
+  AppointmentFormData,
+  AppointmentFormDropdownData,
+  AvailabilityCheckResult,
+  CalendarDayData,
+  AppointmentStats,
+  AppointmentAuditEntry,
+} from './appointments';
 export type {
   Spa,
   Branch,
@@ -22,7 +39,6 @@ export type {
   ServiceWithBranch,
   ManicuristWithBranch,
   ClientWithBranch,
-  AppointmentWithDetails,
   SpaCreateInput,
   SpaUpdateInput,
   BranchCreateInput,

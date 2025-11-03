@@ -75,3 +75,48 @@ input[type='datetime-local']::-webkit-calendar-picker-indicator,
 input[type='time']::-webkit-calendar-picker-indicator {
   opacity: 0 !important;
 }
+
+/* Custom Scrollbar Styles - Cross-platform compatible */
+.custom-scrollbar {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.7);
+}
+
+/* Dark mode scrollbar */
+html.dark .custom-scrollbar {
+  scrollbar-color: rgba(107, 114, 128, 0.5) transparent;
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.5);
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* Disable scroll on main content area when modal is open */
+body.modal-open .main-content-area {
+  overflow: hidden !important;
+}

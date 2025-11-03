@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
   Input,
-  Select,
   Button,
   SearchSelect,
   Card,
@@ -20,7 +19,7 @@ import {
   getDateRangeFromQuickFilter,
   getQuickFilterFromDateRange,
 } from '../queries';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { useEffect } from 'react';
 
 interface AppointmentFiltersProps {
@@ -38,6 +37,8 @@ export function AppointmentFilters({
 }: AppointmentFiltersProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [quickFilter, setQuickFilter] = useState<QuickDateFilter>('custom');
+  const [showUpcomingCurrent, setShowUpcomingCurrent] = useState(false);
+  const [showPast, setShowPast] = useState(false);
 
   // Sync quickFilter when filters.dateFrom/dateTo change externally (e.g., from calendar)
   useEffect(() => {
@@ -46,7 +47,31 @@ export function AppointmentFilters({
       filters.dateTo
     );
     setQuickFilter(detectedFilter);
-  }, [filters.dateFrom, filters.dateTo]);
+
+    // Sync upcoming/current button state
+    if (filters.status === 'UPCOMING_AND_CURRENT' && filters.dateFrom) {
+      const today = startOfDay(new Date());
+      const filterDate = startOfDay(filters.dateFrom);
+      if (filterDate.getTime() === today.getTime() && !filters.dateTo) {
+        setShowUpcomingCurrent(true);
+        setShowPast(false);
+      } else {
+        setShowUpcomingCurrent(false);
+      }
+    } else if (filters.status === 'PAST' && filters.dateTo) {
+      const today = startOfDay(new Date());
+      const filterDate = startOfDay(filters.dateTo);
+      if (filterDate.getTime() === today.getTime() && !filters.dateFrom) {
+        setShowPast(true);
+        setShowUpcomingCurrent(false);
+      } else {
+        setShowPast(false);
+      }
+    } else {
+      setShowUpcomingCurrent(false);
+      setShowPast(false);
+    }
+  }, [filters.dateFrom, filters.dateTo, filters.status]);
 
   // Quick date filter options
   const quickDateFilters: Array<{ value: QuickDateFilter; label: string }> = [
@@ -72,6 +97,8 @@ export function AppointmentFilters({
   // Handle quick date filter change
   const handleQuickFilterChange = (filter: QuickDateFilter) => {
     setQuickFilter(filter);
+    setShowUpcomingCurrent(false);
+    setShowPast(false);
 
     // Clear calendar selection when a quick filter is selected
     if (onClearCalendarSelection) {
@@ -100,6 +127,70 @@ export function AppointmentFilters({
     }
   };
 
+  // Handle upcoming and current appointments filter
+  const handleUpcomingCurrent = () => {
+    const isActive = showUpcomingCurrent;
+    setShowUpcomingCurrent(!isActive);
+    setShowPast(false);
+    setQuickFilter('custom');
+
+    // Clear calendar selection
+    if (onClearCalendarSelection) {
+      onClearCalendarSelection();
+    }
+
+    if (!isActive) {
+      // Activate filter: show SCHEDULED and IN_PROGRESS from today onwards
+      const today = startOfDay(new Date());
+      onFiltersChange({
+        ...filters,
+        status: 'UPCOMING_AND_CURRENT',
+        dateFrom: today,
+        dateTo: undefined, // No end date limit
+      });
+    } else {
+      // Deactivate filter
+      onFiltersChange({
+        ...filters,
+        status: 'ALL',
+        dateFrom: undefined,
+        dateTo: undefined,
+      });
+    }
+  };
+
+  // Handle past appointments filter
+  const handlePast = () => {
+    const isActive = showPast;
+    setShowPast(!isActive);
+    setShowUpcomingCurrent(false);
+    setQuickFilter('custom');
+
+    // Clear calendar selection
+    if (onClearCalendarSelection) {
+      onClearCalendarSelection();
+    }
+
+    if (!isActive) {
+      // Activate filter: show COMPLETED, CANCELLED, NO_SHOW before today
+      const today = startOfDay(new Date());
+      onFiltersChange({
+        ...filters,
+        status: 'PAST',
+        dateFrom: undefined,
+        dateTo: today, // Before today
+      });
+    } else {
+      // Deactivate filter
+      onFiltersChange({
+        ...filters,
+        status: 'ALL',
+        dateFrom: undefined,
+        dateTo: undefined,
+      });
+    }
+  };
+
   // Handle custom date range
   const handleCustomDateChange = (type: 'from' | 'to', value: string) => {
     setQuickFilter('custom');
@@ -116,14 +207,6 @@ export function AppointmentFilters({
     onFiltersChange({
       ...filters,
       search: value || undefined,
-    });
-  };
-
-  // Handle status change
-  const handleStatusChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      status: value as FilterType['status'],
     });
   };
 
@@ -146,6 +229,8 @@ export function AppointmentFilters({
   // Clear all filters
   const handleClearFilters = () => {
     setQuickFilter('custom');
+    setShowUpcomingCurrent(false);
+    setShowPast(false);
     onFiltersChange({
       status: 'ALL',
       manicuristId: undefined,
@@ -185,6 +270,14 @@ export function AppointmentFilters({
           <Button
             type="button"
             variant="secondary"
+            onClick={handleClearFilters}
+            disabled={activeFilterCount === 0}
+          >
+            Limpiar Filtros
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
             {showAdvanced ? 'Ocultar' : 'Filtros Avanzados'}
@@ -217,6 +310,35 @@ export function AppointmentFilters({
           ))}
         </div>
 
+        {/* Quick Status Filters */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Estado:
+          </span>
+          <button
+            type="button"
+            onClick={handleUpcomingCurrent}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              showUpcomingCurrent
+                ? 'bg-green-100 text-green-700 border border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700'
+                : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600'
+            }`}
+          >
+            Activas
+          </button>
+          <button
+            type="button"
+            onClick={handlePast}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              showPast
+                ? 'bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-700'
+                : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600'
+            }`}
+          >
+            Pasadas
+          </button>
+        </div>
+
         {/* Custom Date Range (shown when "Personalizado" is selected) */}
         {quickFilter === 'custom' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -240,15 +362,7 @@ export function AppointmentFilters({
         {/* Advanced Filters */}
         {showAdvanced && (
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Status Filter */}
-              <Select
-                label="Estado"
-                value={filters.status || 'ALL'}
-                onChange={e => handleStatusChange(e.target.value)}
-                options={statusOptions}
-              />
-
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Manicurist Filter */}
               <SearchSelect
                 label="Manicurista"
@@ -279,19 +393,6 @@ export function AppointmentFilters({
                 value={filters.clientId || ''}
                 onChange={handleClientChange}
               />
-
-              {/* Clear Filters Button */}
-              <div className="flex items-end">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleClearFilters}
-                  className="w-full"
-                  disabled={activeFilterCount === 0}
-                >
-                  Limpiar Filtros
-                </Button>
-              </div>
             </div>
           </div>
         )}
@@ -302,7 +403,12 @@ export function AppointmentFilters({
             <span className="font-medium">Filtros activos:</span>
             {filters.status && filters.status !== 'ALL' && (
               <span className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded">
-                {statusOptions.find(s => s.value === filters.status)?.label}
+                {filters.status === 'UPCOMING_AND_CURRENT'
+                  ? 'Activas'
+                  : filters.status === 'PAST'
+                    ? 'Pasadas'
+                    : statusOptions.find(s => s.value === filters.status)
+                        ?.label}
               </span>
             )}
             {filters.manicuristId && (

@@ -84,40 +84,9 @@ export type AppointmentListItem = Pick<
 };
 
 /**
- * Data for creating a new appointment
+ * Note: CreateAppointmentData and UpdateAppointmentData are now defined in './forms'
+ * and exported from there. Import them directly from '@/types' or '@/types/forms'.
  */
-export type CreateAppointmentData = {
-  clientId: string;
-  scheduledAt: Date;
-  isScheduled: boolean; // true = scheduled, false = walk-in
-  notes?: string;
-  branchId?: string;
-  services: {
-    serviceId: string;
-    manicuristId: string;
-    price: number;
-    estimatedDuration: number;
-  }[];
-  // Optional: for future booking link integration
-  requiresApproval?: boolean;
-  requiresPreConfirmation?: boolean;
-};
-
-/**
- * Data for updating an existing appointment
- */
-export type UpdateAppointmentData = {
-  clientId?: string;
-  scheduledAt?: Date;
-  notes?: string;
-  status?: AppointmentStatus;
-  services?: {
-    serviceId: string;
-    manicuristId: string;
-    price: number;
-    estimatedDuration: number;
-  }[];
-};
 
 /**
  * Appointment status enum
@@ -134,7 +103,7 @@ export type AppointmentStatus =
  * Filters for appointment queries
  */
 export type AppointmentFilters = {
-  status?: AppointmentStatus | 'ALL';
+  status?: AppointmentStatus | 'ALL' | 'UPCOMING_AND_CURRENT' | 'PAST';
   manicuristId?: string;
   clientId?: string;
   dateFrom?: Date;

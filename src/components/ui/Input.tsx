@@ -34,8 +34,22 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const reactId = React.useId();
     const inputId = id || `input-${reactId}`;
 
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const combinedRef = React.useCallback(
+      (node: HTMLInputElement | null) => {
+        inputRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref]
+    );
+
     const handleClear = (e: React.MouseEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       if (onChange) {
         const event = {
           ...e,
@@ -45,8 +59,25 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       }
     };
 
+    const handleContainerClick = (e: React.MouseEvent) => {
+      // If clicking on the container (not the clear button), open the picker
+      if (isDate && inputRef.current && !disabled) {
+        const target = e.target as HTMLElement;
+        // Only trigger if clicking on the container or icon area, not the clear button
+        if (
+          target.closest('button')?.getAttribute('type') !== 'button' ||
+          !target.closest('button')
+        ) {
+          inputRef.current.showPicker?.();
+        }
+      }
+    };
+
     return (
-      <div className={cn('relative w-full')}>
+      <div
+        className={cn('relative w-full overflow-visible')}
+        onClick={handleContainerClick}
+      >
         {label && (
           <label
             htmlFor={inputId}
@@ -62,9 +93,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           type={type}
           className={cn(
-            'w-full px-3 py-2 text-sm border rounded-md transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-800',
+            'w-full px-3 py-2 text-sm border rounded-md transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-800 box-border',
             {
-              'border-red-500 dark:border-red-400 focus:ring-red-500': !!error,
+              '!border-red-500 dark:!border-red-400 focus:ring-red-500':
+                !!error,
             },
             active &&
               'border-pink-300 dark:border-pink-600 bg-pink-50 dark:bg-pink-900/10 ring-1 ring-pink-200 dark:ring-pink-800',
@@ -73,7 +105,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             isDate && 'datetime-picker-hack',
             className
           )}
-          ref={ref}
+          ref={combinedRef}
           value={value}
           onChange={onChange}
           disabled={disabled}
@@ -108,7 +140,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <button
             type="button"
             tabIndex={-1}
-            className="absolute right-8 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors bottom-2"
+            className="absolute right-8 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors bottom-2 z-10"
             onClick={handleClear}
             aria-label="Limpiar fecha"
           >

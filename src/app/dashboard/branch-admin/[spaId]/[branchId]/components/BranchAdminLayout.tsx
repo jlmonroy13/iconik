@@ -72,7 +72,7 @@ export function BranchAdminLayout({
       </div>
 
       {/* Main content area */}
-      <div className="pt-16 lg:pl-64">
+      <div className="pt-16 lg:pl-64 h-screen overflow-y-auto main-content-area">
         {/* Page content */}
         <main className="py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

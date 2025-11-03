@@ -49,7 +49,19 @@ export async function getAppointments({
 
   // Status filter
   if (filters.status && filters.status !== 'ALL') {
-    where.status = filters.status;
+    if (filters.status === 'UPCOMING_AND_CURRENT') {
+      // Filter for SCHEDULED or IN_PROGRESS appointments
+      where.status = {
+        in: ['SCHEDULED', 'IN_PROGRESS'],
+      };
+    } else if (filters.status === 'PAST') {
+      // Filter for COMPLETED, CANCELLED, or NO_SHOW appointments
+      where.status = {
+        in: ['COMPLETED', 'CANCELLED', 'NO_SHOW'],
+      };
+    } else {
+      where.status = filters.status;
+    }
   }
 
   // Manicurist filter
