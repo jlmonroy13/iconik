@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
   LoadingOverlay,
+  Badge,
 } from '@/components/ui';
 import { SectionHeader } from '@/components/dashboard/SectionHeader';
 import type {
@@ -190,14 +191,17 @@ export function AppointmentsClient({
           <div className="lg:col-span-4">
             {/* Table */}
             <Card className="shadow-sm">
-              <CardHeader className="pb-4">
+              <CardHeader className="sm:py-4">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <CardTitle className="text-xl m-0">Citas</CardTitle>
                   <div className="flex items-center gap-3 text-sm flex-shrink-0">
-                    <span className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    <Badge
+                      variant="primary"
+                      className="whitespace-nowrap text-[14px] px-4 py-1 font-bold"
+                    >
                       {pagination.totalCount}{' '}
                       {pagination.totalCount === 1 ? 'cita' : 'citas'}
-                    </span>
+                    </Badge>
                     {pagination.totalCount > 0 &&
                       appointments.length !== pagination.totalCount && (
                         <span className="text-gray-500 dark:text-gray-400 whitespace-nowrap">
@@ -213,7 +217,7 @@ export function AppointmentsClient({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="sm:p-2">
                 {appointments.length === 0 ? (
                   <div className="text-center py-12 px-4">
                     <div className="text-6xl mb-4">📅</div>

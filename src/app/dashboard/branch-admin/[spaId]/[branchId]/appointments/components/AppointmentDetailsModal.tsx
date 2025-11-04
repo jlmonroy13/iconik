@@ -1,7 +1,5 @@
 'use client';
 
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { Modal, Badge, Button } from '@/components/ui';
 import type { AppointmentWithDetails, AppointmentStatus } from '@/types';
 
@@ -25,7 +23,13 @@ export function AppointmentDetailsModal({
     const config: Record<
       AppointmentStatus,
       {
-        variant: 'default' | 'success' | 'warning' | 'error' | 'info';
+        variant:
+          | 'default'
+          | 'primary'
+          | 'secondary'
+          | 'success'
+          | 'warning'
+          | 'destructive';
         label: string;
       }
     > = {
@@ -33,15 +37,19 @@ export function AppointmentDetailsModal({
         variant: 'warning',
         label: 'Pendiente de Aprobación',
       },
-      SCHEDULED: { variant: 'info', label: 'Agendada' },
+      SCHEDULED: { variant: 'primary', label: 'Agendada' },
       IN_PROGRESS: { variant: 'success', label: 'En Progreso' },
       COMPLETED: { variant: 'default', label: 'Completada' },
-      CANCELLED: { variant: 'error', label: 'Cancelada' },
+      CANCELLED: { variant: 'destructive', label: 'Cancelada' },
       NO_SHOW: { variant: 'warning', label: 'No Asistió' },
     };
 
     const { variant, label } = config[status];
-    return <Badge variant={variant}>{label}</Badge>;
+    return (
+      <Badge variant={variant} className="text-sm px-3 py-1.5 font-semibold">
+        {label}
+      </Badge>
+    );
   };
 
   // Calculate totals
@@ -65,189 +73,22 @@ export function AppointmentDetailsModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Detalles de la Cita"
-      size="large"
-    >
-      <div className="space-y-6">
-        {/* Header with Status */}
-        <div className="flex items-center justify-between pb-4 border-b">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Cita #{appointment.id.slice(0, 8).toUpperCase()}
-            </h3>
-            <p className="text-sm text-gray-500">
-              Creada el{' '}
-              {format(
-                new Date(appointment.createdAt),
-                "dd 'de' MMMM 'de' yyyy",
-                { locale: es }
-              )}
-            </p>
-          </div>
+      description={
+        <div className="flex items-center gap-2 flex-wrap">
+          <span>
+            Cita #{appointment.id.slice(0, 8).toUpperCase()} • Creada el{' '}
+            {new Intl.DateTimeFormat('es-ES', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            }).format(new Date(appointment.createdAt))}
+          </span>
           {getStatusBadge(appointment.status)}
         </div>
-
-        {/* Client Information */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">
-            Información del Cliente
-          </h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-gray-500">Nombre</p>
-              <p className="text-sm font-medium text-gray-900">
-                {appointment.client.name}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Teléfono</p>
-              <p className="text-sm font-medium text-gray-900">
-                {appointment.client.phone}
-              </p>
-            </div>
-            {appointment.client.email && (
-              <div>
-                <p className="text-xs text-gray-500">Email</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {appointment.client.email}
-                </p>
-              </div>
-            )}
-            <div>
-              <p className="text-xs text-gray-500">Documento</p>
-              <p className="text-sm font-medium text-gray-900">
-                {appointment.client.documentType}{' '}
-                {appointment.client.documentNumber}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Appointment Information */}
-        <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">
-            Información de la Cita
-          </h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-gray-500">Tipo de Cita</p>
-              <p className="text-sm font-medium text-gray-900">
-                {appointment.isScheduled ? (
-                  'Agendada'
-                ) : (
-                  <span className="text-amber-600">Walk-in</span>
-                )}
-              </p>
-            </div>
-            {appointment.branch && (
-              <div>
-                <p className="text-xs text-gray-500">Sede</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {appointment.branch.name}
-                </p>
-              </div>
-            )}
-            <div>
-              <p className="text-xs text-gray-500">Fecha</p>
-              <p className="text-sm font-medium text-gray-900">
-                {format(
-                  new Date(appointment.scheduledAt),
-                  "dd 'de' MMMM 'de' yyyy",
-                  {
-                    locale: es,
-                  }
-                )}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Hora de Inicio</p>
-              <p className="text-sm font-medium text-gray-900">
-                {format(new Date(appointment.scheduledAt), 'HH:mm')}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Duración Total</p>
-              <p className="text-sm font-medium text-gray-900">
-                {totalDuration} minutos
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Hora Estimada de Fin</p>
-              <p className="text-sm font-medium text-gray-900">
-                {format(estimatedEndTime, 'HH:mm')}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Services List */}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">
-            Servicios ({appointment.services.length})
-          </h4>
-          <div className="space-y-3">
-            {appointment.services.map((service, index) => (
-              <div
-                key={index}
-                className="bg-white border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h5 className="font-medium text-gray-900">
-                      {service.service.name}
-                    </h5>
-                    <p className="text-sm text-gray-500">
-                      {service.service.type.replace('_', ' ')}
-                    </p>
-                  </div>
-                  <span className="text-lg font-bold text-gray-900">
-                    ${service.price.toLocaleString()}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t">
-                  <div>
-                    <p className="text-xs text-gray-500">Manicurista</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {service.manicurist.name}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Duración</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {service.estimatedDuration} min
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Total Summary */}
-        <div className="bg-green-50 rounded-lg p-4">
-          <div className="flex justify-between items-center">
-            <span className="text-lg font-semibold text-gray-900">
-              Total de la Cita
-            </span>
-            <span className="text-2xl font-bold text-gray-900">
-              ${totalPrice.toLocaleString()}
-            </span>
-          </div>
-        </div>
-
-        {/* Notes */}
-        {appointment.notes && (
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Notas</h4>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {appointment.notes}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
+      }
+      size="xl"
+      footer={
+        <div className="flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={onClose}>
             Cerrar
           </Button>
@@ -268,6 +109,179 @@ export function AppointmentDetailsModal({
               Ver Pagos
             </Button>
           )}
+        </div>
+      }
+    >
+      <div className="flex flex-col min-h-0 h-full overflow-y-auto space-y-4 pr-2 -mr-2">
+        {/* Client Information */}
+        <div className="bg-gray-50 dark:bg-gray-800/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700 space-y-2.5">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            Información del Cliente
+          </h4>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Nombre
+              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {appointment.client.name}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Teléfono
+              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {appointment.client.phone}
+              </p>
+            </div>
+            {appointment.client.email && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                  Email
+                </p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {appointment.client.email}
+                </p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Documento
+              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {appointment.client.documentType}{' '}
+                {appointment.client.documentNumber}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Appointment Information */}
+        <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700 space-y-2.5">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            Información de la Cita
+          </h4>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Fecha
+              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {new Intl.DateTimeFormat('es-ES', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(new Date(appointment.scheduledAt))}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Hora de Inicio
+              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {new Intl.DateTimeFormat('es-ES', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                }).format(new Date(appointment.scheduledAt))}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Duración Total
+              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {totalDuration} minutos
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Hora Estimada de Fin
+              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {new Intl.DateTimeFormat('es-ES', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                }).format(estimatedEndTime)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Services List */}
+        <div className="space-y-4">
+          <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+            Servicios ({appointment.services.length})
+          </h4>
+          <div className="space-y-3">
+            {appointment.services.map((service, index) => (
+              <div
+                key={index}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50"
+              >
+                <div className="flex items-center gap-4 flex-wrap text-sm">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Servicio
+                    </span>
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {service.service.name}
+                    </span>
+                  </div>
+                  <span className="text-gray-400 dark:text-gray-500">•</span>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Manicurista
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {service.manicurist.name}
+                    </span>
+                  </div>
+                  <span className="text-gray-400 dark:text-gray-500">•</span>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Duración
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {service.estimatedDuration} min
+                    </span>
+                  </div>
+                  <span className="flex-1"></span>
+                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                    ${service.price.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Notes */}
+        {appointment.notes && (
+          <div className="space-y-3">
+            <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+              Notas
+            </h4>
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                {appointment.notes}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Total Summary */}
+        <div className="bg-pink-50 dark:bg-pink-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800">
+          <div className="flex justify-between items-center">
+            <span className="text-base font-semibold text-gray-900 dark:text-white">
+              Total de la Cita
+            </span>
+            <span className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+              ${totalPrice.toLocaleString()}
+            </span>
+          </div>
         </div>
       </div>
     </Modal>

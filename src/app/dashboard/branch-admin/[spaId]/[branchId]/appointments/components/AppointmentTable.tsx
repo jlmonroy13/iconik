@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import {
   Eye,
   Pencil,
@@ -49,14 +47,14 @@ export function AppointmentTable({
 }: AppointmentTableProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
+    open: boolean;
     title: string;
-    message: string;
+    description: string;
     onConfirm: () => void;
   }>({
-    isOpen: false,
+    open: false,
     title: '',
-    message: '',
+    description: '',
     onConfirm: () => {},
   });
 
@@ -65,15 +63,21 @@ export function AppointmentTable({
     const config: Record<
       AppointmentStatus,
       {
-        variant: 'default' | 'success' | 'warning' | 'error' | 'info';
+        variant:
+          | 'default'
+          | 'primary'
+          | 'secondary'
+          | 'success'
+          | 'warning'
+          | 'destructive';
         label: string;
       }
     > = {
       PENDING_APPROVAL: { variant: 'warning', label: 'Pendiente' },
-      SCHEDULED: { variant: 'info', label: 'Agendada' },
+      SCHEDULED: { variant: 'primary', label: 'Agendada' },
       IN_PROGRESS: { variant: 'success', label: 'En Progreso' },
       COMPLETED: { variant: 'default', label: 'Completada' },
-      CANCELLED: { variant: 'error', label: 'Cancelada' },
+      CANCELLED: { variant: 'destructive', label: 'Cancelada' },
       NO_SHOW: { variant: 'warning', label: 'No Asistió' },
     };
 
@@ -108,12 +112,12 @@ export function AppointmentTable({
   // Handle cancel appointment
   const handleCancel = (appointmentId: string) => {
     setConfirmDialog({
-      isOpen: true,
+      open: true,
       title: 'Cancelar Cita',
-      message: '¿Estás seguro de que deseas cancelar esta cita?',
+      description: '¿Estás seguro de que deseas cancelar esta cita?',
       onConfirm: async () => {
         setActionLoading(appointmentId);
-        setConfirmDialog({ ...confirmDialog, isOpen: false });
+        setConfirmDialog({ ...confirmDialog, open: false });
 
         try {
           const result = await cancelAppointment(
@@ -140,13 +144,13 @@ export function AppointmentTable({
   // Handle delete appointment
   const handleDelete = (appointmentId: string) => {
     setConfirmDialog({
-      isOpen: true,
+      open: true,
       title: 'Eliminar Cita',
-      message:
+      description:
         '¿Estás seguro de que deseas eliminar esta cita permanentemente? Esta acción no se puede deshacer.',
       onConfirm: async () => {
         setActionLoading(appointmentId);
-        setConfirmDialog({ ...confirmDialog, isOpen: false });
+        setConfirmDialog({ ...confirmDialog, open: false });
 
         try {
           const result = await deleteAppointment(
@@ -225,12 +229,18 @@ export function AppointmentTable({
       cell: (appointment: AppointmentWithDetails) => (
         <div>
           <div className="font-medium text-gray-900 dark:text-white">
-            {format(new Date(appointment.scheduledAt), 'dd MMM yyyy', {
-              locale: es,
-            })}
+            {new Intl.DateTimeFormat('es-ES', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            }).format(new Date(appointment.scheduledAt))}
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {format(new Date(appointment.scheduledAt), 'HH:mm')}
+            {new Intl.DateTimeFormat('es-ES', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+            }).format(new Date(appointment.scheduledAt))}
           </div>
           {!appointment.isScheduled && (
             <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
@@ -361,14 +371,13 @@ export function AppointmentTable({
         />
 
         <ConfirmDialog
-          isOpen={confirmDialog.isOpen}
-          onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+          open={confirmDialog.open}
+          onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
           onConfirm={confirmDialog.onConfirm}
           title={confirmDialog.title}
-          message={confirmDialog.message}
+          description={confirmDialog.description}
           confirmText="Confirmar"
           cancelText="Cancelar"
-          variant="danger"
         />
       </>
     );
@@ -402,14 +411,13 @@ export function AppointmentTable({
       </Table>
 
       <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        open={confirmDialog.open}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
         onConfirm={confirmDialog.onConfirm}
         title={confirmDialog.title}
-        message={confirmDialog.message}
+        description={confirmDialog.description}
         confirmText="Confirmar"
         cancelText="Cancelar"
-        variant="danger"
       />
     </>
   );

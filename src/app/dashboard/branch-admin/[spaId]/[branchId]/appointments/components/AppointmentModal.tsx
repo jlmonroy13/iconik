@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -46,6 +46,37 @@ export function AppointmentModal({
 
   const isEditing = !!appointment;
 
+  // Helper function to get default form values
+  const getDefaultFormValues = useCallback(
+    (appointment?: AppointmentWithDetails): AppointmentFormData => {
+      return {
+        clientId: appointment?.client.id || '',
+        scheduledAt: appointment
+          ? format(new Date(appointment.scheduledAt), "yyyy-MM-dd'T'HH:mm")
+          : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+        isScheduled: appointment?.isScheduled ?? true,
+        notes: appointment?.notes || '',
+        useSameManicurist: false,
+        primaryManicuristId: '',
+        services:
+          appointment?.services.map(s => ({
+            serviceId: s.service.id,
+            manicuristId: s.manicurist.id,
+            price: s.price,
+            estimatedDuration: s.estimatedDuration,
+          })) || [],
+        // Discount fields (UI-only)
+        applyDiscount: false,
+        discountType: undefined,
+        discountAmount: undefined,
+        discountPercentage: undefined,
+        discountReason: '',
+        discountAffectsCommission: false,
+      };
+    },
+    []
+  );
+
   // Initialize form
   const {
     control,
@@ -59,30 +90,7 @@ export function AppointmentModal({
     formState: { errors },
   } = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentFormSchema),
-    defaultValues: {
-      clientId: appointment?.client.id || '',
-      scheduledAt: appointment
-        ? format(new Date(appointment.scheduledAt), "yyyy-MM-dd'T'HH:mm")
-        : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-      isScheduled: appointment?.isScheduled ?? true,
-      notes: appointment?.notes || '',
-      useSameManicurist: false,
-      primaryManicuristId: '' as string,
-      services:
-        appointment?.services.map(s => ({
-          serviceId: s.service.id,
-          manicuristId: s.manicurist.id,
-          price: s.price,
-          estimatedDuration: s.estimatedDuration,
-        })) || [],
-      // Discount fields (UI-only)
-      applyDiscount: false,
-      discountType: undefined,
-      discountAmount: undefined,
-      discountPercentage: undefined,
-      discountReason: '',
-      discountAffectsCommission: false,
-    },
+    defaultValues: getDefaultFormValues(appointment),
   });
 
   // Field array for services
@@ -285,6 +293,14 @@ export function AppointmentModal({
       setFormError(null);
     }
   }, [isOpen, reset]);
+
+  // Reset form with appointment data when opening in edit mode or for new appointment
+  useEffect(() => {
+    if (isOpen) {
+      reset(getDefaultFormValues(appointment));
+      setFormError(null);
+    }
+  }, [isOpen, appointment?.id, reset, getDefaultFormValues]);
 
   // Add empty service when opening modal for new appointment
   useEffect(() => {

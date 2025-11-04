@@ -379,6 +379,87 @@ export async function updateAppointmentStatus(
 }
 
 /**
+ * Automatically complete appointment when payment is registered
+ * This should be called after creating a payment for an appointment
+ */
+export async function autoCompleteAppointmentIfPaid(
+  appointmentId: string,
+  spaId: string
+): Promise<ServerActionResult<void>> {
+  try {
+    // Get appointment with payments and services
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        payments: {
+          select: {
+            amount: true,
+          },
+        },
+        services: {
+          select: {
+            price: true,
+          },
+        },
+      },
+    });
+
+    if (!appointment) {
+      return { success: false, error: 'Cita no encontrada' };
+    }
+
+    if (appointment.spaId !== spaId) {
+      return { success: false, error: 'Cita no pertenece a este spa' };
+    }
+
+    // Don't auto-complete if already completed, cancelled, or no-show
+    if (
+      appointment.status === 'COMPLETED' ||
+      appointment.status === 'CANCELLED' ||
+      appointment.status === 'NO_SHOW'
+    ) {
+      return { success: true }; // Already in final state, nothing to do
+    }
+
+    // Calculate total amount due and total paid
+    const totalDue = appointment.services.reduce(
+      (sum, service) => sum + service.price,
+      0
+    );
+    const totalPaid = appointment.payments.reduce(
+      (sum, payment) => sum + payment.amount,
+      0
+    );
+
+    // If fully paid and not already completed, complete the appointment
+    if (totalPaid >= totalDue && appointment.status !== 'COMPLETED') {
+      await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: {
+          status: 'COMPLETED',
+        },
+      });
+
+      // Revalidate the appointments page
+      revalidatePath(`/dashboard/branch-admin/${spaId}/*/appointments`);
+
+      return { success: true };
+    }
+
+    return { success: true }; // Not fully paid yet, nothing to do
+  } catch (error) {
+    console.error('Error auto-completing appointment:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error inesperado al completar la cita automáticamente',
+    };
+  }
+}
+
+/**
  * Cancel an appointment
  */
 export async function cancelAppointment(
