@@ -167,7 +167,7 @@ export function AppointmentsClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <SectionHeader
         title="Gestión de Citas"
@@ -183,66 +183,35 @@ export function AppointmentsClient({
         onClearCalendarSelection={() => setSelectedDate(undefined)}
       />
 
-      {/* Stats Cards - Compact */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Card>
-          <CardContent className="p-3!">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">📋</span>
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Total de Citas
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {pagination.totalCount}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-3!">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">📄</span>
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  En esta página
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {appointments.length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-3!">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">📑</span>
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Páginas
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {pagination.currentPage} / {pagination.totalPages || 1}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Content */}
       <LoadingOverlay isLoading={isPending}>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Main Content - Table */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
             {/* Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Citas</CardTitle>
+            <Card className="shadow-sm">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <CardTitle className="text-xl m-0">Citas</CardTitle>
+                  <div className="flex items-center gap-3 text-sm flex-shrink-0">
+                    <span className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {pagination.totalCount}{' '}
+                      {pagination.totalCount === 1 ? 'cita' : 'citas'}
+                    </span>
+                    {pagination.totalCount > 0 &&
+                      appointments.length !== pagination.totalCount && (
+                        <span className="text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          ({appointments.length} en esta página)
+                        </span>
+                      )}
+                    {pagination.totalPages > 1 && (
+                      <span className="text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        | Página {pagination.currentPage} /{' '}
+                        {pagination.totalPages}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {appointments.length === 0 ? (
