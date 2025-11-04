@@ -1,13 +1,18 @@
 'use client';
 
-import { Modal, Badge, Button } from '@/components/ui';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Modal, Badge, Button, Textarea } from '@/components/ui';
 import type { AppointmentWithDetails, AppointmentStatus } from '@/types';
+import { preConfirmAppointment } from '../actions';
 
 interface AppointmentDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   appointment: AppointmentWithDetails | null;
   onEdit?: (appointment: AppointmentWithDetails) => void;
+  spaId: string;
+  branchId: string;
 }
 
 export function AppointmentDetailsModal({
@@ -15,7 +20,14 @@ export function AppointmentDetailsModal({
   onClose,
   appointment,
   onEdit,
+  spaId,
+  branchId,
 }: AppointmentDetailsModalProps) {
+  const router = useRouter();
+  const [isPreConfirming, setIsPreConfirming] = useState(false);
+  const [preConfirmNotes, setPreConfirmNotes] = useState('');
+  const [showPreConfirmForm, setShowPreConfirmForm] = useState(false);
+
   if (!appointment) return null;
 
   // Status badge configuration
@@ -67,6 +79,48 @@ export function AppointmentDetailsModal({
     appointment.status !== 'COMPLETED' &&
     appointment.status !== 'CANCELLED' &&
     appointment.status !== 'NO_SHOW';
+
+  // Check if appointment is in the future (at least 2 hours ahead)
+  const scheduledTime = new Date(appointment.scheduledAt);
+  const now = new Date();
+  const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const isFutureAppointment = scheduledTime >= twoHoursFromNow;
+
+  // Calculate when pre-confirmation will be available (2 hours before appointment)
+  const preConfirmationAvailableAt = new Date(
+    scheduledTime.getTime() - 2 * 60 * 60 * 1000
+  );
+
+  // Handle pre-confirmation
+  const handlePreConfirm = async () => {
+    if (!isFutureAppointment) {
+      alert('No se puede pre-confirmar una cita que es en menos de 2 horas');
+      return;
+    }
+
+    setIsPreConfirming(true);
+    try {
+      const result = await preConfirmAppointment(
+        appointment.id,
+        spaId,
+        branchId,
+        { notes: preConfirmNotes || undefined }
+      );
+
+      if (!result.success) {
+        alert(result.error || 'Error al pre-confirmar la cita');
+      } else {
+        setShowPreConfirmForm(false);
+        setPreConfirmNotes('');
+        // Refresh the page to show updated data
+        router.refresh();
+      }
+    } catch (_error) {
+      alert('Error inesperado al pre-confirmar la cita');
+    } finally {
+      setIsPreConfirming(false);
+    }
+  };
 
   return (
     <Modal
@@ -257,6 +311,110 @@ export function AppointmentDetailsModal({
             ))}
           </div>
         </div>
+
+        {/* Pre-Confirmation Section - Show for all scheduled appointments */}
+        {appointment.status === 'SCHEDULED' && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+              Pre-Confirmación
+            </h4>
+            {appointment.preConfirmedAt ? (
+              <div className="rounded-lg p-2.5 border bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="success" className="text-xs">
+                    Pre-Confirmada
+                  </Badge>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    {new Intl.DateTimeFormat('es-ES', {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    }).format(new Date(appointment.preConfirmedAt))}
+                  </span>
+                  {appointment.preConfirmationNotes && (
+                    <span className="text-xs text-gray-700 dark:text-gray-300">
+                      • {appointment.preConfirmationNotes}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg p-2.5 border bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                {!showPreConfirmForm ? (
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <Badge variant="warning" className="text-xs">
+                      Pendiente
+                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {!isFutureAppointment && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Disponible{' '}
+                          {new Intl.DateTimeFormat('es-ES', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          }).format(preConfirmationAvailableAt)}{' '}
+                          (2h antes)
+                        </span>
+                      )}
+                      {isFutureAppointment && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Lista para pre-confirmar
+                        </span>
+                      )}
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        onClick={() => setShowPreConfirmForm(true)}
+                        disabled={!isFutureAppointment}
+                      >
+                        Pre-Confirmar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Textarea
+                      placeholder="Notas de pre-confirmación (opcional)"
+                      value={preConfirmNotes}
+                      onChange={e => setPreConfirmNotes(e.target.value)}
+                      rows={2}
+                      maxLength={500}
+                      className="text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        onClick={handlePreConfirm}
+                        disabled={isPreConfirming || !isFutureAppointment}
+                        className="flex-1"
+                      >
+                        {isPreConfirming ? 'Confirmando...' : 'Confirmar'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setShowPreConfirmForm(false);
+                          setPreConfirmNotes('');
+                        }}
+                        disabled={isPreConfirming}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Notes */}
         {appointment.notes && (

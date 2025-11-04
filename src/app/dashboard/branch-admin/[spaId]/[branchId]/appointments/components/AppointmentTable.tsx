@@ -90,6 +90,12 @@ export function AppointmentTable({
     appointmentId: string,
     newStatus: AppointmentStatus
   ) => {
+    // Show confirmation dialog for NO_SHOW status
+    if (newStatus === 'NO_SHOW') {
+      handleNoShow(appointmentId);
+      return;
+    }
+
     setActionLoading(appointmentId);
     try {
       const result = await updateAppointmentStatus(
@@ -107,6 +113,37 @@ export function AppointmentTable({
     } finally {
       setActionLoading(null);
     }
+  };
+
+  // Handle no show appointment
+  const handleNoShow = (appointmentId: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Marcar como No Asistió',
+      description:
+        '¿Estás seguro de que deseas marcar esta cita como "No Asistió"? Esta acción cambiará el estado de la cita.',
+      onConfirm: async () => {
+        setActionLoading(appointmentId);
+        setConfirmDialog({ ...confirmDialog, open: false });
+
+        try {
+          const result = await updateAppointmentStatus(
+            appointmentId,
+            spaId,
+            branchId,
+            { status: 'NO_SHOW' }
+          );
+
+          if (!result.success) {
+            alert(result.error || 'Error al marcar como no asistió');
+          }
+        } catch (_error) {
+          alert('Error inesperado al marcar como no asistió');
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
   // Handle cancel appointment
@@ -171,7 +208,35 @@ export function AppointmentTable({
     });
   };
 
-  // Get available status transitions for current status
+  /**
+   * Get available status transitions for current status
+   *
+   * ESTADOS DE CITAS Y SU PROPÓSITO:
+   *
+   * 1. PENDING_APPROVAL (Pendiente de Aprobación)
+   *    - Citas creadas desde booking links que requieren aprobación del administrador
+   *    - Puede cambiar a: SCHEDULED (Aprobar y Agendar)
+   *
+   * 2. SCHEDULED (Agendada)
+   *    - Cita confirmada y programada para una fecha/hora específica
+   *    - Puede cambiar a: IN_PROGRESS (Iniciar) o NO_SHOW (No Asistió)
+   *
+   * 3. IN_PROGRESS (En Progreso)
+   *    - Cita que está actualmente en curso (la manicurista está trabajando)
+   *    - Puede cambiar a: COMPLETED (Completar) o CANCELLED (Cancelar)
+   *
+   * 4. COMPLETED (Completada)
+   *    - Cita finalizada exitosamente
+   *    - Estado final: no puede cambiar a ningún otro estado
+   *
+   * 5. CANCELLED (Cancelada)
+   *    - Cita cancelada antes de ser completada
+   *    - Estado final: no puede cambiar a ningún otro estado
+   *
+   * 6. NO_SHOW (No Asistió)
+   *    - Cliente no se presentó a la cita programada
+   *    - Estado final: no puede cambiar a ningún otro estado
+   */
   const getStatusActions = (currentStatus: AppointmentStatus) => {
     const transitions: Record<AppointmentStatus, AppointmentStatus[]> = {
       // Removed 'CANCELLED' from transitions - handled separately via handleCancel
@@ -183,13 +248,14 @@ export function AppointmentTable({
       NO_SHOW: [],
     };
 
-    const statusLabels: Record<AppointmentStatus, string> = {
-      PENDING_APPROVAL: 'Aprobar y Agendar',
-      SCHEDULED: 'Iniciar',
-      IN_PROGRESS: 'Completar',
-      COMPLETED: 'Completar',
-      CANCELLED: 'Cancelar',
-      NO_SHOW: 'No Asistió',
+    // Map transitions to their action labels
+    // Format: [fromStatus, toStatus] => label
+    const transitionLabels: Record<string, string> = {
+      'PENDING_APPROVAL->SCHEDULED': 'Aprobar y Agendar',
+      'SCHEDULED->IN_PROGRESS': 'Iniciar',
+      'SCHEDULED->NO_SHOW': 'No Asistió',
+      'IN_PROGRESS->COMPLETED': 'Completar',
+      'IN_PROGRESS->CANCELLED': 'Cancelar',
     };
 
     const statusIcons: Record<AppointmentStatus, React.ReactNode> = {
@@ -201,11 +267,23 @@ export function AppointmentTable({
       NO_SHOW: <UserX className="w-4 h-4" />,
     };
 
-    return transitions[currentStatus].map(status => ({
-      status,
-      label: statusLabels[status],
-      icon: statusIcons[status],
-    }));
+    return transitions[currentStatus].map(status => {
+      const transitionKey = `${currentStatus}->${status}`;
+      const label = transitionLabels[transitionKey] || status;
+
+      return {
+        status,
+        label,
+        icon: statusIcons[status],
+      };
+    });
+  };
+
+  // Get confirm button text based on dialog title
+  const getConfirmText = (title: string) => {
+    if (title.includes('Cancelar')) return 'Confirmar';
+    if (title.includes('No Asistió')) return 'Confirmar';
+    return 'Eliminar';
   };
 
   // Calculate totals for each appointment
@@ -285,8 +363,39 @@ export function AppointmentTable({
     {
       header: 'Estado',
       accessor: 'status' as const,
-      cell: (appointment: AppointmentWithDetails) =>
-        getStatusBadge(appointment.status),
+      cell: (appointment: AppointmentWithDetails) => {
+        // Check if appointment is in the past and still scheduled
+        const scheduledTime = new Date(appointment.scheduledAt);
+        const now = new Date();
+        const isPastAppointment =
+          appointment.status === 'SCHEDULED' && scheduledTime < now;
+
+        const isPendingPreConfirmation =
+          appointment.status === 'SCHEDULED' && !appointment.preConfirmedAt;
+        const isPreConfirmed =
+          appointment.status === 'SCHEDULED' && appointment.preConfirmedAt;
+
+        return (
+          <div className="flex flex-col gap-1 items-start">
+            {!isPastAppointment && getStatusBadge(appointment.status)}
+            {isPastAppointment && (
+              <Badge variant="destructive" className="text-xs">
+                Cita Vencida
+              </Badge>
+            )}
+            {!isPastAppointment && isPendingPreConfirmation && (
+              <Badge variant="warning" className="text-xs">
+                Pendiente de Pre-Confirmación
+              </Badge>
+            )}
+            {!isPastAppointment && isPreConfirmed && (
+              <Badge variant="success" className="text-xs">
+                Pre-Confirmada
+              </Badge>
+            )}
+          </div>
+        );
+      },
     },
     {
       header: 'Total',
@@ -309,7 +418,19 @@ export function AppointmentTable({
       header: 'Acciones',
       accessor: 'id' as const,
       cell: (appointment: AppointmentWithDetails) => {
-        const statusActions = getStatusActions(appointment.status);
+        // Check if appointment is in the past and still scheduled
+        const scheduledTime = new Date(appointment.scheduledAt);
+        const now = new Date();
+        const isPastAppointment =
+          appointment.status === 'SCHEDULED' && scheduledTime < now;
+
+        // For past appointments, filter status actions to only show valid ones
+        let statusActions = getStatusActions(appointment.status);
+        if (isPastAppointment) {
+          // For past scheduled appointments, only allow NO_SHOW, not IN_PROGRESS
+          statusActions = statusActions.filter(sa => sa.status === 'NO_SHOW');
+        }
+
         const isLoading = actionLoading === appointment.id;
 
         const actions = [
@@ -320,7 +441,8 @@ export function AppointmentTable({
           },
           ...(appointment.status !== 'COMPLETED' &&
           appointment.status !== 'CANCELLED' &&
-          appointment.status !== 'NO_SHOW'
+          appointment.status !== 'NO_SHOW' &&
+          !isPastAppointment
             ? [
                 {
                   label: 'Editar',
@@ -376,8 +498,9 @@ export function AppointmentTable({
           onConfirm={confirmDialog.onConfirm}
           title={confirmDialog.title}
           description={confirmDialog.description}
-          confirmText="Confirmar"
+          confirmText={getConfirmText(confirmDialog.title)}
           cancelText="Cancelar"
+          isLoading={actionLoading !== null}
         />
       </>
     );
@@ -396,17 +519,33 @@ export function AppointmentTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {appointments.map((appointment, index) => (
-            <TableRow key={appointment.id} isAlternate={index % 2 !== 0}>
-              {columns.map((column, colIndex) => (
-                <TableCell
-                  key={`${appointment.id}-${colIndex}-${column.header}`}
-                >
-                  {column.cell(appointment)}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
+          {appointments.map((appointment, index) => {
+            // Check if appointment is in the past and still scheduled
+            const scheduledTime = new Date(appointment.scheduledAt);
+            const now = new Date();
+            const isPastAppointment =
+              appointment.status === 'SCHEDULED' && scheduledTime < now;
+
+            return (
+              <TableRow
+                key={appointment.id}
+                isAlternate={index % 2 !== 0}
+                className={
+                  isPastAppointment
+                    ? 'border-l-4 border-l-red-500 dark:border-l-red-600 bg-red-50/30 dark:bg-red-900/10'
+                    : undefined
+                }
+              >
+                {columns.map((column, colIndex) => (
+                  <TableCell
+                    key={`${appointment.id}-${colIndex}-${column.header}`}
+                  >
+                    {column.cell(appointment)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
 
@@ -416,8 +555,9 @@ export function AppointmentTable({
         onConfirm={confirmDialog.onConfirm}
         title={confirmDialog.title}
         description={confirmDialog.description}
-        confirmText="Confirmar"
+        confirmText={getConfirmText(confirmDialog.title)}
         cancelText="Cancelar"
+        isLoading={actionLoading !== null}
       />
     </>
   );

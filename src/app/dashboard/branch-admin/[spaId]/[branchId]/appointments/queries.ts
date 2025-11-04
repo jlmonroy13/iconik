@@ -55,22 +55,35 @@ export async function getAppointments({
         in: ['SCHEDULED', 'IN_PROGRESS'],
       };
     } else if (filters.status === 'PAST') {
-      // Filter for COMPLETED, CANCELLED, or NO_SHOW appointments
-      where.status = {
-        in: ['COMPLETED', 'CANCELLED', 'NO_SHOW'],
-      };
+      // For PAST filter, we filter by date (scheduledAt < now) instead of status
+      // This includes all appointments that have passed, regardless of status
+      // The date filter will be handled below in the date range filter section
+      // We don't filter by status here, allowing all statuses for past appointments
     } else {
       where.status = filters.status;
     }
   }
 
   // Manicurist filter
+  // First check appointment.manicuristId (faster), then fallback to services
   if (filters.manicuristId) {
-    where.services = {
-      some: {
-        manicuristId: filters.manicuristId,
+    where.AND = [
+      ...(where.AND || []),
+      {
+        OR: [
+          // Match appointments where the primary manicurist matches
+          { manicuristId: filters.manicuristId },
+          // Or match appointments where any service has this manicurist
+          {
+            services: {
+              some: {
+                manicuristId: filters.manicuristId,
+              },
+            },
+          },
+        ],
       },
-    };
+    ];
   }
 
   // Client filter
@@ -79,7 +92,14 @@ export async function getAppointments({
   }
 
   // Date range filter
-  if (filters.dateFrom || filters.dateTo) {
+  if (filters.status === 'PAST') {
+    // For PAST filter, always show appointments before now (regardless of dateTo)
+    const now = new Date();
+    where.scheduledAt = {
+      lt: now, // Less than now (all past appointments)
+      ...(filters.dateFrom && { gte: filters.dateFrom }), // Optional: from date if specified
+    };
+  } else if (filters.dateFrom || filters.dateTo) {
     where.scheduledAt = {};
     if (filters.dateFrom) {
       where.scheduledAt.gte = filters.dateFrom;

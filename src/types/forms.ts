@@ -483,6 +483,13 @@ export const cancelAppointmentSchema = z.object({
 });
 
 /**
+ * Schema for pre-confirming an appointment
+ */
+export const preConfirmAppointmentSchema = z.object({
+  notes: z.string().max(500, 'Máximo 500 caracteres').optional(),
+});
+
+/**
  * Schema for adding a service to an existing appointment
  */
 export const addAppointmentServiceSchema = z.object({
@@ -502,6 +509,9 @@ export type UpdateAppointmentStatusData = z.infer<
   typeof updateAppointmentStatusSchema
 >;
 export type CancelAppointmentData = z.infer<typeof cancelAppointmentSchema>;
+export type PreConfirmAppointmentData = z.infer<
+  typeof preConfirmAppointmentSchema
+>;
 export type AddAppointmentServiceData = z.infer<
   typeof addAppointmentServiceSchema
 >;

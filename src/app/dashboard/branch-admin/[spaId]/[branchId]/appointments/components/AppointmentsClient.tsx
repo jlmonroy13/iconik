@@ -318,6 +318,8 @@ export function AppointmentsClient({
         onClose={() => setIsDetailsModalOpen(false)}
         appointment={selectedAppointment}
         onEdit={handleEdit}
+        spaId={spaId}
+        branchId={branchId}
       />
     </div>
   );

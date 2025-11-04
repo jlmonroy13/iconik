@@ -8,9 +8,11 @@ import {
   updateAppointmentSchema,
   updateAppointmentStatusSchema,
   cancelAppointmentSchema,
+  preConfirmAppointmentSchema,
   addAppointmentServiceSchema,
 } from '@/types/forms';
 import { getAvailableManicuristsForService } from '../manicurists/queries';
+import { getUserIdFromRequest } from '@/lib/auth';
 
 /**
  * Get services assigned to a specific manicurist
@@ -131,6 +133,16 @@ export async function createAppointment(
       ? new Date(validatedData.scheduledAt)
       : new Date();
 
+    // For walk-ins (IN_PROGRESS), record start time immediately
+    const now = new Date();
+    const shouldRecordStartTime = !validatedData.isScheduled;
+
+    // Auto-assign appointment.manicuristId if all services have the same manicurist
+    const allManicuristIds = validatedData.services.map(s => s.manicuristId);
+    const uniqueManicuristIds = [...new Set(allManicuristIds)];
+    const primaryManicuristId =
+      uniqueManicuristIds.length === 1 ? uniqueManicuristIds[0] : null;
+
     // Create appointment with services
     const appointment = await prisma.appointment.create({
       data: {
@@ -141,12 +153,16 @@ export async function createAppointment(
         isScheduled: validatedData.isScheduled,
         status: initialStatus,
         notes: validatedData.notes || null,
+        // Auto-assign manicurist if all services have the same one
+        ...(primaryManicuristId && { manicuristId: primaryManicuristId }),
         services: {
           create: validatedData.services.map(service => ({
             serviceId: service.serviceId,
             manicuristId: service.manicuristId,
             price: service.price,
             estimatedDuration: service.estimatedDuration,
+            // For walk-ins, record start time immediately
+            ...(shouldRecordStartTime && { startedAtByAdmin: now }),
           })),
         },
       },
@@ -243,6 +259,20 @@ export async function updateAppointment(
 
     // Handle services update if provided
     if (validatedData.services) {
+      // Auto-assign appointment.manicuristId if all services have the same manicurist
+      const allManicuristIds = validatedData.services.map(s => s.manicuristId);
+      const uniqueManicuristIds = [...new Set(allManicuristIds)];
+      const primaryManicuristId =
+        uniqueManicuristIds.length === 1 ? uniqueManicuristIds[0] : null;
+
+      // Update appointment.manicuristId based on services
+      if (primaryManicuristId) {
+        updateData.manicurist = { connect: { id: primaryManicuristId } };
+      } else {
+        // If services have different manicurists, clear appointment.manicuristId
+        updateData.manicurist = { disconnect: true };
+      }
+
       // Delete existing services and create new ones
       await prisma.appointmentService.deleteMany({
         where: {
@@ -344,14 +374,80 @@ export async function updateAppointmentStatus(
       };
     }
 
-    // Update status
-    await prisma.appointment.update({
+    // Get appointment services for time tracking
+    const appointmentServices = await prisma.appointmentService.findMany({
       where: {
-        id: appointmentId,
+        appointmentId,
       },
-      data: {
-        status: newStatus,
+      select: {
+        id: true,
+        startedAtByAdmin: true,
+        estimatedDuration: true,
       },
+    });
+
+    const now = new Date();
+
+    // Use transaction to ensure consistency
+    await prisma.$transaction(async tx => {
+      // Update appointment status
+      await tx.appointment.update({
+        where: {
+          id: appointmentId,
+        },
+        data: {
+          status: newStatus,
+        },
+      });
+
+      // When starting appointment (SCHEDULED -> IN_PROGRESS)
+      if (newStatus === 'IN_PROGRESS' && currentStatus === 'SCHEDULED') {
+        // Update all services with start time
+        await tx.appointmentService.updateMany({
+          where: {
+            appointmentId,
+            startedAtByAdmin: null, // Only update if not already set
+          },
+          data: {
+            startedAtByAdmin: now,
+          },
+        });
+      }
+
+      // When completing appointment (IN_PROGRESS -> COMPLETED)
+      if (newStatus === 'COMPLETED' && currentStatus === 'IN_PROGRESS') {
+        // Update all services with end time and calculate actual duration
+        for (const service of appointmentServices) {
+          if (service.startedAtByAdmin) {
+            const startTime = new Date(service.startedAtByAdmin);
+            const endTime = now;
+            const actualDurationMinutes = Math.round(
+              (endTime.getTime() - startTime.getTime()) / (1000 * 60)
+            );
+
+            await tx.appointmentService.update({
+              where: {
+                id: service.id,
+              },
+              data: {
+                endedAtByAdmin: endTime,
+                actualDuration: actualDurationMinutes,
+              },
+            });
+          } else {
+            // If no start time recorded, use estimated duration
+            await tx.appointmentService.update({
+              where: {
+                id: service.id,
+              },
+              data: {
+                endedAtByAdmin: now,
+                actualDuration: service.estimatedDuration,
+              },
+            });
+          }
+        }
+      }
     });
 
     // Revalidate the appointments page
@@ -398,7 +494,10 @@ export async function autoCompleteAppointmentIfPaid(
         },
         services: {
           select: {
+            id: true,
             price: true,
+            startedAtByAdmin: true,
+            estimatedDuration: true,
           },
         },
       },
@@ -433,11 +532,73 @@ export async function autoCompleteAppointmentIfPaid(
 
     // If fully paid and not already completed, complete the appointment
     if (totalPaid >= totalDue && appointment.status !== 'COMPLETED') {
-      await prisma.appointment.update({
-        where: { id: appointmentId },
-        data: {
-          status: 'COMPLETED',
-        },
+      const now = new Date();
+
+      await prisma.$transaction(async tx => {
+        // Ensure services have start time if appointment is being auto-completed
+        // (might be completing from SCHEDULED status if payment was made early)
+        if (appointment.status === 'SCHEDULED') {
+          await tx.appointmentService.updateMany({
+            where: {
+              appointmentId,
+              startedAtByAdmin: null,
+            },
+            data: {
+              startedAtByAdmin: now,
+            },
+          });
+        }
+
+        // Update appointment status
+        await tx.appointment.update({
+          where: { id: appointmentId },
+          data: {
+            status: 'COMPLETED',
+          },
+        });
+
+        // Update all services with end time and calculate actual duration
+        for (const service of appointment.services) {
+          // Re-fetch service to get updated startedAtByAdmin if it was just set
+          const updatedService = await tx.appointmentService.findUnique({
+            where: { id: service.id },
+            select: {
+              startedAtByAdmin: true,
+              estimatedDuration: true,
+            },
+          });
+
+          if (updatedService?.startedAtByAdmin) {
+            const startTime = new Date(updatedService.startedAtByAdmin);
+            const endTime = now;
+            const actualDurationMinutes = Math.round(
+              (endTime.getTime() - startTime.getTime()) / (1000 * 60)
+            );
+
+            await tx.appointmentService.update({
+              where: {
+                id: service.id,
+              },
+              data: {
+                endedAtByAdmin: endTime,
+                actualDuration: actualDurationMinutes,
+              },
+            });
+          } else {
+            // If no start time recorded, use estimated duration
+            await tx.appointmentService.update({
+              where: {
+                id: service.id,
+              },
+              data: {
+                endedAtByAdmin: now,
+                actualDuration:
+                  updatedService?.estimatedDuration ||
+                  service.estimatedDuration,
+              },
+            });
+          }
+        }
       });
 
       // Revalidate the appointments page
@@ -528,6 +689,100 @@ export async function cancelAppointment(
     return {
       success: false,
       error: 'Error inesperado al cancelar la cita',
+    };
+  }
+}
+
+/**
+ * Pre-confirm an appointment (24-48h before scheduled time)
+ */
+export async function preConfirmAppointment(
+  appointmentId: string,
+  spaId: string,
+  branchId: string,
+  data: unknown
+): Promise<ServerActionResult<void>> {
+  try {
+    // Validate input
+    const validatedData = preConfirmAppointmentSchema.parse(data);
+
+    // Get current user ID
+    const userId = await getUserIdFromRequest();
+
+    // Check if appointment exists
+    const existingAppointment = await prisma.appointment.findFirst({
+      where: {
+        id: appointmentId,
+        spaId,
+      },
+    });
+
+    if (!existingAppointment) {
+      return {
+        success: false,
+        error: 'Cita no encontrada',
+      };
+    }
+
+    // Can only pre-confirm scheduled appointments
+    if (existingAppointment.status !== 'SCHEDULED') {
+      return {
+        success: false,
+        error: 'Solo se pueden pre-confirmar citas agendadas',
+      };
+    }
+
+    // Check if appointment is scheduled for future (at least 2 hours ahead)
+    const scheduledTime = new Date(existingAppointment.scheduledAt);
+    const now = new Date();
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+    if (scheduledTime < twoHoursFromNow) {
+      return {
+        success: false,
+        error: 'No se puede pre-confirmar una cita que es en menos de 2 horas',
+      };
+    }
+
+    // Update appointment with pre-confirmation data
+    await prisma.appointment.update({
+      where: {
+        id: appointmentId,
+      },
+      data: {
+        requiresPreConfirmation: true,
+        preConfirmedBy: userId,
+        preConfirmedAt: new Date(),
+        preConfirmationNotes: validatedData.notes || null,
+      },
+    });
+
+    // Revalidate the appointments page
+    revalidatePath(`/dashboard/branch-admin/${spaId}/${branchId}/appointments`);
+
+    return {
+      success: true,
+      data: undefined,
+    };
+  } catch (error) {
+    console.error('Error pre-confirming appointment:', error);
+
+    if (error instanceof Error) {
+      if (error.message === 'UNAUTHORIZED') {
+        return {
+          success: false,
+          error: 'No autorizado para pre-confirmar citas',
+        };
+      }
+      return {
+        success: false,
+        error: error.message || 'Error al pre-confirmar la cita',
+      };
+    }
+
+    return {
+      success: false,
+      error: 'Error inesperado al pre-confirmar la cita',
     };
   }
 }

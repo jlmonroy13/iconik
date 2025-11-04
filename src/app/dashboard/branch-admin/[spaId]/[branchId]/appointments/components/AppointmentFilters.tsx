@@ -186,13 +186,13 @@ export function AppointmentFilters({
     }
 
     if (!isActive) {
-      // Activate filter: show COMPLETED, CANCELLED, NO_SHOW before today
-      const today = startOfDay(new Date());
+      // Activate filter: show all appointments before today (from today backwards)
+      const now = new Date();
       onFiltersChange({
         ...filters,
         status: 'PAST',
-        dateFrom: undefined,
-        dateTo: today, // Before today
+        dateFrom: undefined, // No limit backwards
+        dateTo: now, // Up to now (before today)
       });
     } else {
       // Deactivate filter
