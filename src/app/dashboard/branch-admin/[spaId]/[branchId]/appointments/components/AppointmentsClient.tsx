@@ -176,7 +176,7 @@ export function AppointmentsClient({
         action={<Button onClick={handleCreate}>+ Nueva Cita</Button>}
       />
 
-      {/* Filters */}
+      {/* Filters - Full Width */}
       <Filters
         filters={currentFilters}
         onFiltersChange={handleFiltersChange}
@@ -184,10 +184,10 @@ export function AppointmentsClient({
         onClearCalendarSelection={() => setSelectedDate(undefined)}
       />
 
-      {/* Content */}
+      {/* Content - Table and Calendar in same row */}
       <LoadingOverlay isLoading={isPending}>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Main Content - Table */}
+          {/* Table Column */}
           <div className="lg:col-span-4">
             {/* Table */}
             <Card className="shadow-sm">
@@ -282,7 +282,7 @@ export function AppointmentsClient({
             )}
           </div>
 
-          {/* Sidebar - Mini Calendar */}
+          {/* Calendar Column */}
           <div className="lg:col-span-1">
             <AppointmentCalendar
               appointments={appointments}

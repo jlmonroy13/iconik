@@ -18,43 +18,36 @@ const navigation = [
     name: 'Dashboard',
     href: '/dashboard/branch-admin/[spaId]/[branchId]',
     icon: '📊',
-    description: 'Vista general de la sede',
   },
   {
     name: 'Clientes',
     href: '/dashboard/branch-admin/[spaId]/[branchId]/clients',
     icon: '👥',
-    description: 'Gestión de clientes',
   },
   {
     name: 'Citas',
     href: '/dashboard/branch-admin/[spaId]/[branchId]/appointments',
     icon: '📅',
-    description: 'Programación y gestión de citas',
   },
   {
     name: 'Manicuristas',
     href: '/dashboard/branch-admin/[spaId]/[branchId]/manicurists',
     icon: '💅',
-    description: 'Gestión de manicuristas',
   },
   {
     name: 'Servicios',
     href: '/dashboard/branch-admin/[spaId]/[branchId]/services',
     icon: '🛠️',
-    description: 'Servicios disponibles',
   },
   {
     name: 'Pagos',
     href: '/dashboard/branch-admin/[spaId]/[branchId]/payments',
     icon: '💰',
-    description: 'Gestión de pagos',
   },
   {
     name: 'Configuración',
     href: '/dashboard/branch-admin/[spaId]/[branchId]/settings',
     icon: '⚙️',
-    description: 'Configuración de la sede',
   },
 ];
 
@@ -86,9 +79,9 @@ export function Sidebar({ isOpen, onClose, spaId, branchId }: SidebarProps) {
   };
 
   const sidebarContent = (
-    <div className="flex h-full w-64 flex-col bg-white dark:bg-gray-800 shadow-xl">
+    <div className="flex h-full w-44 flex-col bg-white dark:bg-gray-800 shadow-xl">
       {/* Navigation */}
-      <nav className="flex flex-1 flex-col px-4 py-6">
+      <nav className="flex flex-1 flex-col px-3 py-6">
         <ul role="list" className="flex flex-1 flex-col gap-y-7">
           <li>
             <ul role="list" className="-mx-2 space-y-1">
@@ -100,17 +93,12 @@ export function Sidebar({ isOpen, onClose, spaId, branchId }: SidebarProps) {
                       isActive(item.href)
                         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                         : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-50 dark:hover:bg-gray-700',
-                      'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium transition-colors'
+                      'group flex gap-x-2 rounded-md px-4 py-2 text-sm leading-6 font-medium transition-colors whitespace-nowrap'
                     )}
                     onClick={onClose}
                   >
                     <span className="text-lg">{item.icon}</span>
-                    <div className="flex-1">
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {item.description}
-                      </div>
-                    </div>
+                    <span className="font-medium">{item.name}</span>
                   </Link>
                 </li>
               ))}
@@ -148,7 +136,7 @@ export function Sidebar({ isOpen, onClose, spaId, branchId }: SidebarProps) {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
+              <Dialog.Panel className="relative mr-16 flex w-auto max-w-xs flex-1">
                 {sidebarContent}
               </Dialog.Panel>
             </Transition.Child>

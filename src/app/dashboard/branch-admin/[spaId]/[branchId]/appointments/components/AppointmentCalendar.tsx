@@ -89,17 +89,18 @@ export function AppointmentCalendar({
   const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   return (
-    <div className="bg-gray-800 dark:bg-gray-800 rounded-lg border border-gray-700 dark:border-gray-700 p-4">
+    <div className="bg-gray-800 dark:bg-gray-800 rounded-lg border border-gray-700 dark:border-gray-700 p-2">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-semibold text-white dark:text-white capitalize">
-          {format(currentMonth, 'MMMM yyyy', { locale: es })}
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-xs font-semibold text-white dark:text-white capitalize">
+          {format(currentMonth, 'MMM yyyy', { locale: es })}
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-0.5">
           <Button
             type="button"
             variant="ghost"
             size="sm"
+            className="h-5 w-5 p-0 text-xs"
             onClick={handlePreviousMonth}
           >
             ‹
@@ -108,6 +109,7 @@ export function AppointmentCalendar({
             type="button"
             variant="ghost"
             size="sm"
+            className="h-5 w-5 p-0 text-xs"
             onClick={handleNextMonth}
           >
             ›
@@ -116,11 +118,11 @@ export function AppointmentCalendar({
       </div>
 
       {/* Week day headers */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 gap-0.5 mb-0.5">
         {weekDays.map(day => (
           <div
             key={day}
-            className="text-center text-xs font-semibold text-gray-400 dark:text-gray-400 py-2"
+            className="text-center text-[9px] font-semibold text-gray-400 dark:text-gray-400 py-0.5"
           >
             {day}
           </div>
@@ -128,7 +130,7 @@ export function AppointmentCalendar({
       </div>
 
       {/* Calendar days */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5">
         {calendarDays.map((day, index) => {
           const appointmentCount = getAppointmentCountForDay(day);
           const indicatorBorderColor =
@@ -171,7 +173,7 @@ export function AppointmentCalendar({
           // Determine classes based on state
           // Use fixed size with box-border to ensure uniform sizing
           const baseClasses = `
-            relative aspect-square w-full h-full min-h-0 p-2 text-sm transition-colors box-border
+            relative aspect-square w-full h-full min-h-0 p-0.5 text-[10px] transition-colors box-border
             ${!isCurrentMonth ? 'text-gray-600 dark:text-gray-600' : 'text-gray-100 dark:text-gray-100'}
           `;
 
@@ -248,39 +250,39 @@ export function AppointmentCalendar({
       </div>
 
       {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-gray-700 dark:border-gray-700">
-        <p className="text-xs font-semibold text-gray-300 dark:text-gray-300 mb-2">
+      <div className="mt-1.5 pt-1.5 border-t border-gray-700 dark:border-gray-700">
+        <p className="text-[9px] font-semibold text-gray-300 dark:text-gray-300 mb-0.5">
           Leyenda:
         </p>
-        <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 dark:text-gray-400">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-0.5 bg-green-400 border-b-2 border-green-400" />
-            <span>1-2 citas</span>
+        <div className="grid grid-cols-2 gap-0.5 text-[9px] text-gray-400 dark:text-gray-400">
+          <div className="flex items-center gap-0.5">
+            <div className="w-4 h-0.5 bg-green-400 border-b-2 border-green-400" />
+            <span>1-2</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-0.5 bg-blue-400 border-b-2 border-blue-400" />
-            <span>3-4 citas</span>
+          <div className="flex items-center gap-0.5">
+            <div className="w-4 h-0.5 bg-blue-400 border-b-2 border-blue-400" />
+            <span>3-4</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-0.5 bg-amber-400 border-b-2 border-amber-400" />
-            <span>5-6 citas</span>
+          <div className="flex items-center gap-0.5">
+            <div className="w-4 h-0.5 bg-amber-400 border-b-2 border-amber-400" />
+            <span>5-6</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-0.5 bg-red-400 border-b-2 border-red-400" />
-            <span>7+ citas</span>
+          <div className="flex items-center gap-0.5">
+            <div className="w-4 h-0.5 bg-red-400 border-b-2 border-red-400" />
+            <span>7+</span>
           </div>
         </div>
       </div>
 
       {/* Today indicator info */}
       {selectedDate && (
-        <div className="mt-4 pt-4 border-t border-gray-700 dark:border-gray-700">
-          <p className="text-sm font-medium text-white dark:text-white capitalize">
-            {format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: es })}
+        <div className="mt-1.5 pt-1.5 border-t border-gray-700 dark:border-gray-700">
+          <p className="text-[10px] font-medium text-white dark:text-white capitalize">
+            {format(selectedDate, "d 'de' MMM", { locale: es })}
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
+          <p className="text-[9px] text-gray-400 dark:text-gray-400 mt-0.5">
             {getAppointmentCountForDay(selectedDate) === 0
-              ? 'No hay citas para este día'
+              ? 'Sin citas'
               : `${getAppointmentCountForDay(selectedDate)} ${
                   getAppointmentCountForDay(selectedDate) === 1
                     ? 'cita'
