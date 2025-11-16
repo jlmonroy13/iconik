@@ -92,11 +92,12 @@ export function InlineClientModal({
       isOpen={isOpen}
       onClose={handleClose}
       title="Crear Cliente Rápido"
-      size="lg"
+      size="md"
+      className="h-[unset]"
     >
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
         {error && (
-          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
           </div>
         )}
@@ -109,7 +110,7 @@ export function InlineClientModal({
           error={form.formState.errors.name?.message}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             label="Documento *"
             {...form.register('documentNumber', {
@@ -129,7 +130,7 @@ export function InlineClientModal({
           />
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t">
+        <div className="flex justify-end space-x-3 pt-2 border-t">
           <Button
             type="button"
             variant="secondary"

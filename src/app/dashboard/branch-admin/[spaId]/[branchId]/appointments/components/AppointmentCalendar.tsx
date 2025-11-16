@@ -13,10 +13,10 @@ import {
   isSameMonth,
   isSameDay,
   isToday,
-  isWithinInterval,
   startOfDay,
   endOfDay,
 } from 'date-fns';
+import { isWithinInterval } from 'date-fns/isWithinInterval';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui';
 import type { AppointmentWithDetails } from '@/types';
