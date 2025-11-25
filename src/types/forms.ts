@@ -691,7 +691,7 @@ export const createExpenseSchema = z.object({
     required_error: 'La frecuencia es requerida',
   }),
   dueDate: z.string().optional(), // ISO date string
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 });
 
 export const updateExpenseSchema = createExpenseSchema.partial();

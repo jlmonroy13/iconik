@@ -203,9 +203,11 @@ export function SpaAccountsManager({
                   )}
 
                   {/* Branch */}
-                  {account.branch && (
+                  {account.branchId && (
                     <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
-                      📍 {account.branch.name}
+                      📍{' '}
+                      {branches.find(b => b.id === account.branchId)?.name ||
+                        'Sede no encontrada'}
                     </p>
                   )}
 
@@ -270,8 +272,6 @@ export function SpaAccountsManager({
                     <ItemActions
                       onEdit={() => handleEdit(account)}
                       onDelete={() => handleDelete(account)}
-                      editLabel="Editar"
-                      deleteLabel="Eliminar"
                     />
                   </div>
                 </div>
@@ -325,7 +325,6 @@ export function SpaAccountsManager({
         }
         confirmText={isDeleting ? 'Eliminando...' : 'Eliminar'}
         cancelText="Cancelar"
-        isDestructive
       />
     </>
   );

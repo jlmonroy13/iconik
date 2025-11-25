@@ -20,19 +20,19 @@ export function ExpenseStatsCards({ stats }: ExpenseStatsCardsProps) {
     stats.totalAmount > 0 ? (stats.paidAmount / stats.totalAmount) * 100 : 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 gap-3">
       {/* Total Gastos */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <CardHeader className="pb-1 pt-3 px-3">
+          <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-400">
             Total Gastos
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
+        <CardContent className="px-3 pb-3">
+          <div className="text-lg font-bold text-gray-900 dark:text-white">
             {formatCurrency(stats.totalAmount)}
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-0.5">
             {stats.totalExpenses} gasto{stats.totalExpenses !== 1 && 's'}
           </p>
         </CardContent>
@@ -40,16 +40,16 @@ export function ExpenseStatsCards({ stats }: ExpenseStatsCardsProps) {
 
       {/* Pagado */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <CardHeader className="pb-1 pt-3 px-3">
+          <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-400">
             Pagado
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">
+        <CardContent className="px-3 pb-3">
+          <div className="text-lg font-bold text-green-600">
             {formatCurrency(stats.paidAmount)}
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-0.5">
             {paidPercentage.toFixed(1)}% del total
           </p>
         </CardContent>
@@ -57,16 +57,16 @@ export function ExpenseStatsCards({ stats }: ExpenseStatsCardsProps) {
 
       {/* Pendiente */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <CardHeader className="pb-1 pt-3 px-3">
+          <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-400">
             Pendiente
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-orange-600">
+        <CardContent className="px-3 pb-3">
+          <div className="text-lg font-bold text-orange-600">
             {formatCurrency(stats.pendingAmount)}
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-0.5">
             {(100 - paidPercentage).toFixed(1)}% del total
           </p>
         </CardContent>
@@ -74,16 +74,16 @@ export function ExpenseStatsCards({ stats }: ExpenseStatsCardsProps) {
 
       {/* Vencido */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <CardHeader className="pb-1 pt-3 px-3">
+          <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-400">
             Vencido
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-600">
+        <CardContent className="px-3 pb-3">
+          <div className="text-lg font-bold text-red-600">
             {formatCurrency(stats.overdueAmount)}
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-0.5">
             {stats.overdue.length} gasto{stats.overdue.length !== 1 && 's'}
           </p>
         </CardContent>

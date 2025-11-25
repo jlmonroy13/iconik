@@ -127,8 +127,8 @@ export function Modal({
           </button>
         </div>
 
-        {/* Content - no scroll, scroll is handled by children */}
-        <div className="flex-1 overflow-hidden p-6 pt-4">{children}</div>
+        {/* Content - scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">{children}</div>
 
         {/* Fixed Footer */}
         {footer && (

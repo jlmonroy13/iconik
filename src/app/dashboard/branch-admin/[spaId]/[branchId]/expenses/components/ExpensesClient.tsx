@@ -145,16 +145,6 @@ export function ExpensesClient({
     router.push(`/dashboard/branch-admin/${spaId}/${branchId}/expenses`);
   };
 
-  // Handle view expense
-  const handleViewExpense = (expenseId: string) => {
-    // For now, just show edit modal
-    const expense = expenses.find(e => e.id === expenseId);
-    if (expense) {
-      setSelectedExpense(expense);
-      setIsEditModalOpen(true);
-    }
-  };
-
   // Handle pay expense
   const handlePayExpense = (expense: ExpenseListItem) => {
     setSelectedExpense(expense);
@@ -204,190 +194,200 @@ export function ExpensesClient({
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <ExpenseStatsCards stats={stats} />
-
-      {/* Upcoming & Overdue */}
-      {(stats.upcoming.length > 0 || stats.overdue.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Upcoming Expenses */}
-          {stats.upcoming.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>📅 Próximos Vencimientos (30 días)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {stats.upcoming.map((expense, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {expense.name}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {new Date(expense.dueDate).toLocaleDateString(
-                            'es-CO'
-                          )}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-blue-600">
-                          {new Intl.NumberFormat('es-CO', {
-                            style: 'currency',
-                            currency: 'COP',
-                            minimumFractionDigits: 0,
-                          }).format(expense.amount)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Overdue Expenses */}
-          {stats.overdue.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>⚠️ Gastos Vencidos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {stats.overdue.map((expense, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {expense.name}
-                        </p>
-                        <p className="text-sm text-red-600">
-                          Vencido hace {expense.daysOverdue} días
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-red-600">
-                          {new Intl.NumberFormat('es-CO', {
-                            style: 'currency',
-                            currency: 'COP',
-                            minimumFractionDigits: 0,
-                          }).format(expense.amount)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+      {/* Stats Cards and Overdue Expenses - Two Column Layout - Compact */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* First Column: Stats Cards */}
+        <div>
+          <ExpenseStatsCards stats={stats} />
         </div>
+
+        {/* Second Column: Overdue Expenses */}
+        {stats.overdue.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">⚠️ Gastos Vencidos</CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="space-y-2">
+                {stats.overdue.map((expense, idx) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between items-center p-2 bg-red-50 dark:bg-red-900/20 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium text-sm text-gray-900 dark:text-white">
+                        {expense.name}
+                      </p>
+                      <p className="text-xs text-red-600">
+                        Vencido hace {expense.daysOverdue} días
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-sm text-red-600">
+                        {new Intl.NumberFormat('es-CO', {
+                          style: 'currency',
+                          currency: 'COP',
+                          minimumFractionDigits: 0,
+                        }).format(expense.amount)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Upcoming Expenses - Full Width Below - Compact */}
+      {stats.upcoming.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">
+              📅 Próximos Vencimientos (30 días)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3">
+            <div className="space-y-2">
+              {stats.upcoming.map((expense, idx) => (
+                <div
+                  key={idx}
+                  className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium text-sm text-gray-900 dark:text-white">
+                      {expense.name}
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {new Date(expense.dueDate).toLocaleDateString('es-CO')}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-sm text-blue-600">
+                      {new Intl.NumberFormat('es-CO', {
+                        style: 'currency',
+                        currency: 'COP',
+                        minimumFractionDigits: 0,
+                      }).format(expense.amount)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Filters */}
+      {/* Filters - Compact */}
       <Card>
-        <CardHeader>
-          <CardTitle>Buscar y Filtrar Gastos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Search */}
-            <Input
-              placeholder="Buscar por nombre..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              onKeyPress={e => {
-                if (e.key === 'Enter') handleSearch();
-              }}
-            />
+        <CardContent className="p-3">
+          <div className="space-y-2">
+            {/* Search and Filters Row */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                placeholder="Buscar por nombre..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                onKeyPress={e => {
+                  if (e.key === 'Enter') handleSearch();
+                }}
+                className="flex-1 min-w-[200px] text-sm py-1.5"
+              />
 
-            {/* Filters Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <Select
-                value={typeFilter}
-                onChange={e => setTypeFilter(e.target.value)}
-              >
-                <option value="ALL">Todos los tipos</option>
-                {Object.entries(EXPENSE_TYPE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-
-              <Select
-                value={categoryFilter}
-                onChange={e => setCategoryFilter(e.target.value)}
-              >
-                <option value="ALL">Todas las categorías</option>
-                {Object.entries(EXPENSE_CATEGORY_LABELS).map(
-                  ([value, label]) => (
+              <div className="min-w-[140px]">
+                <Select
+                  value={typeFilter}
+                  onChange={e => setTypeFilter(e.target.value)}
+                  className="text-sm"
+                >
+                  <option value="ALL">Todos los tipos</option>
+                  {Object.entries(EXPENSE_TYPE_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
                     </option>
-                  )
-                )}
-              </Select>
+                  ))}
+                </Select>
+              </div>
 
-              <Select
-                value={frequencyFilter}
-                onChange={e => setFrequencyFilter(e.target.value)}
-              >
-                <option value="ALL">Todas las frecuencias</option>
-                {Object.entries(EXPENSE_FREQUENCY_LABELS).map(
-                  ([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  )
-                )}
-              </Select>
+              <div className="min-w-[160px]">
+                <Select
+                  value={categoryFilter}
+                  onChange={e => setCategoryFilter(e.target.value)}
+                  className="text-sm"
+                >
+                  <option value="ALL">Todas las categorías</option>
+                  {Object.entries(EXPENSE_CATEGORY_LABELS).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    )
+                  )}
+                </Select>
+              </div>
 
-              <Select
-                value={isPaidFilter}
-                onChange={e => setIsPaidFilter(e.target.value)}
-              >
-                <option value="ALL">Todos los estados</option>
-                <option value="false">Pendiente</option>
-                <option value="true">Pagado</option>
-              </Select>
+              <div className="min-w-[150px]">
+                <Select
+                  value={frequencyFilter}
+                  onChange={e => setFrequencyFilter(e.target.value)}
+                  className="text-sm"
+                >
+                  <option value="ALL">Todas las frecuencias</option>
+                  {Object.entries(EXPENSE_FREQUENCY_LABELS).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    )
+                  )}
+                </Select>
+              </div>
 
-              <div className="flex gap-2">
+              <div className="min-w-[140px]">
+                <Select
+                  value={isPaidFilter}
+                  onChange={e => setIsPaidFilter(e.target.value)}
+                  className="text-sm"
+                >
+                  <option value="ALL">Todos los estados</option>
+                  <option value="false">Pendiente</option>
+                  <option value="true">Pagado</option>
+                </Select>
+              </div>
+
+              <div className="flex gap-1.5">
                 <Input
                   type="date"
                   value={dateFrom}
                   onChange={e => setDateFrom(e.target.value)}
                   placeholder="Desde"
+                  className="w-[130px] text-sm py-1.5"
                 />
                 <Input
                   type="date"
                   value={dateTo}
                   onChange={e => setDateTo(e.target.value)}
                   placeholder="Hasta"
+                  className="w-[130px] text-sm py-1.5"
                 />
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSearch}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Buscar
-              </Button>
-              {hasActiveFilters && (
+              <div className="flex gap-1.5">
                 <Button
-                  onClick={handleClearFilters}
-                  className="bg-gray-600 hover:bg-gray-700"
+                  onClick={handleSearch}
+                  className="bg-blue-600 hover:bg-blue-700 text-sm px-3 py-1.5 h-auto"
                 >
-                  Limpiar Filtros
+                  Buscar
                 </Button>
-              )}
+                {hasActiveFilters && (
+                  <Button
+                    onClick={handleClearFilters}
+                    className="bg-gray-600 hover:bg-gray-700 text-sm px-3 py-1.5 h-auto"
+                  >
+                    Limpiar
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -423,7 +423,6 @@ export function ExpensesClient({
             <>
               <ExpenseTable
                 expenses={expenses}
-                onView={handleViewExpense}
                 onPay={handlePayExpense}
                 onEdit={handleEditExpense}
               />

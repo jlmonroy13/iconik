@@ -175,20 +175,19 @@ export function ExpensePaymentModal({
               <div>
                 <Select
                   label="Cuenta del Spa *"
-                  options={[
-                    { value: '', label: 'Seleccionar cuenta...' },
-                    ...activeAccounts.map(account => ({
-                      value: account.id,
-                      label: `${account.name} - ${ACCOUNT_TYPE_LABELS[account.type]} ${
-                        account.bank ? `(${account.bank})` : ''
-                      }`,
-                    })),
-                  ]}
                   value={field.value}
                   onChange={field.onChange}
                   error={errors.spaAccountId?.message}
                   required
-                />
+                >
+                  <option value="">Seleccionar cuenta...</option>
+                  {activeAccounts.map(account => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} - {ACCOUNT_TYPE_LABELS[account.type]}{' '}
+                      {account.bank ? `(${account.bank})` : ''}
+                    </option>
+                  ))}
+                </Select>
                 {selectedAccount && (
                   <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -214,16 +213,20 @@ export function ExpensePaymentModal({
             )}
           />
 
-          <Input
-            label="Monto a Pagar *"
-            type="number"
-            step="0.01"
-            {...register('amount', { valueAsNumber: true })}
-            placeholder="0"
-            error={errors.amount?.message}
-            helperText={`Máximo: ${formatCurrency(expense.remainingAmount)}`}
-            required
-          />
+          <div>
+            <Input
+              label="Monto a Pagar *"
+              type="number"
+              step="0.01"
+              {...register('amount', { valueAsNumber: true })}
+              placeholder="0"
+              error={errors.amount?.message}
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Máximo: {formatCurrency(expense.remainingAmount)}
+            </p>
+          </div>
 
           <Input
             label="Fecha de Pago *"

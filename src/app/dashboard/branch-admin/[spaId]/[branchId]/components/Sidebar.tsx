@@ -45,6 +45,11 @@ const navigation = [
     icon: '💰',
   },
   {
+    name: 'Gastos',
+    href: '/dashboard/branch-admin/[spaId]/[branchId]/expenses',
+    icon: '💸',
+  },
+  {
     name: 'Configuración',
     href: '/dashboard/branch-admin/[spaId]/[branchId]/settings',
     icon: '⚙️',

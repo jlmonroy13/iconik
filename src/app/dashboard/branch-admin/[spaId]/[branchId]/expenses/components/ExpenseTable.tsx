@@ -11,17 +11,11 @@ import {
 
 interface ExpenseTableProps {
   expenses: ExpenseListItem[];
-  onView: (expenseId: string) => void;
   onPay: (expense: ExpenseListItem) => void;
   onEdit: (expense: ExpenseListItem) => void;
 }
 
-export function ExpenseTable({
-  expenses,
-  onView,
-  onPay,
-  onEdit,
-}: ExpenseTableProps) {
+export function ExpenseTable({ expenses, onPay, onEdit }: ExpenseTableProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -155,14 +149,6 @@ export function ExpenseTable({
                       Pagar
                     </Button>
                   )}
-                  <Button
-                    onClick={() => onView(expense.id)}
-                    variant="secondary"
-                    size="sm"
-                    className="text-xs"
-                  >
-                    Ver
-                  </Button>
                   <Button
                     onClick={() => onEdit(expense)}
                     variant="secondary"

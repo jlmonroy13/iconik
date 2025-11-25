@@ -182,12 +182,17 @@ export function ExpenseModal({
             render={({ field }) => (
               <Select
                 label="Tipo de Gasto *"
-                options={typeOptions}
                 value={field.value}
                 onChange={field.onChange}
                 error={errors.type?.message}
                 required
-              />
+              >
+                {typeOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
             )}
           />
 
@@ -197,12 +202,17 @@ export function ExpenseModal({
             render={({ field }) => (
               <Select
                 label="Categoría *"
-                options={categoryOptions}
                 value={field.value}
                 onChange={field.onChange}
                 error={errors.category?.message}
                 required
-              />
+              >
+                {categoryOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
             )}
           />
 
@@ -212,12 +222,17 @@ export function ExpenseModal({
             render={({ field }) => (
               <Select
                 label="Frecuencia *"
-                options={frequencyOptions}
                 value={field.value}
                 onChange={field.onChange}
                 error={errors.frequency?.message}
                 required
-              />
+              >
+                {frequencyOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
             )}
           />
         </div>
